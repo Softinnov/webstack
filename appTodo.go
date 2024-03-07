@@ -6,9 +6,8 @@ import (
 
 func main() {
 	// handle route using handler function
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "ihm/src/app.svelte")
-	})
+	fs := http.FileServer(http.Dir("./ihm"))
+	http.Handle("/", fs)
 
 	// listen to port
 	http.ListenAndServe(":5050", nil)

@@ -1,3 +1,6 @@
+<!--permet d'appeler le composant svelte dans le fichier html avec une simple balise-->
+<svelte:options customElement="app-todo" />
+
 <script>
 	let todos = [
 		{ done: false, text: 'Ma 1ère tâche' },

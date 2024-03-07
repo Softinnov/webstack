@@ -1,0 +1,8 @@
+{
+    "type": "module",
+    "dependencies": {
+      "esbuild": "^0.19.4",
+      "esbuild-svelte": "^0.8.0",
+      "svelte": "^4.2.1"
+    }
+  }
