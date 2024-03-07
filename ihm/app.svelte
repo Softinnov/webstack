@@ -4,7 +4,8 @@
 <script>
 	let todos = [
 		{ done: false, text: 'Ma 1ère tâche' },
-		{ done: false, text: 'Ma 2ème tâche' }
+		{ done: false, text: 'Ma 2ème tâche' },
+		{ done: false, text: '' }
 	];
 
 	function add() {
@@ -53,6 +54,15 @@
 </div>
 
 <style>
+	h1{
+		font-size: 70px;
+	}
+
+	p{
+		font-size: large;
+		margin-left: 20%;
+		margin-right: auto;
+	}
 	.centered {
 		max-width: 20em;
 		margin: 0 auto;
@@ -71,5 +81,24 @@
 		padding: 0.5em;
 		margin: -0.2em 0;
 		border: none;
+		font-size: large;
 	}
+
+	button{
+		background-color: #216fedd3;
+		width: 125px;
+		border: none;
+		color: white;
+		padding: 15px 32px;
+		text-align: center;
+		text-decoration: none;
+		display: inline-block;
+		font-size: 16px;
+	}
+
+	button:hover{
+		background-color: #0a47a9d3;
+		cursor: pointer;
+	}
+	
 </style>

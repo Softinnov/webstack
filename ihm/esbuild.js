@@ -12,6 +12,7 @@ let ctx = await esbuild.context({
 		})
 	],
 	banner: {
+        //crée un eventlistener qui détecte les modifications du code et actualise la page pour afficher les modifs en direct
 		js: "new EventSource('http://127.0.0.1:8888/esbuild').addEventListener('change', () => location.reload())"
 	},
 	logLevel: 'info'

@@ -690,7 +690,7 @@ if (typeof window !== "undefined")
 
 // app.svelte
 function add_css(target) {
-  append_styles(target, "svelte-1ornuq7", '.centered.svelte-1ornuq7{max-width:20em;margin:0 auto}.done.svelte-1ornuq7{opacity:0.4}li.svelte-1ornuq7{display:flex}input[type="text"].svelte-1ornuq7{flex:1;padding:0.5em;margin:-0.2em 0;border:none}');
+  append_styles(target, "svelte-1ldddz3", 'h1.svelte-1ldddz3{font-size:70px}p.svelte-1ldddz3{font-size:large;margin-left:20%;margin-right:auto}.centered.svelte-1ldddz3{max-width:20em;margin:0 auto}.done.svelte-1ldddz3{opacity:0.4}li.svelte-1ldddz3{display:flex}input[type="text"].svelte-1ldddz3{flex:1;padding:0.5em;margin:-0.2em 0;border:none;font-size:large}button.svelte-1ldddz3{background-color:#216fedd3;width:125px;border:none;color:white;padding:15px 32px;text-align:center;text-decoration:none;display:inline-block;font-size:16px}button.svelte-1ldddz3:hover{background-color:#0a47a9d3;cursor:pointer}');
 }
 function get_each_context(ctx, list, i) {
   const child_ctx = ctx.slice();
@@ -735,8 +735,8 @@ function create_each_block(ctx) {
       attr(input0, "type", "checkbox");
       attr(input1, "type", "text");
       attr(input1, "placeholder", "Quoi d'autre?");
-      attr(input1, "class", "svelte-1ornuq7");
-      attr(li, "class", "svelte-1ornuq7");
+      attr(input1, "class", "svelte-1ldddz3");
+      attr(li, "class", "svelte-1ldddz3");
       toggle_class(
         li,
         "done",
@@ -846,8 +846,12 @@ function create_fragment(ctx) {
       t7 = space();
       button1 = element("button");
       button1.textContent = "Supprimer";
+      attr(h1, "class", "svelte-1ldddz3");
       attr(ul, "class", "todos");
-      attr(div, "class", "centered svelte-1ornuq7");
+      attr(p, "class", "svelte-1ldddz3");
+      attr(button0, "class", "svelte-1ldddz3");
+      attr(button1, "class", "svelte-1ldddz3");
+      attr(div, "class", "centered svelte-1ldddz3");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -930,7 +934,11 @@ function create_fragment(ctx) {
 }
 function instance($$self, $$props, $$invalidate) {
   let remaining;
-  let todos = [{ done: false, text: "Ma 1\xE8re t\xE2che" }, { done: false, text: "Ma 2\xE8me t\xE2che" }];
+  let todos = [
+    { done: false, text: "Ma 1\xE8re t\xE2che" },
+    { done: false, text: "Ma 2\xE8me t\xE2che" },
+    { done: false, text: "" }
+  ];
   function add() {
     $$invalidate(0, todos = todos.concat({ done: false, text: "" }));
   }
