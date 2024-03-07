@@ -28,7 +28,7 @@ func (mt *MyTodo) delete(text string) error {
 			return nil
 		}
 	}
-	return fmt.Errorf("Todo '%s' not found", text)
+	return fmt.Errorf("Todo '%s' introuvable", text)
 }
 
 func (mt *MyTodo) modif(oldText, newText string) error {
@@ -38,7 +38,7 @@ func (mt *MyTodo) modif(oldText, newText string) error {
 			return nil
 		}
 	}
-	return fmt.Errorf("Todo '%s' not found", oldText)
+	return fmt.Errorf("Todo '%s' introuvable", oldText)
 }
 
 func main() {
@@ -53,19 +53,23 @@ func main() {
 
 	err := myList.modif("Ma 1ère tâche", "1ère tâche modifiée")
 	if err != nil {
-		fmt.Println("Error:", err)
+		fmt.Println("Error :", err)
 	} else {
-		fmt.Println("Modified list:", myList)
+		fmt.Println("Nouvelle liste :", myList)
 	}
 
 	newTodo := Todo{false, ""}
 	errAdd := myList.add(newTodo)
 	if errAdd != nil {
-		fmt.Println("Error adding todo:", errAdd)
+		fmt.Println("Error :", errAdd)
 	} else {
-		fmt.Println("Todo added successfully:", myList)
+		fmt.Println("Todo ajouté !", myList)
 	}
 
-	myList.delete("Ma 2ème tâche")
-	fmt.Println(myList)
+	errDel := myList.delete("Ma 2ème tâche")
+	if errDel != nil {
+		fmt.Println("Error :", errDel)
+	} else {
+		fmt.Println("Todo supprimé !", myList)
+	}
 }
