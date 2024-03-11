@@ -2,53 +2,87 @@
 <svelte:options customElement="app-todo" />
 
 <script>
+
 	let todos = [
-		{ done: false, text: 'Ma 1ère tâche' },
-		{ done: false, text: 'Ma 2ème tâche' },
-		{ done: false, text: '' }
+		{ done: false, text: 'Ma 1ère tâche' }
 	];
+	let nouvelleTache='';
 
 	function add() {
-		todos = todos.concat({
+		let todo = {
 			done: false,
-			text: ''
-		});
+			text: nouvelleTache
+		}
+		
+		try{
+			reqFetch(todo);
+			alert("ToDo bien ajouté !");
+		} catch (error) {
+			console.error(`Erreur lors de la connection au serveur : ${error.message}`)
+		}
+		todos = todos.concat(todo);
+		nouvelleTache='';		
 	}
 
 	function clear() {
+		
+
 		todos = todos.filter((t) => !t.done);
 	}
 
+	async function reqFetch(todo) {
+		const url = `/service?check=${todo.done}&text=${todo.text}`
+		
+		try {
+			const reponse = await fetch(url,{method: "GET"});
+			console.log(reponse);
+			if (!reponse.ok) {
+				throw new Error(`Erreur lors de la requête : ${reponse.status} ${reponse.statusText}`);
+			}
+			const result = await reponse.json();
+			console.log(result);
+		} catch (error) {
+			console.error(`Une erreur s'est produite : ${error.message}`);
+		}
+	}
+
 	$: remaining = todos.filter((t) => !t.done).length;
+	$: deletable = todos.filter((t)=>t.done).length>0;
 </script>
 
 <div class="centered">
 	<h1>Ma ToDoList</h1>
 
-	<ul class="todos">
+	{JSON.stringify(todos)}
+	<input 
+		type="text" 
+		placeholder="Quoi d'autre?"
+		bind:value={nouvelleTache}
+	/>
+	<button class="ajout" disabled={nouvelleTache==""} on:click={add}>
+		Ajouter
+	</button>
+	<form method="GET" class="todos">	
 		{#each todos as todo}
 			<li class:done={todo.done}>
 				<input
+					id="check"
 					type="checkbox"
 					bind:checked={todo.done}
 				/>
 
 				<input
+					id="todo"
 					type="text"
-					placeholder="Quoi d'autre?"
 					bind:value={todo.text}
 				/>
 			</li>
 		{/each}
-	</ul>
+		</form>
 
 	<p>{remaining} tâches restantes !</p>
 
-	<button on:click={add}>
-		Ajouter
-	</button>
-
-	<button on:click={clear}>
+	<button disabled={!deletable} on:click={clear}>
 		Supprimer
 	</button>
 </div>
@@ -68,6 +102,12 @@
 		margin: 0 auto;
 	}
 
+	.ajout {
+		position: relative;
+		right: -85%;
+		top: -10%
+	}
+
 	.done {
 		opacity: 0.4;
 	}
@@ -82,23 +122,6 @@
 		margin: -0.2em 0;
 		border: none;
 		font-size: large;
-	}
-
-	button{
-		background-color: #216fedd3;
-		width: 125px;
-		border: none;
-		color: white;
-		padding: 15px 32px;
-		text-align: center;
-		text-decoration: none;
-		display: inline-block;
-		font-size: 16px;
-	}
-
-	button:hover{
-		background-color: #0a47a9d3;
-		cursor: pointer;
 	}
 	
 </style>

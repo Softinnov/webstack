@@ -3,7 +3,7 @@ package main
 import "fmt"
 
 type Todo struct {
-	done bool
+	done string
 	text string
 }
 
@@ -20,15 +20,15 @@ func (mt *MyTodo) add(t Todo) error {
 	return nil
 }
 
-func (mt *MyTodo) delete(text string) error {
+func (mt *MyTodo) delete(t Todo) error {
 	for i, t := range mt.todos {
-		if t.text == text {
+		if t.done == "true" {
 			//Supprime l'élément visé sans changer l'ordre
 			mt.todos = append(mt.todos[:i], mt.todos[i+1:]...)
 			return nil
 		}
 	}
-	return fmt.Errorf("Todo '%s' introuvable", text)
+	return fmt.Errorf("Todo '%s' introuvable", t.text)
 }
 
 func (mt *MyTodo) modif(oldText, newText string) error {
@@ -42,8 +42,8 @@ func (mt *MyTodo) modif(oldText, newText string) error {
 }
 
 func main() {
-	a := Todo{false, "Ma 1ère tâche"}
-	b := Todo{false, "Ma 2ème tâche"}
+	a := Todo{"false", "Ma 1ère tâche"}
+	b := Todo{"true", "Ma 2ème tâche"}
 	todos := []Todo{}
 	myList := MyTodo{todos}
 
@@ -58,7 +58,7 @@ func main() {
 		fmt.Println("Nouvelle liste :", myList)
 	}
 
-	newTodo := Todo{false, ""}
+	newTodo := Todo{"false", "C moi"}
 	errAdd := myList.add(newTodo)
 	if errAdd != nil {
 		fmt.Println("Error :", errAdd)
@@ -66,7 +66,7 @@ func main() {
 		fmt.Println("Todo ajouté !", myList)
 	}
 
-	errDel := myList.delete("Ma 2ème tâche")
+	errDel := myList.delete(b)
 	if errDel != nil {
 		fmt.Println("Error :", errDel)
 	} else {
