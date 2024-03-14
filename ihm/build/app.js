@@ -690,78 +690,80 @@ if (typeof window !== "undefined")
 
 // app.svelte
 function add_css(target) {
-  append_styles(target, "svelte-76fs9q", 'h1.svelte-76fs9q{font-size:70px}p.svelte-76fs9q{font-size:large;margin-left:20%;margin-right:auto}.centered.svelte-76fs9q{max-width:20em;margin:0 auto}.ajout.svelte-76fs9q{position:relative;right:-85%;top:-10%\n	}.done.svelte-76fs9q{opacity:0.4}li.svelte-76fs9q{display:flex}input[type="text"].svelte-76fs9q{flex:1;padding:0.5em;margin:-0.2em 0;border:none;font-size:large}');
+  append_styles(target, "svelte-fft5xe", 'h1.svelte-fft5xe{font-size:70px}p.svelte-fft5xe{font-size:large;margin-left:20%;margin-right:auto}.centered.svelte-fft5xe{max-width:20em;margin:0 auto}.newTask.svelte-fft5xe{margin-bottom:15%}.todos.svelte-fft5xe{margin-top:10%}.ajout.svelte-fft5xe{position:relative;right:-15%;top:-10%\n	}.done.svelte-fft5xe{opacity:0.4}li.svelte-fft5xe{display:flex}input[type="text"].svelte-fft5xe{flex:1;padding:0.5em;margin:-0.2em 0;border:none;font-size:large}');
 }
 function get_each_context(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[9] = list[i];
-  child_ctx[10] = list;
-  child_ctx[11] = i;
+  child_ctx[8] = list[i];
+  child_ctx[9] = list;
+  child_ctx[10] = i;
   return child_ctx;
 }
 function create_each_block(ctx) {
   let li;
-  let input0;
-  let t0;
-  let input1;
+  let button;
   let t1;
+  let input;
+  let t2;
   let mounted;
   let dispose;
-  function input0_change_handler() {
-    ctx[7].call(
-      input0,
+  function input_input_handler_1() {
+    ctx[6].call(
+      input,
       /*each_value*/
-      ctx[10],
-      /*todo_index*/
-      ctx[11]
-    );
-  }
-  function input1_input_handler() {
-    ctx[8].call(
-      input1,
-      /*each_value*/
-      ctx[10],
-      /*todo_index*/
-      ctx[11]
+      ctx[9],
+      /*item_index*/
+      ctx[10]
     );
   }
   return {
     c() {
       li = element("li");
-      input0 = element("input");
-      t0 = space();
-      input1 = element("input");
+      button = element("button");
+      button.textContent = "\u{1F5D1}\uFE0F";
       t1 = space();
-      attr(input0, "id", "check");
-      attr(input0, "type", "checkbox");
-      attr(input1, "id", "todo");
-      attr(input1, "type", "text");
-      attr(input1, "class", "svelte-76fs9q");
-      attr(li, "class", "svelte-76fs9q");
+      input = element("input");
+      t2 = space();
+      attr(button, "type", "button");
+      attr(button, "class", "delete");
+      attr(input, "id", "todo");
+      attr(input, "type", "text");
+      attr(input, "class", "svelte-fft5xe");
+      attr(li, "class", "svelte-fft5xe");
       toggle_class(
         li,
         "done",
-        /*todo*/
-        ctx[9].done
+        /*item*/
+        ctx[8].done
       );
     },
     m(target, anchor) {
       insert(target, li, anchor);
-      append(li, input0);
-      input0.checked = /*todo*/
-      ctx[9].done;
-      append(li, t0);
-      append(li, input1);
-      set_input_value(
-        input1,
-        /*todo*/
-        ctx[9].text
-      );
+      append(li, button);
       append(li, t1);
+      append(li, input);
+      set_input_value(
+        input,
+        /*item*/
+        ctx[8].text
+      );
+      append(li, t2);
       if (!mounted) {
         dispose = [
-          listen(input0, "change", input0_change_handler),
-          listen(input1, "input", input1_input_handler)
+          listen(button, "click", function() {
+            if (is_function(
+              /*xclear*/
+              ctx[4](
+                /*item*/
+                ctx[8]
+              )
+            ))
+              ctx[4](
+                /*item*/
+                ctx[8]
+              ).apply(this, arguments);
+          }),
+          listen(input, "input", input_input_handler_1)
         ];
         mounted = true;
       }
@@ -769,17 +771,12 @@ function create_each_block(ctx) {
     p(new_ctx, dirty) {
       ctx = new_ctx;
       if (dirty & /*todos*/
-      1) {
-        input0.checked = /*todo*/
-        ctx[9].done;
-      }
-      if (dirty & /*todos*/
-      1 && input1.value !== /*todo*/
-      ctx[9].text) {
+      1 && input.value !== /*item*/
+      ctx[8].text) {
         set_input_value(
-          input1,
-          /*todo*/
-          ctx[9].text
+          input,
+          /*item*/
+          ctx[8].text
         );
       }
       if (dirty & /*todos*/
@@ -787,8 +784,8 @@ function create_each_block(ctx) {
         toggle_class(
           li,
           "done",
-          /*todo*/
-          ctx[9].done
+          /*item*/
+          ctx[8].done
         );
       }
     },
@@ -805,27 +802,17 @@ function create_fragment(ctx) {
   let div;
   let h1;
   let t1;
-  let t2_value = JSON.stringify(
-    /*todos*/
-    ctx[0]
-  ) + "";
-  let t2;
-  let t3;
   let input;
+  let t2;
+  let button;
+  let t3;
+  let button_disabled_value;
   let t4;
-  let button0;
+  let ul;
   let t5;
-  let button0_disabled_value;
-  let t6;
-  let form;
-  let t7;
   let p;
-  let t8;
-  let t9;
-  let t10;
-  let button1;
-  let t11;
-  let button1_disabled_value;
+  let t6;
+  let t7;
   let mounted;
   let dispose;
   let each_value = ensure_array_like(
@@ -842,101 +829,77 @@ function create_fragment(ctx) {
       h1 = element("h1");
       h1.textContent = "Ma ToDoList";
       t1 = space();
-      t2 = text(t2_value);
-      t3 = space();
       input = element("input");
+      t2 = space();
+      button = element("button");
+      t3 = text("Ajouter");
       t4 = space();
-      button0 = element("button");
-      t5 = text("Ajouter");
-      t6 = space();
-      form = element("form");
+      ul = element("ul");
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      t7 = space();
+      t5 = space();
       p = element("p");
-      t8 = text(
+      t6 = text(
         /*remaining*/
-        ctx[3]
+        ctx[2]
       );
-      t9 = text(" t\xE2ches restantes !");
-      t10 = space();
-      button1 = element("button");
-      t11 = text("Supprimer");
-      attr(h1, "class", "svelte-76fs9q");
+      t7 = text(" t\xE2ches restantes !");
+      attr(h1, "class", "svelte-fft5xe");
+      attr(input, "class", "newTask svelte-fft5xe");
       attr(input, "type", "text");
       attr(input, "placeholder", "Quoi d'autre?");
-      attr(input, "class", "svelte-76fs9q");
-      attr(button0, "class", "ajout svelte-76fs9q");
-      button0.disabled = button0_disabled_value = /*nouvelleTache*/
+      attr(button, "class", "ajout svelte-fft5xe");
+      button.disabled = button_disabled_value = /*nouvelleTache*/
       ctx[1] == "";
-      attr(form, "method", "GET");
-      attr(form, "class", "todos");
-      attr(p, "class", "svelte-76fs9q");
-      button1.disabled = button1_disabled_value = !/*deletable*/
-      ctx[2];
-      attr(div, "class", "centered svelte-76fs9q");
+      attr(ul, "id", "todo-list");
+      attr(ul, "class", "todos svelte-fft5xe");
+      attr(p, "class", "svelte-fft5xe");
+      attr(div, "class", "centered svelte-fft5xe");
     },
     m(target, anchor) {
       insert(target, div, anchor);
       append(div, h1);
       append(div, t1);
-      append(div, t2);
-      append(div, t3);
       append(div, input);
       set_input_value(
         input,
         /*nouvelleTache*/
         ctx[1]
       );
+      append(div, t2);
+      append(div, button);
+      append(button, t3);
       append(div, t4);
-      append(div, button0);
-      append(button0, t5);
-      append(div, t6);
-      append(div, form);
+      append(div, ul);
       for (let i = 0; i < each_blocks.length; i += 1) {
         if (each_blocks[i]) {
-          each_blocks[i].m(form, null);
+          each_blocks[i].m(ul, null);
         }
       }
-      append(div, t7);
+      append(div, t5);
       append(div, p);
-      append(p, t8);
-      append(p, t9);
-      append(div, t10);
-      append(div, button1);
-      append(button1, t11);
+      append(p, t6);
+      append(p, t7);
       if (!mounted) {
         dispose = [
           listen(
             input,
             "input",
             /*input_input_handler*/
-            ctx[6]
+            ctx[5]
           ),
           listen(
-            button0,
+            button,
             "click",
             /*add*/
-            ctx[4]
-          ),
-          listen(
-            button1,
-            "click",
-            /*clear*/
-            ctx[5]
+            ctx[3]
           )
         ];
         mounted = true;
       }
     },
     p(ctx2, [dirty]) {
-      if (dirty & /*todos*/
-      1 && t2_value !== (t2_value = JSON.stringify(
-        /*todos*/
-        ctx2[0]
-      ) + ""))
-        set_data(t2, t2_value);
       if (dirty & /*nouvelleTache*/
       2 && input.value !== /*nouvelleTache*/
       ctx2[1]) {
@@ -947,12 +910,12 @@ function create_fragment(ctx) {
         );
       }
       if (dirty & /*nouvelleTache*/
-      2 && button0_disabled_value !== (button0_disabled_value = /*nouvelleTache*/
+      2 && button_disabled_value !== (button_disabled_value = /*nouvelleTache*/
       ctx2[1] == "")) {
-        button0.disabled = button0_disabled_value;
+        button.disabled = button_disabled_value;
       }
-      if (dirty & /*todos*/
-      1) {
+      if (dirty & /*todos, xclear*/
+      17) {
         each_value = ensure_array_like(
           /*todos*/
           ctx2[0]
@@ -965,7 +928,7 @@ function create_fragment(ctx) {
           } else {
             each_blocks[i] = create_each_block(child_ctx);
             each_blocks[i].c();
-            each_blocks[i].m(form, null);
+            each_blocks[i].m(ul, null);
           }
         }
         for (; i < each_blocks.length; i += 1) {
@@ -974,17 +937,12 @@ function create_fragment(ctx) {
         each_blocks.length = each_value.length;
       }
       if (dirty & /*remaining*/
-      8)
+      4)
         set_data(
-          t8,
+          t6,
           /*remaining*/
-          ctx2[3]
+          ctx2[2]
         );
-      if (dirty & /*deletable*/
-      4 && button1_disabled_value !== (button1_disabled_value = !/*deletable*/
-      ctx2[2])) {
-        button1.disabled = button1_disabled_value;
-      }
     },
     i: noop,
     o: noop,
@@ -998,11 +956,10 @@ function create_fragment(ctx) {
     }
   };
 }
-async function reqFetch(todo) {
+async function sendTodo(todo) {
   const url = `/service?check=${todo.done}&text=${todo.text}`;
   try {
-    const reponse = await fetch(url, { method: "GET" });
-    console.log(reponse);
+    const reponse = await fetch(url, { method: "POST" });
     if (!reponse.ok) {
       throw new Error(`Erreur lors de la requ\xEAte : ${reponse.status} ${reponse.statusText}`);
     }
@@ -1014,57 +971,64 @@ async function reqFetch(todo) {
 }
 function instance($$self, $$props, $$invalidate) {
   let remaining;
-  let deletable;
-  let todos = [{ done: false, text: "Ma 1\xE8re t\xE2che" }];
+  let todos = [];
   let nouvelleTache = "";
   function add() {
     let todo = { done: false, text: nouvelleTache };
     try {
-      reqFetch(todo);
-      alert("ToDo bien ajout\xE9 !");
+      sendTodo(todo);
     } catch (error) {
       console.error(`Erreur lors de la connection au serveur : ${error.message}`);
     }
-    $$invalidate(0, todos = todos.concat(todo));
+    getTodos();
     $$invalidate(1, nouvelleTache = "");
   }
-  function clear() {
-    $$invalidate(0, todos = todos.filter((t) => !t.done));
+  function xclear(item) {
+    try {
+      item.done = true;
+      sendTodo(item);
+    } catch (error) {
+      console.error(`Erreur lors de la connection au serveur : ${error.message}`);
+    }
+    getTodos();
+  }
+  async function getTodos() {
+    const url = `/todos`;
+    try {
+      const reponse = await fetch(url, { method: "GET" });
+      if (!reponse.ok) {
+        throw new Error(`Erreur lors de la requ\xEAte : ${reponse.status} ${reponse.statusText}`);
+      }
+      const result = await reponse.json();
+      console.log(reponse.message);
+      $$invalidate(0, todos = result);
+    } catch (error) {
+      console.error(`Une erreur s'est produite : ${error.message}`);
+    }
   }
   function input_input_handler() {
     nouvelleTache = this.value;
     $$invalidate(1, nouvelleTache);
   }
-  function input0_change_handler(each_value, todo_index) {
-    each_value[todo_index].done = this.checked;
-    $$invalidate(0, todos);
-  }
-  function input1_input_handler(each_value, todo_index) {
-    each_value[todo_index].text = this.value;
+  function input_input_handler_1(each_value, item_index) {
+    each_value[item_index].text = this.value;
     $$invalidate(0, todos);
   }
   $$self.$$.update = () => {
     if ($$self.$$.dirty & /*todos*/
     1) {
       $:
-        $$invalidate(3, remaining = todos.filter((t) => !t.done).length);
-    }
-    if ($$self.$$.dirty & /*todos*/
-    1) {
-      $:
-        $$invalidate(2, deletable = todos.filter((t) => t.done).length > 0);
+        $$invalidate(2, remaining = todos.filter((t) => !t.done).length);
     }
   };
   return [
     todos,
     nouvelleTache,
-    deletable,
     remaining,
     add,
-    clear,
+    xclear,
     input_input_handler,
-    input0_change_handler,
-    input1_input_handler
+    input_input_handler_1
   ];
 }
 var App = class extends SvelteComponent {

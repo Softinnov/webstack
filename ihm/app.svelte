@@ -3,9 +3,7 @@
 
 <script>
 
-	let todos = [
-		{ done: false, text: 'Ma 1ère tâche' }
-	];
+	let todos = [];
 	let nouvelleTache='';
 
 	function add() {
@@ -13,29 +11,48 @@
 			done: false,
 			text: nouvelleTache
 		}
-		
 		try{
-			reqFetch(todo);
-			alert("ToDo bien ajouté !");
+			sendTodo(todo);
 		} catch (error) {
-			console.error(`Erreur lors de la connection au serveur : ${error.message}`)
+			console.error(`Erreur lors de la connection au serveur : ${error.message}`);
 		}
-		todos = todos.concat(todo);
-		nouvelleTache='';		
+		getTodos();
+		nouvelleTache='';
 	}
 
-	function clear() {
-		
-
-		todos = todos.filter((t) => !t.done);
+	function xclear(item) {
+		try {
+			item.done=true;
+			sendTodo(item);
+		} catch (error) {
+			console.error(`Erreur lors de la connection au serveur : ${error.message}`);
+		}
+		getTodos();
+		// todos = todos.filter((t) => t.done==false);
 	}
 
-	async function reqFetch(todo) {
-		const url = `/service?check=${todo.done}&text=${todo.text}`
+	async function getTodos() {
+		const url = `/todos`
 		
 		try {
 			const reponse = await fetch(url,{method: "GET"});
-			console.log(reponse);
+			if (!reponse.ok) {
+				throw new Error(`Erreur lors de la requête : ${reponse.status} ${reponse.statusText}`);
+			}
+			const result = await reponse.json();
+			console.log(reponse.message);
+			todos = result;
+			
+		} catch (error) {
+			console.error(`Une erreur s'est produite : ${error.message}`);
+		}
+	}
+
+	async function sendTodo(todo) {
+		const url = `/service?check=${todo.done}&text=${todo.text}`
+		
+		try {
+			const reponse = await fetch(url,{method: "POST"});
 			if (!reponse.ok) {
 				throw new Error(`Erreur lors de la requête : ${reponse.status} ${reponse.statusText}`);
 			}
@@ -47,14 +64,15 @@
 	}
 
 	$: remaining = todos.filter((t) => !t.done).length;
-	$: deletable = todos.filter((t)=>t.done).length>0;
+
 </script>
 
 <div class="centered">
+
 	<h1>Ma ToDoList</h1>
 
-	{JSON.stringify(todos)}
 	<input 
+		class="newTask"
 		type="text" 
 		placeholder="Quoi d'autre?"
 		bind:value={nouvelleTache}
@@ -62,29 +80,24 @@
 	<button class="ajout" disabled={nouvelleTache==""} on:click={add}>
 		Ajouter
 	</button>
-	<form method="GET" class="todos">	
-		{#each todos as todo}
-			<li class:done={todo.done}>
-				<input
-					id="check"
-					type="checkbox"
-					bind:checked={todo.done}
-				/>
+	<ul id="todo-list" class="todos">	
+		{#each todos as item}
+			<li class:done={item.done}>
+				<button type="button" class="delete" on:click={xclear(item)}>
+					🗑️
+				</button>
 
 				<input
 					id="todo"
 					type="text"
-					bind:value={todo.text}
+					bind:value={item.text}
 				/>
 			</li>
 		{/each}
-		</form>
+		</ul>
 
 	<p>{remaining} tâches restantes !</p>
-
-	<button disabled={!deletable} on:click={clear}>
-		Supprimer
-	</button>
+	
 </div>
 
 <style>
@@ -102,9 +115,17 @@
 		margin: 0 auto;
 	}
 
+	.newTask {
+		margin-bottom: 15%;
+	}
+
+	.todos {
+		margin-top: 10%;
+	}
+
 	.ajout {
 		position: relative;
-		right: -85%;
+		right: -15%;
 		top: -10%
 	}
 
