@@ -2,7 +2,6 @@
 <svelte:options customElement="app-todo" />
 
 <script>
-
 	let todos = [];
 	let nouvelleTache='';
 
@@ -16,7 +15,7 @@
 		} catch (error) {
 			console.error(`Erreur lors de la connection au serveur : ${error.message}`);
 		}
-		getTodos();
+		getTodoList();
 		nouvelleTache='';
 	}
 
@@ -27,20 +26,21 @@
 		} catch (error) {
 			console.error(`Erreur lors de la connection au serveur : ${error.message}`);
 		}
-		getTodos();
+		getTodoList();
 		// todos = todos.filter((t) => t.done==false);
 	}
 
-	async function getTodos() {
-		const url = `/todos`
-		
+	async function getTodoList() {
+		const url = `/todos`	
 		try {
 			const reponse = await fetch(url,{method: "GET"});
 			if (!reponse.ok) {
+				// const errorData = await reponse.text();
+				// alert(errorData.message);
 				throw new Error(`Erreur lors de la requête : ${reponse.status} ${reponse.statusText}`);
 			}
 			const result = await reponse.json();
-			console.log(reponse.message);
+			console.log(result);
 			todos = result;
 			
 		} catch (error) {
@@ -54,10 +54,12 @@
 		try {
 			const reponse = await fetch(url,{method: "POST"});
 			if (!reponse.ok) {
+				const errorData = await reponse.text();
+				alert(errorData);
 				throw new Error(`Erreur lors de la requête : ${reponse.status} ${reponse.statusText}`);
 			}
 			const result = await reponse.json();
-			console.log(result);
+			// console.log(result);
 		} catch (error) {
 			console.error(`Une erreur s'est produite : ${error.message}`);
 		}

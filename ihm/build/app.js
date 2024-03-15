@@ -961,12 +961,15 @@ async function sendTodo(todo) {
   try {
     const reponse = await fetch(url, { method: "POST" });
     if (!reponse.ok) {
+      const errorData = await reponse.text();
+      alert(errorData);
       throw new Error(`Erreur lors de la requ\xEAte : ${reponse.status} ${reponse.statusText}`);
     }
     const result = await reponse.json();
-    console.log(result);
   } catch (error) {
-    console.error(`Une erreur s'est produite : ${error.message}`);
+    console.error(
+      `Une erreur s'est produite : ${error.message}`
+    );
   }
 }
 function instance($$self, $$props, $$invalidate) {
@@ -980,7 +983,7 @@ function instance($$self, $$props, $$invalidate) {
     } catch (error) {
       console.error(`Erreur lors de la connection au serveur : ${error.message}`);
     }
-    getTodos();
+    getTodoList();
     $$invalidate(1, nouvelleTache = "");
   }
   function xclear(item) {
@@ -990,9 +993,9 @@ function instance($$self, $$props, $$invalidate) {
     } catch (error) {
       console.error(`Erreur lors de la connection au serveur : ${error.message}`);
     }
-    getTodos();
+    getTodoList();
   }
-  async function getTodos() {
+  async function getTodoList() {
     const url = `/todos`;
     try {
       const reponse = await fetch(url, { method: "GET" });
@@ -1000,7 +1003,7 @@ function instance($$self, $$props, $$invalidate) {
         throw new Error(`Erreur lors de la requ\xEAte : ${reponse.status} ${reponse.statusText}`);
       }
       const result = await reponse.json();
-      console.log(reponse.message);
+      console.log(result);
       $$invalidate(0, todos = result);
     } catch (error) {
       console.error(`Une erreur s'est produite : ${error.message}`);
