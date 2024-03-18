@@ -2,7 +2,6 @@ version: '3'
 services:
   db:
     image: mysql:5.7.24
-    command: --default-authentication-plugin=mysql_native_password
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: todos
@@ -12,6 +11,18 @@ services:
       - ./store:/var/lib/mysql
     ports:
       - 3306:3306
+      
+  go:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    volumes:
+      - ./ihm:/app/ihm
+    ports:
+      - 5050:5050
+
+  # node:
+  #   image: node:21.7.1
 
 volumes:
   store:

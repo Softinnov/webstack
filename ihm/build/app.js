@@ -690,13 +690,13 @@ if (typeof window !== "undefined")
 
 // app.svelte
 function add_css(target) {
-  append_styles(target, "svelte-fft5xe", 'h1.svelte-fft5xe{font-size:70px}p.svelte-fft5xe{font-size:large;margin-left:20%;margin-right:auto}.centered.svelte-fft5xe{max-width:20em;margin:0 auto}.newTask.svelte-fft5xe{margin-bottom:15%}.todos.svelte-fft5xe{margin-top:10%}.ajout.svelte-fft5xe{position:relative;right:-15%;top:-10%\n	}.done.svelte-fft5xe{opacity:0.4}li.svelte-fft5xe{display:flex}input[type="text"].svelte-fft5xe{flex:1;padding:0.5em;margin:-0.2em 0;border:none;font-size:large}');
+  append_styles(target, "svelte-1x3xxls", 'h1.svelte-1x3xxls{font-size:70px}p.svelte-1x3xxls{font-size:large;margin-left:20%;margin-right:auto}.button.svelte-1x3xxls{height:30px;width:30px;border:none;border-radius:5%;background-color:white;margin-right:2%}.button.svelte-1x3xxls:hover{background-color:rgba(146, 146, 146, 0.381);cursor:pointer}.centered.svelte-1x3xxls{max-width:20em;margin:0 auto}.newTask.svelte-1x3xxls{margin-bottom:15%;margin-right:1%}.todos.svelte-1x3xxls{margin-top:10%}.ajout.svelte-1x3xxls{height:30px;border:none;border-radius:5%;background-color:white;position:relative;right:-5%;top:-10%\n	}.ajout.svelte-1x3xxls:hover{background-color:rgba(146, 146, 146, 0.381);cursor:pointer}.ajout.svelte-1x3xxls:disabled{background-color:white;color:rgba(128, 128, 128, 0.836);cursor:default}.done.svelte-1x3xxls{opacity:0.4}li.svelte-1x3xxls{display:flex}input[type="text"].svelte-1x3xxls{flex:1;padding:0.5em;margin:-0.2em 0;border:none;font-size:large}');
 }
 function get_each_context(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[8] = list[i];
-  child_ctx[9] = list;
-  child_ctx[10] = i;
+  child_ctx[9] = list[i];
+  child_ctx[10] = list;
+  child_ctx[11] = i;
   return child_ctx;
 }
 function create_each_block(ctx) {
@@ -711,9 +711,9 @@ function create_each_block(ctx) {
     ctx[6].call(
       input,
       /*each_value*/
-      ctx[9],
+      ctx[10],
       /*item_index*/
-      ctx[10]
+      ctx[11]
     );
   }
   return {
@@ -725,16 +725,16 @@ function create_each_block(ctx) {
       input = element("input");
       t2 = space();
       attr(button, "type", "button");
-      attr(button, "class", "delete");
+      attr(button, "class", "button svelte-1x3xxls");
       attr(input, "id", "todo");
       attr(input, "type", "text");
-      attr(input, "class", "svelte-fft5xe");
-      attr(li, "class", "svelte-fft5xe");
+      attr(input, "class", "svelte-1x3xxls");
+      attr(li, "class", "svelte-1x3xxls");
       toggle_class(
         li,
         "done",
         /*item*/
-        ctx[8].done
+        ctx[9].done
       );
     },
     m(target, anchor) {
@@ -745,7 +745,7 @@ function create_each_block(ctx) {
       set_input_value(
         input,
         /*item*/
-        ctx[8].text
+        ctx[9].text
       );
       append(li, t2);
       if (!mounted) {
@@ -755,12 +755,12 @@ function create_each_block(ctx) {
               /*xclear*/
               ctx[4](
                 /*item*/
-                ctx[8]
+                ctx[9]
               )
             ))
               ctx[4](
                 /*item*/
-                ctx[8]
+                ctx[9]
               ).apply(this, arguments);
           }),
           listen(input, "input", input_input_handler_1)
@@ -772,11 +772,11 @@ function create_each_block(ctx) {
       ctx = new_ctx;
       if (dirty & /*todos*/
       1 && input.value !== /*item*/
-      ctx[8].text) {
+      ctx[9].text) {
         set_input_value(
           input,
           /*item*/
-          ctx[8].text
+          ctx[9].text
         );
       }
       if (dirty & /*todos*/
@@ -785,7 +785,7 @@ function create_each_block(ctx) {
           li,
           "done",
           /*item*/
-          ctx[8].done
+          ctx[9].done
         );
       }
     },
@@ -827,12 +827,12 @@ function create_fragment(ctx) {
     c() {
       div = element("div");
       h1 = element("h1");
-      h1.textContent = "Ma ToDoList";
+      h1.textContent = "My TodoList";
       t1 = space();
       input = element("input");
       t2 = space();
       button = element("button");
-      t3 = text("Ajouter");
+      t3 = text("\u2714\uFE0F");
       t4 = space();
       ul = element("ul");
       for (let i = 0; i < each_blocks.length; i += 1) {
@@ -845,17 +845,17 @@ function create_fragment(ctx) {
         ctx[2]
       );
       t7 = text(" t\xE2ches restantes !");
-      attr(h1, "class", "svelte-fft5xe");
-      attr(input, "class", "newTask svelte-fft5xe");
+      attr(h1, "class", "svelte-1x3xxls");
+      attr(input, "class", "newTask svelte-1x3xxls");
       attr(input, "type", "text");
       attr(input, "placeholder", "Quoi d'autre?");
-      attr(button, "class", "ajout svelte-fft5xe");
+      attr(button, "class", "ajout svelte-1x3xxls");
       button.disabled = button_disabled_value = /*nouvelleTache*/
       ctx[1] == "";
       attr(ul, "id", "todo-list");
-      attr(ul, "class", "todos svelte-fft5xe");
-      attr(p, "class", "svelte-fft5xe");
-      attr(div, "class", "centered svelte-fft5xe");
+      attr(ul, "class", "todos svelte-1x3xxls");
+      attr(p, "class", "svelte-1x3xxls");
+      attr(div, "class", "centered svelte-1x3xxls");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -956,26 +956,11 @@ function create_fragment(ctx) {
     }
   };
 }
-async function sendTodo(todo) {
-  const url = `/service?check=${todo.done}&text=${todo.text}`;
-  try {
-    const reponse = await fetch(url, { method: "POST" });
-    if (!reponse.ok) {
-      const errorData = await reponse.text();
-      alert(errorData);
-      throw new Error(`Erreur lors de la requ\xEAte : ${reponse.status} ${reponse.statusText}`);
-    }
-    const result = await reponse.json();
-  } catch (error) {
-    console.error(
-      `Une erreur s'est produite : ${error.message}`
-    );
-  }
-}
 function instance($$self, $$props, $$invalidate) {
   let remaining;
   let todos = [];
   let nouvelleTache = "";
+  document.addEventListener("DOMContentLoaded", getTodoList());
   function add() {
     let todo = { done: false, text: nouvelleTache };
     try {
@@ -983,7 +968,6 @@ function instance($$self, $$props, $$invalidate) {
     } catch (error) {
       console.error(`Erreur lors de la connection au serveur : ${error.message}`);
     }
-    getTodoList();
     $$invalidate(1, nouvelleTache = "");
   }
   function xclear(item) {
@@ -993,18 +977,38 @@ function instance($$self, $$props, $$invalidate) {
     } catch (error) {
       console.error(`Erreur lors de la connection au serveur : ${error.message}`);
     }
-    getTodoList();
   }
   async function getTodoList() {
     const url = `/todos`;
     try {
       const reponse = await fetch(url, { method: "GET" });
       if (!reponse.ok) {
+        const errorData = await reponse.text();
+        alert(errorData);
         throw new Error(`Erreur lors de la requ\xEAte : ${reponse.status} ${reponse.statusText}`);
       }
       const result = await reponse.json();
-      console.log(result);
-      $$invalidate(0, todos = result);
+      if (result != null) {
+        $$invalidate(0, todos = result);
+      }
+      if (result == null) {
+        $$invalidate(0, todos = []);
+      }
+    } catch (error) {
+      console.error(`Une erreur s'est produite : ${error.message}`);
+    }
+  }
+  async function sendTodo(todo) {
+    const url = `/service?check=${todo.done}&text=${todo.text}`;
+    try {
+      const reponse = await fetch(url, { method: "POST" });
+      if (!reponse.ok) {
+        const errorData = await reponse.text();
+        alert(errorData);
+        throw new Error(`Erreur lors de la requ\xEAte : ${reponse.status} ${reponse.statusText}`);
+      }
+      const result = await reponse.json();
+      getTodoList();
     } catch (error) {
       console.error(`Une erreur s'est produite : ${error.message}`);
     }
