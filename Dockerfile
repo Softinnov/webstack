@@ -1,13 +1,7 @@
-FROM golang:1.22
+FROM scratch
 
 WORKDIR /app
 
-COPY *.go ./
-COPY data ./data
-
-COPY go.mod go.sum ./
-RUN go mod tidy
-
-RUN go build -o /app/appTodo
+COPY build .
 
 CMD ["/app/appTodo"]

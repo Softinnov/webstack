@@ -8,7 +8,8 @@ services:
       MYSQL_USER: adminUser
       MYSQL_PASSWORD: adminPassword
     volumes:
-      - ./store:/var/lib/mysql
+      - store:/var/lib/mysql
+      - ./dbinit:/docker-entrypoint-initdb.d
     ports:
       - 3306:3306
       
@@ -16,15 +17,8 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile
-    volumes:
-      - ./ihm:/app/ihm
     ports:
       - 5050:5050
-
-  node:
-    image: node:21.7.1
-    ports:
-      - 8888:8888
 
 volumes:
   store:

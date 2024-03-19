@@ -688,7 +688,7 @@ var PUBLIC_VERSION = "4";
 if (typeof window !== "undefined")
   (window.__svelte || (window.__svelte = { v: /* @__PURE__ */ new Set() })).v.add(PUBLIC_VERSION);
 
-// app.svelte
+// ihm/app.svelte
 function add_css(target) {
   append_styles(target, "svelte-1x3xxls", 'h1.svelte-1x3xxls{font-size:70px}p.svelte-1x3xxls{font-size:large;margin-left:20%;margin-right:auto}.button.svelte-1x3xxls{height:30px;width:30px;border:none;border-radius:5%;background-color:white;margin-right:2%}.button.svelte-1x3xxls:hover{background-color:rgba(146, 146, 146, 0.381);cursor:pointer}.centered.svelte-1x3xxls{max-width:20em;margin:0 auto}.newTask.svelte-1x3xxls{margin-bottom:15%;margin-right:1%}.todos.svelte-1x3xxls{margin-top:10%}.ajout.svelte-1x3xxls{height:30px;border:none;border-radius:5%;background-color:white;position:relative;right:-5%;top:-10%\n	}.ajout.svelte-1x3xxls:hover{background-color:rgba(146, 146, 146, 0.381);cursor:pointer}.ajout.svelte-1x3xxls:disabled{background-color:white;color:rgba(128, 128, 128, 0.836);cursor:default}.done.svelte-1x3xxls{opacity:0.4}li.svelte-1x3xxls{display:flex}input[type="text"].svelte-1x3xxls{flex:1;padding:0.5em;margin:-0.2em 0;border:none;font-size:large}');
 }
