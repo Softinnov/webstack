@@ -7,33 +7,28 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	dt "webstack/data"
 
 	_ "github.com/go-sql-driver/mysql"
 )
 
+type Server interface {
+	GetConfig() Config
+}
 type Config struct {
 	Port string
 	Db   *sql.DB
 }
 
-type Todo struct {
-	Done bool   `json:"done"`
-	Text string `json:"text"`
-}
-
 type MyTodoList struct {
-	todoList []Todo
+	todoList []dt.Todo
 }
 
-var config = Config{
-	Port: ":5050",
-}
-
-var todos = []Todo{}
+var todos = []dt.Todo{}
 var myList = MyTodoList{todos}
 
 // créer, modifier, supprimer todo
-func (mt *MyTodoList) add(todo Todo) error {
+func (mt *MyTodoList) add(todo dt.Todo) error {
 	existingTodo := false
 	if todo.Text == "" {
 		return fmt.Errorf("pas de texte renseigné")
@@ -46,20 +41,22 @@ func (mt *MyTodoList) add(todo Todo) error {
 		}
 		if !existingTodo {
 			mt.todoList = append(mt.todoList, todo)
+			dt.AddTodo(todo)
 		}
 	}
 	return nil
 }
 
-func (mt *MyTodoList) delete(todo Todo) error {
+func (mt *MyTodoList) delete(todo dt.Todo) error {
 	for i, t := range mt.todoList {
 		if t.Text == todo.Text {
 			//Supprime l'élément visé sans changer l'ordre
 			mt.todoList = append(mt.todoList[:i], mt.todoList[i+1:]...)
+			dt.DeleteTodo(todo)
 			return nil
 		}
 	}
-	return fmt.Errorf("Todo '%s' introuvable", todo.Text)
+	return fmt.Errorf("todo '%s' introuvable", todo.Text)
 }
 
 // func (mt *MyTodoList) modif(oldText, newText string) error {
@@ -84,19 +81,19 @@ func handleClientRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	todo := Todo{
+	todo := dt.Todo{
 		Done: done,
 		Text: text,
 	}
 
 	if !todo.Done {
-		err := myList.addTodo(todo)
+		err := myList.add(todo)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 	} else {
-		err := myList.deleteTodo(todo)
+		err := myList.delete(todo)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -110,7 +107,7 @@ func handleClientRequest(w http.ResponseWriter, r *http.Request) {
 func getTodos(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	list, err := getDb()
+	list, err := dt.GetDb()
 	if err != nil {
 		log.Fatal(err)
 		return
@@ -119,73 +116,70 @@ func getTodos(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(myList.todoList)
 }
 
-func getDb() ([]Todo, error) {
-	var list []Todo
+// func getDb() ([]Todo, error) {
+// 	var list []Todo
 
-	rows, err := config.Db.Query("SELECT text FROM todos")
-	if err != nil {
-		return nil, fmt.Errorf("getDb error : %v", err)
-	}
-	defer rows.Close()
-	for rows.Next() {
-		todo := Todo{
-			Done: false,
-		}
-		if err := rows.Scan(&todo.Text); err != nil {
-			return nil, fmt.Errorf("getDb error : %v", err)
-		}
-		list = append(list, todo)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("getDb error : %v", err)
-	}
-	return list, nil
+// 	rows, err := ServConfig.Db.Query("SELECT text FROM todos")
+// 	if err != nil {
+// 		return nil, fmt.Errorf("getDb error : %v", err)
+// 	}
+// 	defer rows.Close()
+// 	for rows.Next() {
+// 		todo := Todo{
+// 			Done: false,
+// 		}
+// 		if err := rows.Scan(&todo.Text); err != nil {
+// 			return nil, fmt.Errorf("getDb error : %v", err)
+// 		}
+// 		list = append(list, todo)
+// 	}
+// 	if err := rows.Err(); err != nil {
+// 		return nil, fmt.Errorf("getDb error : %v", err)
+// 	}
+// 	return list, nil
 
-}
+// }
 
-func (mt *MyTodoList) addTodo(td Todo) error {
-	checkpoint := mt.add(td)
-	if checkpoint != nil {
-		return checkpoint
-	}
-	result, err := config.Db.Exec("INSERT INTO todos (text) VALUES (?)", td.Text)
-	if err != nil {
-		return fmt.Errorf("addTodo error : %v", err)
-	}
-	id, err := result.LastInsertId()
-	if err != nil {
-		return fmt.Errorf("addTodo error : %v", err)
-	}
-	fmt.Println("id du dernier todo enregistré :", id)
-	return nil
-}
+// func (mt *MyTodoList) addTodo(td Todo) error {
+// 	checkpoint := mt.add(td)
+// 	if checkpoint != nil {
+// 		return checkpoint
+// 	}
+// 	result, err := config.Db.Exec("INSERT INTO todos (text) VALUES (?)", td.Text)
+// 	if err != nil {
+// 		return fmt.Errorf("addTodo error : %v", err)
+// 	}
+// 	id, err := result.LastInsertId()
+// 	if err != nil {
+// 		return fmt.Errorf("addTodo error : %v", err)
+// 	}
+// 	fmt.Println("id du dernier todo enregistré :", id)
+// 	return nil
+// }
 
-func (mt *MyTodoList) deleteTodo(td Todo) error {
-	checkpoint := mt.delete(td)
-	if checkpoint != nil {
-		return checkpoint
-	}
-	result, err := config.Db.Exec("DELETE FROM todos WHERE text LIKE (?)", td.Text)
-	if err != nil {
-		return fmt.Errorf("deleteTodo error : %v", err)
-	}
-	fmt.Println(result.RowsAffected())
-	return nil
-}
+// func (mt *MyTodoList) deleteTodo(td Todo) error {
+// 	checkpoint := mt.delete(td)
+// 	if checkpoint != nil {
+// 		return checkpoint
+// 	}
+// 	result, err := config.Db.Exec("DELETE FROM todos WHERE text LIKE (?)", td.Text)
+// 	if err != nil {
+// 		return fmt.Errorf("deleteTodo error : %v", err)
+// 	}
+// 	fmt.Println(result.RowsAffected())
+// 	return nil
+// }
 
 func main() {
-	db, err := sql.Open("mysql", "adminUser:adminPassword@tcp(db:3306)/todos")
-	if err != nil {
-		return
-	}
-	config.Db = db
+	dt.StartServer()
 
+	servConfig := dt.ServConfig.GetConfig()
 	fs := http.FileServer(http.Dir("./ihm"))
 	http.Handle("/", fs)
 
 	http.HandleFunc("/service", handleClientRequest)
 	http.HandleFunc("/todos", getTodos)
 
-	http.ListenAndServe(config.Port, nil)
+	http.ListenAndServe(servConfig.Port, nil)
 
 }
