@@ -2,7 +2,7 @@ webdev:
 	npm install && node esbuild.js --dev
 
 srvdev:
-	DIR=./ihm go run appTodo.go data
+	DIR=./ihm watcher 
 
 build-server:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o build/appTodo

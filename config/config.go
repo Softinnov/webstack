@@ -1,29 +1,32 @@
 package config
 
 import (
-	"database/sql"
 	"os"
 )
 
-type Configuration interface {
-	GetConfig()
-}
 type Config struct {
-	Port  string
-	Dbsrc string
-	Db    *sql.DB
+	StaticDir string
+	Port      string
+	Dbsrc     string
 }
 
-var ServConfig = Config{
-	Port:  ":5050",
-	Dbsrc: os.Getenv("DBS"),
+var servConfig = Config{
+	StaticDir: "./",
+	Port:      ":5050",
+	Dbsrc:     "",
 }
 
-func (c Config) GetConfig() Config {
-	if ServConfig.Dbsrc == "tcp" {
-		c.Dbsrc = "tcp(db:3306)"
+func GetConfig() Config {
+	// détermine si base de donnée locale ou dans container
+	dbs := os.Getenv("DBS")
+	if dbs == "tcp" {
+		servConfig.Dbsrc = "tcp(db:3306)"
 	}
-	c.Port = ServConfig.Port
-	c.Db = ServConfig.Db
-	return c
+
+	// récupére le dossier statique
+	dir := os.Getenv("DIR")
+	if dir != "" {
+		servConfig.StaticDir = dir
+	}
+	return servConfig
 }

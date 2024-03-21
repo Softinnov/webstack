@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 
 	"webstack/config"
@@ -123,25 +122,18 @@ func getTodos(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	config.ServConfig = config.ServConfig.GetConfig()
-	dir := os.Getenv("DIR")
-	if dir == "" {
-		dir = "./"
-	}
+	cfg := config.GetConfig()
 
-	db, err := dt.OpenDb()
-	if err != nil {
+	if err := dt.OpenDb(cfg); err != nil {
 		log.Fatal(err)
 		return
 	}
-	config.ServConfig.Db = db
-	fmt.Println(config.ServConfig)
+	defer dt.CloseDb()
 
-	fs := http.FileServer(http.Dir(dir))
+	fs := http.FileServer(http.Dir(cfg.StaticDir))
 	http.Handle("/", fs)
-
 	http.HandleFunc("/service", handleClientRequest)
 	http.HandleFunc("/todos", getTodos)
 
-	http.ListenAndServe(config.ServConfig.Port, nil)
+	http.ListenAndServe(cfg.Port, nil)
 }

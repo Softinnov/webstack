@@ -7,33 +7,34 @@ import (
 	"webstack/config"
 )
 
-type Database interface {
-	GetTodos() ([]Todo, error)
-	AddTodo() error
-	DeleteTodo() error
-}
-
 type Todo struct {
 	Id     int    `json:"id"`
 	Text   string `json:"text"`
 	Action string `json:"action"`
 }
 
-func OpenDb() (*sql.DB, error) {
-	dbsrc := config.ServConfig.Dbsrc
-	urldb := fmt.Sprintf("adminUser:adminPassword@%s/todos", dbsrc)
+var db *sql.DB
+
+func OpenDb(cfg config.Config) error {
+	var err error
+
+	urldb := fmt.Sprintf("adminUser:adminPassword@%s/todos", cfg.Dbsrc)
 	fmt.Println(urldb)
-	db, err := sql.Open("mysql", urldb)
+	db, err = sql.Open("mysql", urldb)
 	if err != nil {
-		return nil, fmt.Errorf("sql Open() : %v", err)
+		return fmt.Errorf("sql Open() : %v", err)
 	}
-	return db, nil
+	return nil
+}
+
+func CloseDb() error {
+	return db.Close()
 }
 
 func GetTodos() ([]Todo, error) {
 	var list []Todo
 
-	rows, err := config.ServConfig.Db.Query("SELECT todoid, text FROM todos")
+	rows, err := db.Query("SELECT todoid, text FROM todos")
 	if err != nil {
 		return nil, fmt.Errorf("GetTodos error : %v", err)
 	}
@@ -51,11 +52,10 @@ func GetTodos() ([]Todo, error) {
 		return nil, fmt.Errorf("GetTodos error : %v", err)
 	}
 	return list, nil
-
 }
 
 func AddTodo(td Todo) error {
-	result, err := config.ServConfig.Db.Exec("INSERT INTO todos (text) VALUES (?)", td.Text)
+	result, err := db.Exec("INSERT INTO todos (text) VALUES (?)", td.Text)
 	if err != nil {
 		return fmt.Errorf("addTodo error : %v", err)
 	}
@@ -68,7 +68,7 @@ func AddTodo(td Todo) error {
 }
 
 func DeleteTodo(td Todo) error {
-	result, err := config.ServConfig.Db.Exec("DELETE FROM todos WHERE text LIKE (?)", td.Text)
+	result, err := db.Exec("DELETE FROM todos WHERE text LIKE (?)", td.Text)
 	if err != nil {
 		return fmt.Errorf("deleteTodo error : %v", err)
 	}
@@ -77,7 +77,7 @@ func DeleteTodo(td Todo) error {
 }
 
 func ModifyTodo(td Todo) error {
-	result, err := config.ServConfig.Db.Exec("UPDATE todos SET text = (?) WHERE todoid = (?)", td.Text, td.Id)
+	result, err := db.Exec("UPDATE todos SET text = (?) WHERE todoid = (?)", td.Text, td.Id)
 	if err != nil {
 		return fmt.Errorf("modifyTodo error : %v", err)
 	}
