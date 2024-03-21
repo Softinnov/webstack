@@ -30,7 +30,7 @@
 	function modify(item) {
 		try {
 			item.action="modify";
-			sendTodo(item);
+			sendToModify(item);
 		} catch (error) {
 			console.error(`Erreur lors de la connection au serveur : ${error.message}`);
 		}
@@ -59,6 +59,23 @@
 	}
 
 	async function sendTodo(todo) {
+		const url = `/service?action=${todo.action}&text=${todo.text}`
+		
+		try {
+			const reponse = await fetch(url,{method: "POST"});
+			if (!reponse.ok) {
+				const errorData = await reponse.text();
+				alert(errorData);
+				throw new Error(`Erreur lors de la requête : ${reponse.status} ${reponse.statusText}`);
+			}
+			const result = await reponse.json();
+			getTodoList();
+		} catch (error) {
+			console.error(`Une erreur s'est produite : ${error.message}`);
+		}
+	}
+
+	async function sendToModify(todo) {
 		const url = `/service?id=${todo.id}&action=${todo.action}&text=${todo.text}`
 		
 		try {

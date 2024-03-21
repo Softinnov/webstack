@@ -71,16 +71,18 @@ func handleClientRequest(w http.ResponseWriter, r *http.Request) {
 	action := r.FormValue("action")
 	text := r.FormValue("text")
 
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		http.Error(w, "Erreur de conversion", http.StatusBadRequest)
-		return
-	}
-
 	todo := dt.Todo{
-		Id:     id,
 		Text:   text,
 		Action: action,
+	}
+
+	if idStr != "" {
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			http.Error(w, "Erreur de conversion", http.StatusBadRequest)
+			return
+		}
+		todo.Id = id
 	}
 
 	if todo.Action == "add" {

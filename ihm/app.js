@@ -694,9 +694,9 @@ function add_css(target) {
 }
 function get_each_context(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[11] = list[i];
-  child_ctx[12] = list;
-  child_ctx[13] = i;
+  child_ctx[12] = list[i];
+  child_ctx[13] = list;
+  child_ctx[14] = i;
   return child_ctx;
 }
 function create_each_block(ctx) {
@@ -713,9 +713,9 @@ function create_each_block(ctx) {
     ctx[8].call(
       input,
       /*each_value*/
-      ctx[12],
+      ctx[13],
       /*item_index*/
-      ctx[13]
+      ctx[14]
     );
   }
   return {
@@ -741,7 +741,7 @@ function create_each_block(ctx) {
         li,
         "done",
         /*item*/
-        ctx[11].done
+        ctx[12].done
       );
     },
     m(target, anchor) {
@@ -754,7 +754,7 @@ function create_each_block(ctx) {
       set_input_value(
         input,
         /*item*/
-        ctx[11].text
+        ctx[12].text
       );
       append(li, t4);
       if (!mounted) {
@@ -764,12 +764,12 @@ function create_each_block(ctx) {
               /*modify*/
               ctx[5](
                 /*item*/
-                ctx[11]
+                ctx[12]
               )
             ))
               ctx[5](
                 /*item*/
-                ctx[11]
+                ctx[12]
               ).apply(this, arguments);
           }),
           listen(button1, "click", function() {
@@ -777,12 +777,12 @@ function create_each_block(ctx) {
               /*xclear*/
               ctx[4](
                 /*item*/
-                ctx[11]
+                ctx[12]
               )
             ))
               ctx[4](
                 /*item*/
-                ctx[11]
+                ctx[12]
               ).apply(this, arguments);
           }),
           listen(input, "input", input_input_handler_1)
@@ -794,11 +794,11 @@ function create_each_block(ctx) {
       ctx = new_ctx;
       if (dirty & /*todos*/
       1 && input.value !== /*item*/
-      ctx[11].text) {
+      ctx[12].text) {
         set_input_value(
           input,
           /*item*/
-          ctx[11].text
+          ctx[12].text
         );
       }
       if (dirty & /*todos*/
@@ -807,7 +807,7 @@ function create_each_block(ctx) {
           li,
           "done",
           /*item*/
-          ctx[11].done
+          ctx[12].done
         );
       }
     },
@@ -1008,7 +1008,7 @@ function instance($$self, $$props, $$invalidate) {
   function modify(item) {
     try {
       item.action = "modify";
-      sendTodo(item);
+      sendToModify(item);
     } catch (error) {
       console.error(`Erreur lors de la connection au serveur : ${error.message}`);
     }
@@ -1035,6 +1035,21 @@ function instance($$self, $$props, $$invalidate) {
     }
   }
   async function sendTodo(todo) {
+    const url = `/service?action=${todo.action}&text=${todo.text}`;
+    try {
+      const reponse = await fetch(url, { method: "POST" });
+      if (!reponse.ok) {
+        const errorData = await reponse.text();
+        alert(errorData);
+        throw new Error(`Erreur lors de la requ\xEAte : ${reponse.status} ${reponse.statusText}`);
+      }
+      const result = await reponse.json();
+      getTodoList();
+    } catch (error) {
+      console.error(`Une erreur s'est produite : ${error.message}`);
+    }
+  }
+  async function sendToModify(todo) {
     const url = `/service?id=${todo.id}&action=${todo.action}&text=${todo.text}`;
     try {
       const reponse = await fetch(url, { method: "POST" });
