@@ -694,38 +694,45 @@ function add_css(target) {
 }
 function get_each_context(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[10] = list[i];
-  child_ctx[11] = list;
-  child_ctx[12] = i;
+  child_ctx[11] = list[i];
+  child_ctx[12] = list;
+  child_ctx[13] = i;
   return child_ctx;
 }
 function create_each_block(ctx) {
   let li;
-  let button;
+  let button0;
   let t1;
+  let button1;
+  let t3;
   let input;
-  let t2;
+  let t4;
   let mounted;
   let dispose;
   function input_input_handler_1() {
-    ctx[7].call(
+    ctx[8].call(
       input,
       /*each_value*/
-      ctx[11],
+      ctx[12],
       /*item_index*/
-      ctx[12]
+      ctx[13]
     );
   }
   return {
     c() {
       li = element("li");
-      button = element("button");
-      button.textContent = "\u{1F5D1}\uFE0F";
+      button0 = element("button");
+      button0.textContent = "\u270F\uFE0F";
       t1 = space();
+      button1 = element("button");
+      button1.textContent = "\u{1F5D1}\uFE0F";
+      t3 = space();
       input = element("input");
-      t2 = space();
-      attr(button, "type", "button");
-      attr(button, "class", "button svelte-1x3xxls");
+      t4 = space();
+      attr(button0, "type", "button");
+      attr(button0, "class", "button svelte-1x3xxls");
+      attr(button1, "type", "button");
+      attr(button1, "class", "button svelte-1x3xxls");
       attr(input, "id", "todo");
       attr(input, "type", "text");
       attr(input, "class", "svelte-1x3xxls");
@@ -734,33 +741,48 @@ function create_each_block(ctx) {
         li,
         "done",
         /*item*/
-        ctx[10].done
+        ctx[11].done
       );
     },
     m(target, anchor) {
       insert(target, li, anchor);
-      append(li, button);
+      append(li, button0);
       append(li, t1);
+      append(li, button1);
+      append(li, t3);
       append(li, input);
       set_input_value(
         input,
         /*item*/
-        ctx[10].text
+        ctx[11].text
       );
-      append(li, t2);
+      append(li, t4);
       if (!mounted) {
         dispose = [
-          listen(button, "click", function() {
+          listen(button0, "click", function() {
+            if (is_function(
+              /*modify*/
+              ctx[5](
+                /*item*/
+                ctx[11]
+              )
+            ))
+              ctx[5](
+                /*item*/
+                ctx[11]
+              ).apply(this, arguments);
+          }),
+          listen(button1, "click", function() {
             if (is_function(
               /*xclear*/
               ctx[4](
                 /*item*/
-                ctx[10]
+                ctx[11]
               )
             ))
               ctx[4](
                 /*item*/
-                ctx[10]
+                ctx[11]
               ).apply(this, arguments);
           }),
           listen(input, "input", input_input_handler_1)
@@ -772,11 +794,11 @@ function create_each_block(ctx) {
       ctx = new_ctx;
       if (dirty & /*todos*/
       1 && input.value !== /*item*/
-      ctx[10].text) {
+      ctx[11].text) {
         set_input_value(
           input,
           /*item*/
-          ctx[10].text
+          ctx[11].text
         );
       }
       if (dirty & /*todos*/
@@ -785,7 +807,7 @@ function create_each_block(ctx) {
           li,
           "done",
           /*item*/
-          ctx[10].done
+          ctx[11].done
         );
       }
     },
@@ -887,13 +909,13 @@ function create_fragment(ctx) {
             input,
             "input",
             /*input_input_handler*/
-            ctx[6]
+            ctx[7]
           ),
           listen(
             input,
             "keydown",
             /*handleKeydown*/
-            ctx[5]
+            ctx[6]
           ),
           listen(
             button,
@@ -920,8 +942,8 @@ function create_fragment(ctx) {
       ctx2[1] == "")) {
         button.disabled = button_disabled_value;
       }
-      if (dirty & /*todos, xclear*/
-      17) {
+      if (dirty & /*todos, xclear, modify*/
+      49) {
         each_value = ensure_array_like(
           /*todos*/
           ctx2[0]
@@ -967,7 +989,7 @@ function instance($$self, $$props, $$invalidate) {
   let todos = [];
   let nouvelleTache = "";
   function add() {
-    let todo = { done: false, text: nouvelleTache };
+    let todo = { action: "add", text: nouvelleTache };
     try {
       sendTodo(todo);
     } catch (error) {
@@ -977,7 +999,15 @@ function instance($$self, $$props, $$invalidate) {
   }
   function xclear(item) {
     try {
-      item.done = true;
+      item.action = "delete";
+      sendTodo(item);
+    } catch (error) {
+      console.error(`Erreur lors de la connection au serveur : ${error.message}`);
+    }
+  }
+  function modify(item) {
+    try {
+      item.action = "modify";
       sendTodo(item);
     } catch (error) {
       console.error(`Erreur lors de la connection au serveur : ${error.message}`);
@@ -999,12 +1029,13 @@ function instance($$self, $$props, $$invalidate) {
       if (result == null) {
         $$invalidate(0, todos = []);
       }
+      console.log(todos);
     } catch (error) {
       console.error(`Une erreur s'est produite : ${error.message}`);
     }
   }
   async function sendTodo(todo) {
-    const url = `/service?check=${todo.done}&text=${todo.text}`;
+    const url = `/service?id=${todo.id}&action=${todo.action}&text=${todo.text}`;
     try {
       const reponse = await fetch(url, { method: "POST" });
       if (!reponse.ok) {
@@ -1036,7 +1067,7 @@ function instance($$self, $$props, $$invalidate) {
     if ($$self.$$.dirty & /*todos*/
     1) {
       $:
-        $$invalidate(2, remaining = todos.filter((t) => !t.done).length);
+        $$invalidate(2, remaining = todos.length);
     }
   };
   return [
@@ -1045,6 +1076,7 @@ function instance($$self, $$props, $$invalidate) {
     remaining,
     add,
     xclear,
+    modify,
     handleKeydown,
     input_input_handler,
     input_input_handler_1

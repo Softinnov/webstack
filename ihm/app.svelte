@@ -7,7 +7,7 @@
 
 	function add() {
 		let todo = {
-			done: false,
+			action: "add",
 			text: nouvelleTache
 		}
 		try{
@@ -20,7 +20,16 @@
 
 	function xclear(item) {
 		try {
-			item.done=true;
+			item.action="delete";
+			sendTodo(item);
+		} catch (error) {
+			console.error(`Erreur lors de la connection au serveur : ${error.message}`);
+		}
+	}
+
+	function modify(item) {
+		try {
+			item.action="modify";
 			sendTodo(item);
 		} catch (error) {
 			console.error(`Erreur lors de la connection au serveur : ${error.message}`);
@@ -43,13 +52,14 @@
 			if(result == null){
 				todos = [];
 			}
+			console.log(todos);
 		} catch (error) {
 			console.error(`Une erreur s'est produite : ${error.message}`);
 		}
 	}
 
 	async function sendTodo(todo) {
-		const url = `/service?check=${todo.done}&text=${todo.text}`
+		const url = `/service?id=${todo.id}&action=${todo.action}&text=${todo.text}`
 		
 		try {
 			const reponse = await fetch(url,{method: "POST"});
@@ -71,7 +81,7 @@
 		}
 	}
 
-	$: remaining = todos.filter((t) => !t.done).length;	
+	$: remaining = todos.length;	
 	
 	getTodoList();
 
@@ -94,9 +104,9 @@
 	<ul id="todo-list" class="todos">	
 		{#each todos as item}
 			<li class:done={item.done}>
-				<!-- <button type="button" class="button">
+				<button type="button" class="button" on:click={modify(item)}>
 					✏️
-				</button> -->
+				</button>
 				<button type="button" class="button" on:click={xclear(item)}>
 					🗑️
 				</button>

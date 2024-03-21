@@ -14,15 +14,12 @@ type Database interface {
 }
 
 type Todo struct {
-	Done bool   `json:"done"`
-	Text string `json:"text"`
+	Id     int    `json:"id"`
+	Text   string `json:"text"`
+	Action string `json:"action"`
 }
 
 func OpenDb() (*sql.DB, error) {
-	// config.ServConfig.Dbsrc = os.Getenv("DBS")
-	// if config.ServConfig.Dbsrc == "tcp" {
-	// 	config.ServConfig.Dbsrc = "tcp(db:3306)"
-	// }
 	dbsrc := config.ServConfig.Dbsrc
 	urldb := fmt.Sprintf("adminUser:adminPassword@%s/todos", dbsrc)
 	fmt.Println(urldb)
@@ -36,16 +33,16 @@ func OpenDb() (*sql.DB, error) {
 func GetTodos() ([]Todo, error) {
 	var list []Todo
 
-	rows, err := config.ServConfig.Db.Query("SELECT text FROM todos")
+	rows, err := config.ServConfig.Db.Query("SELECT todoid, text FROM todos")
 	if err != nil {
 		return nil, fmt.Errorf("GetTodos error : %v", err)
 	}
 	defer rows.Close()
 	for rows.Next() {
 		todo := Todo{
-			Done: false,
+			Action: "",
 		}
-		if err := rows.Scan(&todo.Text); err != nil {
+		if err := rows.Scan(&todo.Id, &todo.Text); err != nil {
 			return nil, fmt.Errorf("GetTodos error : %v", err)
 		}
 		list = append(list, todo)
@@ -74,6 +71,15 @@ func DeleteTodo(td Todo) error {
 	result, err := config.ServConfig.Db.Exec("DELETE FROM todos WHERE text LIKE (?)", td.Text)
 	if err != nil {
 		return fmt.Errorf("deleteTodo error : %v", err)
+	}
+	fmt.Println(result.RowsAffected())
+	return nil
+}
+
+func ModifyTodo(td Todo) error {
+	result, err := config.ServConfig.Db.Exec("UPDATE todos SET text = (?) WHERE todoid = (?)", td.Text, td.Id)
+	if err != nil {
+		return fmt.Errorf("modifyTodo error : %v", err)
 	}
 	fmt.Println(result.RowsAffected())
 	return nil

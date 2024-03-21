@@ -55,40 +55,49 @@ func (mt *MyTodoList) delete(todo dt.Todo) error {
 	return fmt.Errorf("todo '%s' introuvable", todo.Text)
 }
 
-// func (mt *MyTodoList) modif(oldText, newText string) error {
-// 	for i, t := range mt.todoList {
-// 		if t.Text == oldText {
-// 			mt.todoList[i].Text = newText
-// 			return nil
-// 		}
-// 	}
-// 	return fmt.Errorf("Todo '%s' introuvable", oldText)
-// }
+func (mt *MyTodoList) modify(todo dt.Todo) error {
+	for _, t := range mt.todoList {
+		if t.Id == todo.Id {
+			t.Text = todo.Text
+			dt.ModifyTodo(todo)
+			return nil
+		}
+	}
+	return fmt.Errorf("Todo '%s' introuvable", todo.Text)
+}
 
 func handleClientRequest(w http.ResponseWriter, r *http.Request) {
-	doneStr := r.FormValue("check")
+	idStr := r.FormValue("id")
+	action := r.FormValue("action")
 	text := r.FormValue("text")
 
-	done, err := strconv.ParseBool(doneStr)
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		log.Println("Error in conversion", err)
 		http.Error(w, "Erreur de conversion", http.StatusBadRequest)
 		return
 	}
 
 	todo := dt.Todo{
-		Done: done,
-		Text: text,
+		Id:     id,
+		Text:   text,
+		Action: action,
 	}
 
-	if !todo.Done {
+	if todo.Action == "add" {
 		err := myList.add(todo)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-	} else {
+	} else if todo.Action == "delete" {
 		err := myList.delete(todo)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+	} else if todo.Action == "modify" {
+		fmt.Println("Todo à modifier :", todo)
+		err := myList.modify(todo)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
