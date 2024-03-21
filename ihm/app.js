@@ -1,6 +1,6 @@
 new EventSource('http://127.0.0.1:8888/esbuild').addEventListener('change', () => location.reload())
 
-// node_modules/svelte/src/runtime/internal/utils.js
+// ihm/node_modules/svelte/src/runtime/internal/utils.js
 function noop() {
 }
 function run(fn) {
@@ -22,13 +22,13 @@ function is_empty(obj) {
   return Object.keys(obj).length === 0;
 }
 
-// node_modules/svelte/src/runtime/internal/globals.js
+// ihm/node_modules/svelte/src/runtime/internal/globals.js
 var globals = typeof window !== "undefined" ? window : typeof globalThis !== "undefined" ? globalThis : (
   // @ts-ignore Node typings have this
   global
 );
 
-// node_modules/svelte/src/runtime/internal/ResizeObserverSingleton.js
+// ihm/node_modules/svelte/src/runtime/internal/ResizeObserverSingleton.js
 var ResizeObserverSingleton = class _ResizeObserverSingleton {
   /**
    * @private
@@ -74,7 +74,7 @@ var ResizeObserverSingleton = class _ResizeObserverSingleton {
 };
 ResizeObserverSingleton.entries = "WeakMap" in globals ? /* @__PURE__ */ new WeakMap() : void 0;
 
-// node_modules/svelte/src/runtime/internal/dom.js
+// ihm/node_modules/svelte/src/runtime/internal/dom.js
 var is_hydrating = false;
 function start_hydrating() {
   is_hydrating = true;
@@ -175,13 +175,13 @@ function get_custom_elements_slots(element2) {
   return result;
 }
 
-// node_modules/svelte/src/runtime/internal/lifecycle.js
+// ihm/node_modules/svelte/src/runtime/internal/lifecycle.js
 var current_component;
 function set_current_component(component) {
   current_component = component;
 }
 
-// node_modules/svelte/src/runtime/internal/scheduler.js
+// ihm/node_modules/svelte/src/runtime/internal/scheduler.js
 var dirty_components = [];
 var binding_callbacks = [];
 var render_callbacks = [];
@@ -256,7 +256,7 @@ function flush_render_callbacks(fns) {
   render_callbacks = filtered;
 }
 
-// node_modules/svelte/src/runtime/internal/transitions.js
+// ihm/node_modules/svelte/src/runtime/internal/transitions.js
 var outroing = /* @__PURE__ */ new Set();
 function transition_in(block, local) {
   if (block && block.i) {
@@ -265,12 +265,12 @@ function transition_in(block, local) {
   }
 }
 
-// node_modules/svelte/src/runtime/internal/each.js
+// ihm/node_modules/svelte/src/runtime/internal/each.js
 function ensure_array_like(array_like_or_iterator) {
   return array_like_or_iterator?.length !== void 0 ? array_like_or_iterator : Array.from(array_like_or_iterator);
 }
 
-// node_modules/svelte/src/shared/boolean_attributes.js
+// ihm/node_modules/svelte/src/shared/boolean_attributes.js
 var _boolean_attributes = (
   /** @type {const} */
   [
@@ -303,7 +303,7 @@ var _boolean_attributes = (
 );
 var boolean_attributes = /* @__PURE__ */ new Set([..._boolean_attributes]);
 
-// node_modules/svelte/src/runtime/internal/Component.js
+// ihm/node_modules/svelte/src/runtime/internal/Component.js
 function mount_component(component, target, anchor) {
   const { fragment, after_update } = component.$$;
   fragment && fragment.m(target, anchor);
@@ -681,10 +681,10 @@ var SvelteComponent = class {
   }
 };
 
-// node_modules/svelte/src/shared/version.js
+// ihm/node_modules/svelte/src/shared/version.js
 var PUBLIC_VERSION = "4";
 
-// node_modules/svelte/src/runtime/internal/disclose-version/index.js
+// ihm/node_modules/svelte/src/runtime/internal/disclose-version/index.js
 if (typeof window !== "undefined")
   (window.__svelte || (window.__svelte = { v: /* @__PURE__ */ new Set() })).v.add(PUBLIC_VERSION);
 
@@ -694,9 +694,9 @@ function add_css(target) {
 }
 function get_each_context(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[9] = list[i];
-  child_ctx[10] = list;
-  child_ctx[11] = i;
+  child_ctx[10] = list[i];
+  child_ctx[11] = list;
+  child_ctx[12] = i;
   return child_ctx;
 }
 function create_each_block(ctx) {
@@ -708,12 +708,12 @@ function create_each_block(ctx) {
   let mounted;
   let dispose;
   function input_input_handler_1() {
-    ctx[6].call(
+    ctx[7].call(
       input,
       /*each_value*/
-      ctx[10],
+      ctx[11],
       /*item_index*/
-      ctx[11]
+      ctx[12]
     );
   }
   return {
@@ -734,7 +734,7 @@ function create_each_block(ctx) {
         li,
         "done",
         /*item*/
-        ctx[9].done
+        ctx[10].done
       );
     },
     m(target, anchor) {
@@ -745,7 +745,7 @@ function create_each_block(ctx) {
       set_input_value(
         input,
         /*item*/
-        ctx[9].text
+        ctx[10].text
       );
       append(li, t2);
       if (!mounted) {
@@ -755,12 +755,12 @@ function create_each_block(ctx) {
               /*xclear*/
               ctx[4](
                 /*item*/
-                ctx[9]
+                ctx[10]
               )
             ))
               ctx[4](
                 /*item*/
-                ctx[9]
+                ctx[10]
               ).apply(this, arguments);
           }),
           listen(input, "input", input_input_handler_1)
@@ -772,11 +772,11 @@ function create_each_block(ctx) {
       ctx = new_ctx;
       if (dirty & /*todos*/
       1 && input.value !== /*item*/
-      ctx[9].text) {
+      ctx[10].text) {
         set_input_value(
           input,
           /*item*/
-          ctx[9].text
+          ctx[10].text
         );
       }
       if (dirty & /*todos*/
@@ -785,7 +785,7 @@ function create_each_block(ctx) {
           li,
           "done",
           /*item*/
-          ctx[9].done
+          ctx[10].done
         );
       }
     },
@@ -887,6 +887,12 @@ function create_fragment(ctx) {
             input,
             "input",
             /*input_input_handler*/
+            ctx[6]
+          ),
+          listen(
+            input,
+            "keydown",
+            /*handleKeydown*/
             ctx[5]
           ),
           listen(
@@ -960,7 +966,6 @@ function instance($$self, $$props, $$invalidate) {
   let remaining;
   let todos = [];
   let nouvelleTache = "";
-  document.addEventListener("DOMContentLoaded", getTodoList());
   function add() {
     let todo = { done: false, text: nouvelleTache };
     try {
@@ -1013,6 +1018,12 @@ function instance($$self, $$props, $$invalidate) {
       console.error(`Une erreur s'est produite : ${error.message}`);
     }
   }
+  function handleKeydown(e) {
+    if (e.key == "Enter") {
+      add();
+    }
+  }
+  getTodoList();
   function input_input_handler() {
     nouvelleTache = this.value;
     $$invalidate(1, nouvelleTache);
@@ -1034,6 +1045,7 @@ function instance($$self, $$props, $$invalidate) {
     remaining,
     add,
     xclear,
+    handleKeydown,
     input_input_handler,
     input_input_handler_1
   ];

@@ -3,18 +3,14 @@ package data
 import (
 	"database/sql"
 	"fmt"
+
+	"webstack/config"
 )
 
 type Database interface {
-	GetDb() ([]Todo, error)
-	GetConfig() Config
+	GetTodos() ([]Todo, error)
 	AddTodo() error
 	DeleteTodo() error
-}
-
-type Config struct {
-	Port string
-	Db   *sql.DB
 }
 
 type Todo struct {
@@ -22,31 +18,27 @@ type Todo struct {
 	Text string `json:"text"`
 }
 
-var ServConfig = Config{
-	Port: ":5050",
-}
-
-func (c Config) GetConfig() Config {
-	c.Port = ServConfig.Port
-	c.Db = ServConfig.Db
-	return c
-}
-
-func StartServer() error {
-	db, err := sql.Open("mysql", "adminUser:adminPassword@tcp(db:3306)/todos")
+func OpenDb() (*sql.DB, error) {
+	// config.ServConfig.Dbsrc = os.Getenv("DBS")
+	// if config.ServConfig.Dbsrc == "tcp" {
+	// 	config.ServConfig.Dbsrc = "tcp(db:3306)"
+	// }
+	dbsrc := config.ServConfig.Dbsrc
+	urldb := fmt.Sprintf("adminUser:adminPassword@%s/todos", dbsrc)
+	fmt.Println(urldb)
+	db, err := sql.Open("mysql", urldb)
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("sql Open() : %v", err)
 	}
-	ServConfig.Db = db
-	return nil
+	return db, nil
 }
 
-func GetDb() ([]Todo, error) {
+func GetTodos() ([]Todo, error) {
 	var list []Todo
 
-	rows, err := ServConfig.Db.Query("SELECT text FROM todos")
+	rows, err := config.ServConfig.Db.Query("SELECT text FROM todos")
 	if err != nil {
-		return nil, fmt.Errorf("getDb error : %v", err)
+		return nil, fmt.Errorf("GetTodos error : %v", err)
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -54,19 +46,19 @@ func GetDb() ([]Todo, error) {
 			Done: false,
 		}
 		if err := rows.Scan(&todo.Text); err != nil {
-			return nil, fmt.Errorf("getDb error : %v", err)
+			return nil, fmt.Errorf("GetTodos error : %v", err)
 		}
 		list = append(list, todo)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("getDb error : %v", err)
+		return nil, fmt.Errorf("GetTodos error : %v", err)
 	}
 	return list, nil
 
 }
 
 func AddTodo(td Todo) error {
-	result, err := ServConfig.Db.Exec("INSERT INTO todos (text) VALUES (?)", td.Text)
+	result, err := config.ServConfig.Db.Exec("INSERT INTO todos (text) VALUES (?)", td.Text)
 	if err != nil {
 		return fmt.Errorf("addTodo error : %v", err)
 	}
@@ -79,7 +71,7 @@ func AddTodo(td Todo) error {
 }
 
 func DeleteTodo(td Todo) error {
-	result, err := ServConfig.Db.Exec("DELETE FROM todos WHERE text LIKE (?)", td.Text)
+	result, err := config.ServConfig.Db.Exec("DELETE FROM todos WHERE text LIKE (?)", td.Text)
 	if err != nil {
 		return fmt.Errorf("deleteTodo error : %v", err)
 	}

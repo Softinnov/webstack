@@ -5,8 +5,6 @@
 	let todos = [];
 	let nouvelleTache='';
 
-	document.addEventListener("DOMContentLoaded", getTodoList());
-
 	function add() {
 		let todo = {
 			done: false,
@@ -67,7 +65,15 @@
 		}
 	}
 
+	function handleKeydown(e) {
+		if(e.key=="Enter") {
+			add();
+		}
+	}
+
 	$: remaining = todos.filter((t) => !t.done).length;	
+	
+	getTodoList();
 
 </script>
 
@@ -80,6 +86,7 @@
 		type="text" 
 		placeholder="Quoi d'autre?"
 		bind:value={nouvelleTache}
+		on:keydown={handleKeydown}
 	/>
 	<button class="ajout" disabled={nouvelleTache==""} on:click={add}>
 		✔️
