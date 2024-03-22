@@ -7,11 +7,10 @@
 
 	function add() {
 		let todo = {
-			action: "add",
 			text: nouvelleTache
 		}
 		try{
-			sendTodo(todo);
+			sendTodo(todo,"add");
 		} catch (error) {
 			console.error(`Erreur lors de la connection au serveur : ${error.message}`);
 		}
@@ -20,8 +19,7 @@
 
 	function xclear(item) {
 		try {
-			item.action="delete";
-			sendTodo(item);
+			sendTodo(item,"delete");
 		} catch (error) {
 			console.error(`Erreur lors de la connection au serveur : ${error.message}`);
 		}
@@ -29,8 +27,7 @@
 
 	function modify(item) {
 		try {
-			item.action="modify";
-			sendToModify(item);
+			sendTodo(item,"modify");
 		} catch (error) {
 			console.error(`Erreur lors de la connection au serveur : ${error.message}`);
 		}
@@ -52,15 +49,18 @@
 			if(result == null){
 				todos = [];
 			}
-			console.log(todos);
 		} catch (error) {
 			console.error(`Une erreur s'est produite : ${error.message}`);
 		}
 	}
 
-	async function sendTodo(todo) {
-		const url = `/service?action=${todo.action}&text=${todo.text}`
-		
+	async function sendTodo(todo, route) {
+		if(route=="add") {
+			var url = `/${route}?text=${todo.text}`;
+		} else {
+			url = `/${route}?id=${todo.id}&text=${todo.text}`;
+		}
+
 		try {
 			const reponse = await fetch(url,{method: "POST"});
 			if (!reponse.ok) {
@@ -75,26 +75,14 @@
 		}
 	}
 
-	async function sendToModify(todo) {
-		const url = `/service?id=${todo.id}&action=${todo.action}&text=${todo.text}`
-		
-		try {
-			const reponse = await fetch(url,{method: "POST"});
-			if (!reponse.ok) {
-				const errorData = await reponse.text();
-				alert(errorData);
-				throw new Error(`Erreur lors de la requête : ${reponse.status} ${reponse.statusText}`);
-			}
-			const result = await reponse.json();
-			getTodoList();
-		} catch (error) {
-			console.error(`Une erreur s'est produite : ${error.message}`);
-		}
-	}
-
-	function handleKeydown(e) {
+	function handleKeydown(e, item, action) {
 		if(e.key=="Enter") {
-			add();
+			if(action=="modify"){
+				modify(item);
+			}
+			else {
+				add();
+			}
 		}
 	}
 
@@ -108,7 +96,7 @@
 
 	<h1>My TodoList</h1>
 
-	<input 
+	<input  
 		class="newTask"
 		type="text" 
 		placeholder="Quoi d'autre?"
@@ -132,6 +120,7 @@
 					id="todo"
 					type="text"
 					bind:value={item.text}
+					on:keydown={handleKeydown(item, "modify")}
 				/>
 			</li>
 		{/each}

@@ -7,13 +7,19 @@ import (
 type Config struct {
 	StaticDir string
 	Port      string
+	Db        string
 	Dbsrc     string
+	Dbusr     string
+	Dbpsw     string
 }
 
 var servConfig = Config{
 	StaticDir: "./",
 	Port:      ":5050",
+	Db:        "todos",
 	Dbsrc:     "",
+	Dbusr:     "adminUser",
+	Dbpsw:     "adminPassword",
 }
 
 func GetConfig() Config {
