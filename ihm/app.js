@@ -1,6 +1,6 @@
 new EventSource('http://127.0.0.1:8888/esbuild').addEventListener('change', () => location.reload())
 
-// node_modules/svelte/src/runtime/internal/utils.js
+// ihm/node_modules/svelte/src/runtime/internal/utils.js
 function noop() {
 }
 function run(fn) {
@@ -22,13 +22,13 @@ function is_empty(obj) {
   return Object.keys(obj).length === 0;
 }
 
-// node_modules/svelte/src/runtime/internal/globals.js
+// ihm/node_modules/svelte/src/runtime/internal/globals.js
 var globals = typeof window !== "undefined" ? window : typeof globalThis !== "undefined" ? globalThis : (
   // @ts-ignore Node typings have this
   global
 );
 
-// node_modules/svelte/src/runtime/internal/ResizeObserverSingleton.js
+// ihm/node_modules/svelte/src/runtime/internal/ResizeObserverSingleton.js
 var ResizeObserverSingleton = class _ResizeObserverSingleton {
   /**
    * @private
@@ -74,7 +74,7 @@ var ResizeObserverSingleton = class _ResizeObserverSingleton {
 };
 ResizeObserverSingleton.entries = "WeakMap" in globals ? /* @__PURE__ */ new WeakMap() : void 0;
 
-// node_modules/svelte/src/runtime/internal/dom.js
+// ihm/node_modules/svelte/src/runtime/internal/dom.js
 var is_hydrating = false;
 function start_hydrating() {
   is_hydrating = true;
@@ -175,13 +175,13 @@ function get_custom_elements_slots(element2) {
   return result;
 }
 
-// node_modules/svelte/src/runtime/internal/lifecycle.js
+// ihm/node_modules/svelte/src/runtime/internal/lifecycle.js
 var current_component;
 function set_current_component(component) {
   current_component = component;
 }
 
-// node_modules/svelte/src/runtime/internal/scheduler.js
+// ihm/node_modules/svelte/src/runtime/internal/scheduler.js
 var dirty_components = [];
 var binding_callbacks = [];
 var render_callbacks = [];
@@ -256,7 +256,7 @@ function flush_render_callbacks(fns) {
   render_callbacks = filtered;
 }
 
-// node_modules/svelte/src/runtime/internal/transitions.js
+// ihm/node_modules/svelte/src/runtime/internal/transitions.js
 var outroing = /* @__PURE__ */ new Set();
 function transition_in(block, local) {
   if (block && block.i) {
@@ -265,12 +265,12 @@ function transition_in(block, local) {
   }
 }
 
-// node_modules/svelte/src/runtime/internal/each.js
+// ihm/node_modules/svelte/src/runtime/internal/each.js
 function ensure_array_like(array_like_or_iterator) {
   return array_like_or_iterator?.length !== void 0 ? array_like_or_iterator : Array.from(array_like_or_iterator);
 }
 
-// node_modules/svelte/src/shared/boolean_attributes.js
+// ihm/node_modules/svelte/src/shared/boolean_attributes.js
 var _boolean_attributes = (
   /** @type {const} */
   [
@@ -303,7 +303,7 @@ var _boolean_attributes = (
 );
 var boolean_attributes = /* @__PURE__ */ new Set([..._boolean_attributes]);
 
-// node_modules/svelte/src/runtime/internal/Component.js
+// ihm/node_modules/svelte/src/runtime/internal/Component.js
 function mount_component(component, target, anchor) {
   const { fragment, after_update } = component.$$;
   fragment && fragment.m(target, anchor);
@@ -681,10 +681,10 @@ var SvelteComponent = class {
   }
 };
 
-// node_modules/svelte/src/shared/version.js
+// ihm/node_modules/svelte/src/shared/version.js
 var PUBLIC_VERSION = "4";
 
-// node_modules/svelte/src/runtime/internal/disclose-version/index.js
+// ihm/node_modules/svelte/src/runtime/internal/disclose-version/index.js
 if (typeof window !== "undefined")
   (window.__svelte || (window.__svelte = { v: /* @__PURE__ */ new Set() })).v.add(PUBLIC_VERSION);
 
@@ -694,9 +694,9 @@ function add_css(target) {
 }
 function get_each_context(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[12] = list[i];
-  child_ctx[13] = list;
-  child_ctx[14] = i;
+  child_ctx[11] = list[i];
+  child_ctx[12] = list;
+  child_ctx[13] = i;
   return child_ctx;
 }
 function create_each_block(ctx) {
@@ -713,9 +713,9 @@ function create_each_block(ctx) {
     ctx[8].call(
       input,
       /*each_value*/
-      ctx[13],
+      ctx[12],
       /*item_index*/
-      ctx[14]
+      ctx[13]
     );
   }
   return {
@@ -741,7 +741,7 @@ function create_each_block(ctx) {
         li,
         "done",
         /*item*/
-        ctx[12].done
+        ctx[11].done
       );
     },
     m(target, anchor) {
@@ -754,7 +754,7 @@ function create_each_block(ctx) {
       set_input_value(
         input,
         /*item*/
-        ctx[12].text
+        ctx[11].text
       );
       append(li, t4);
       if (!mounted) {
@@ -764,12 +764,12 @@ function create_each_block(ctx) {
               /*modify*/
               ctx[5](
                 /*item*/
-                ctx[12]
+                ctx[11]
               )
             ))
               ctx[5](
                 /*item*/
-                ctx[12]
+                ctx[11]
               ).apply(this, arguments);
           }),
           listen(button1, "click", function() {
@@ -777,15 +777,30 @@ function create_each_block(ctx) {
               /*xclear*/
               ctx[4](
                 /*item*/
-                ctx[12]
+                ctx[11]
               )
             ))
               ctx[4](
                 /*item*/
-                ctx[12]
+                ctx[11]
               ).apply(this, arguments);
           }),
-          listen(input, "input", input_input_handler_1)
+          listen(input, "input", input_input_handler_1),
+          listen(input, "keydown", function() {
+            if (is_function(
+              /*handleKeydown*/
+              ctx[6](
+                /*item*/
+                ctx[11],
+                "modify"
+              )
+            ))
+              ctx[6](
+                /*item*/
+                ctx[11],
+                "modify"
+              ).apply(this, arguments);
+          })
         ];
         mounted = true;
       }
@@ -794,11 +809,11 @@ function create_each_block(ctx) {
       ctx = new_ctx;
       if (dirty & /*todos*/
       1 && input.value !== /*item*/
-      ctx[12].text) {
+      ctx[11].text) {
         set_input_value(
           input,
           /*item*/
-          ctx[12].text
+          ctx[11].text
         );
       }
       if (dirty & /*todos*/
@@ -807,7 +822,7 @@ function create_each_block(ctx) {
           li,
           "done",
           /*item*/
-          ctx[12].done
+          ctx[11].done
         );
       }
     },
@@ -942,8 +957,8 @@ function create_fragment(ctx) {
       ctx2[1] == "")) {
         button.disabled = button_disabled_value;
       }
-      if (dirty & /*todos, xclear, modify*/
-      49) {
+      if (dirty & /*todos, handleKeydown, xclear, modify*/
+      113) {
         each_value = ensure_array_like(
           /*todos*/
           ctx2[0]
@@ -989,9 +1004,9 @@ function instance($$self, $$props, $$invalidate) {
   let todos = [];
   let nouvelleTache = "";
   function add() {
-    let todo = { action: "add", text: nouvelleTache };
+    let todo = { text: nouvelleTache };
     try {
-      sendTodo(todo);
+      sendTodo(todo, "add");
     } catch (error) {
       console.error(`Erreur lors de la connection au serveur : ${error.message}`);
     }
@@ -999,16 +1014,14 @@ function instance($$self, $$props, $$invalidate) {
   }
   function xclear(item) {
     try {
-      item.action = "delete";
-      sendTodo(item);
+      sendTodo(item, "delete");
     } catch (error) {
       console.error(`Erreur lors de la connection au serveur : ${error.message}`);
     }
   }
   function modify(item) {
     try {
-      item.action = "modify";
-      sendToModify(item);
+      sendTodo(item, "modify");
     } catch (error) {
       console.error(`Erreur lors de la connection au serveur : ${error.message}`);
     }
@@ -1029,13 +1042,16 @@ function instance($$self, $$props, $$invalidate) {
       if (result == null) {
         $$invalidate(0, todos = []);
       }
-      console.log(todos);
     } catch (error) {
       console.error(`Une erreur s'est produite : ${error.message}`);
     }
   }
-  async function sendTodo(todo) {
-    const url = `/service?action=${todo.action}&text=${todo.text}`;
+  async function sendTodo(todo, route) {
+    if (route == "add") {
+      var url = `/${route}?text=${todo.text}`;
+    } else {
+      url = `/${route}?id=${todo.id}&text=${todo.text}`;
+    }
     try {
       const reponse = await fetch(url, { method: "POST" });
       if (!reponse.ok) {
@@ -1049,24 +1065,13 @@ function instance($$self, $$props, $$invalidate) {
       console.error(`Une erreur s'est produite : ${error.message}`);
     }
   }
-  async function sendToModify(todo) {
-    const url = `/service?id=${todo.id}&action=${todo.action}&text=${todo.text}`;
-    try {
-      const reponse = await fetch(url, { method: "POST" });
-      if (!reponse.ok) {
-        const errorData = await reponse.text();
-        alert(errorData);
-        throw new Error(`Erreur lors de la requ\xEAte : ${reponse.status} ${reponse.statusText}`);
-      }
-      const result = await reponse.json();
-      getTodoList();
-    } catch (error) {
-      console.error(`Une erreur s'est produite : ${error.message}`);
-    }
-  }
-  function handleKeydown(e) {
+  function handleKeydown(e, item, action) {
     if (e.key == "Enter") {
-      add();
+      if (action == "modify") {
+        modify(item);
+      } else {
+        add();
+      }
     }
   }
   getTodoList();
