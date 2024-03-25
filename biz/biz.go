@@ -21,10 +21,14 @@ func Init(db Database) error {
 	return nil
 }
 
-func encodejson(w http.ResponseWriter, todo any) {
+func encodejson(w http.ResponseWriter, todo any) (any, error) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(todo)
+	err := json.NewEncoder(w).Encode(todo)
+	if err != nil {
+		return nil, fmt.Errorf("erreur d'encodage json : %v", err)
+	}
+	return todo, nil
 }
 
 func HandleAddTodo(w http.ResponseWriter, r *http.Request) {
