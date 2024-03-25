@@ -21,7 +21,7 @@ func Init(db Database) error {
 	return nil
 }
 
-func encodejson(w http.ResponseWriter, todo models.Todo) {
+func encodejson(w http.ResponseWriter, todo any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(todo)
@@ -99,7 +99,5 @@ func HandleGetTodos(w http.ResponseWriter, r *http.Request) {
 		log.Fatal("GetTodos : ", err)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(list)
+	encodejson(w, list)
 }
