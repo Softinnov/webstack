@@ -6,5 +6,5 @@ type Database interface {
 	AddTodo(td models.Todo) error
 	DeleteTodo(td models.Todo) error
 	ModifyTodo(td models.Todo) error
-	GetData() ([]models.Todo, error)
+	GetTodos() ([]models.Todo, error)
 }

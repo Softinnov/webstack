@@ -23,10 +23,10 @@ func main() {
 	biz.Init(msql)
 	fs := http.FileServer(http.Dir(cfg.StaticDir))
 	http.Handle("/", fs)
-	http.HandleFunc("/add", biz.HandleAddRequest)
-	http.HandleFunc("/delete", biz.HandleDeleteRequest)
-	http.HandleFunc("/modify", biz.HandleModifyRequest)
-	http.HandleFunc("/todos", biz.GetTodos)
+	http.HandleFunc("/add", biz.HandleAddTodo)
+	http.HandleFunc("/delete", biz.HandleDeleteTodo)
+	http.HandleFunc("/modify", biz.HandleModifyTodo)
+	http.HandleFunc("/todos", biz.HandleGetTodos)
 
 	http.ListenAndServe(cfg.Port, nil)
 }
