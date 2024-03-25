@@ -20,7 +20,11 @@ func main() {
 		return
 	}
 	defer data.CloseDb()
-	biz.Init(msql)
+	err = biz.Init(msql)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
 	fs := http.FileServer(http.Dir(cfg.StaticDir))
 	http.Handle("/", fs)
 	http.HandleFunc("/add", biz.HandleAddTodo)
