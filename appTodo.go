@@ -17,13 +17,11 @@ func main() {
 	msql, err := data.OpenDb(cfg)
 	if err != nil {
 		log.Fatal(err)
-		return
 	}
 	defer data.CloseDb()
 	err = biz.Init(msql)
 	if err != nil {
 		log.Fatal(err)
-		return
 	}
 	fs := http.FileServer(http.Dir(cfg.StaticDir))
 	http.Handle("/", fs)

@@ -97,7 +97,6 @@ func HandleGetTodos(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "erreur lors de la récupération des données : réessayez ultérieurement", http.StatusInternalServerError)
 		log.Fatal("GetTodos : ", err)
-		return
 	}
 	encodejson(w, list)
 }
