@@ -39,7 +39,6 @@ func containsSpecialCharacters(s string) bool {
 func HandleAddTodo(w http.ResponseWriter, r *http.Request) {
 	text := r.FormValue("text")
 
-	fmt.Println(text)
 	if containsSpecialCharacters(text) {
 		http.Error(w, `Caractères spéciaux non autorisés : [@#$%^&*()_+{}/\[\]<>|\\]`, http.StatusBadRequest)
 		return
