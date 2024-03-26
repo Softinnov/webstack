@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 	"webstack/config"
@@ -82,19 +83,18 @@ func TestHandleAddTodo(t *testing.T) {
 		// Quand % est dans la chaîne celle ci est renvoyée vide
 		// Le & "coupe" la requête http, seule la partie de la chaîne avant le & est considérée
 		// Si "%" avant "&" : text vide, si "&" en premier aussi
+		// url.QueryEscape permet d'éviter le pb dans les tests mais ne reflète pas l'état de la donnée transmise par le client
 		{"Caractères spéciaux '&' avant '%'", "(/$-_]&[~]%)=", "Caractères spéciaux non autorisés"},
-		{"Caractères spéciaux '%' avant '&'", "(/$%-_]&[~])=", "veuillez renseigner du texte"},
-		{"Caractère '&' en début de chaîne", "&(/$-_]&[~])=", "veuillez renseigner du texte"},
-		// Plusieurs espaces font fail le test pourtant l'application à bien le comportement attendu en test manuel
-		// {"Plusieurs espaces en entrée", "   ", "veuillez renseigner du texte"},
-		// longue chaîne provoque une erreur dans le test mais fonctionne à la main
-		// {"Chaîne longue", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui"},
+		{"Caractères spéciaux '%' avant '&'", "(/$%-_]&[~])=", "Caractères spéciaux non autorisés"},
+		{"Caractère '&' en début de chaîne", "&(/$-_]&[~])=", "Caractères spéciaux non autorisés"},
+		{"Plusieurs espaces en entrée", "    ", "veuillez renseigner du texte"},
+		{"Chaîne longue", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			url := fmt.Sprintf("/add?text=%v", tt.entryTxt)
-			req := httptest.NewRequest(http.MethodPost, url, nil)
+			urltxt := fmt.Sprintf("/add?text=%v", url.QueryEscape(tt.entryTxt))
+			req := httptest.NewRequest(http.MethodPost, urltxt, nil)
 			w := httptest.NewRecorder()
 			HandleAddTodo(w, req)
 			res := w.Result()
@@ -122,12 +122,12 @@ func TestHandleDeleteTodo(t *testing.T) {
 		{"Chaîne vide", "", "123", "réessayez ultérieurement"},
 		{"Id non numérique", "BlablaASupprimer", "azerty", "erreur de conversion"},
 		{"Id vide", "BlablaASupprimer2", "", "erreur de conversion"},
-		// {"Chaîne longue","Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", "10", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui"},
+		{"Chaîne longue", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", "10", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			url := fmt.Sprintf("/delete?id=%v&text=%v", tt.entryId, tt.entryTxt)
+			url := fmt.Sprintf("/delete?id=%v&text=%v", tt.entryId, url.QueryEscape(tt.entryTxt))
 			req := httptest.NewRequest(http.MethodPost, url, nil)
 			w := httptest.NewRecorder()
 			HandleDeleteTodo(w, req)
@@ -157,12 +157,13 @@ func TestHandleModifyTodo(t *testing.T) {
 		{"Caractères spéciaux", "(/$-_][~])=", "13", "Caractères spéciaux non autorisés"},
 		{"Id non numérique", "BlablaAModifier", "azerty", "erreur de conversion"},
 		{"Id vide", "BlablaAModifier2", "", "erreur de conversion"},
-		//{"Chaîne longue","Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", "2", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui"},
+		{"Plusieurs espaces en entrée", "    ", "56", "réessayez ultérieurement"},
+		{"Chaîne longue", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", "2", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			url := fmt.Sprintf("/modify?id=%v&text=%v", tt.entryId, tt.entryTxt)
+			url := fmt.Sprintf("/modify?id=%v&text=%v", tt.entryId, url.QueryEscape(tt.entryTxt))
 			req := httptest.NewRequest(http.MethodPost, url, nil)
 			w := httptest.NewRecorder()
 			HandleModifyTodo(w, req)

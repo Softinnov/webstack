@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"webstack/models"
 )
@@ -32,7 +33,7 @@ func encodejson(w http.ResponseWriter, todo any) (any, error) {
 }
 
 func containsSpecialCharacters(s string) bool {
-	re := regexp.MustCompile(`[@#$%^&*()_+{}/\[\]<>|\\]`)
+	re := regexp.MustCompile(`[#$%^&*()_+{}/\[\]<>|\\]`)
 	return re.MatchString(s)
 }
 
@@ -40,10 +41,11 @@ func HandleAddTodo(w http.ResponseWriter, r *http.Request) {
 	text := r.FormValue("text")
 
 	if containsSpecialCharacters(text) {
-		http.Error(w, `Caractères spéciaux non autorisés : [@#$%^&*()_+{}/\[\]<>|\\]`, http.StatusBadRequest)
+		http.Error(w, `Caractères spéciaux non autorisés : [#$%^&*()_+{}/\[\]<>|\\]`, http.StatusBadRequest)
 		return
 	}
-	if text == "" {
+	noSpaceText := strings.ReplaceAll(text, " ", "")
+	if noSpaceText == "" {
 		http.Error(w, "Impossible d'ajouter le todo : veuillez renseigner du texte", http.StatusBadRequest)
 		return
 	}
@@ -85,12 +87,13 @@ func HandleModifyTodo(w http.ResponseWriter, r *http.Request) {
 	idStr := r.FormValue("id")
 	text := r.FormValue("text")
 
-	if idStr == "" || text == "" {
-		http.Error(w, "impossible de modifier le todo : réessayez ultérieurement", http.StatusBadRequest)
+	if containsSpecialCharacters(text) {
+		http.Error(w, `Caractères spéciaux non autorisés : [#$%^&*()_+{}/\[\]<>|\\]`, http.StatusBadRequest)
 		return
 	}
-	if containsSpecialCharacters(text) {
-		http.Error(w, `Caractères spéciaux non autorisés : [@#$%^&*()_+{}/\[\]<>|\\]`, http.StatusBadRequest)
+	noSpaceText := strings.ReplaceAll(text, " ", "")
+	if idStr == "" || noSpaceText == "" {
+		http.Error(w, "impossible de modifier le todo : réessayez ultérieurement", http.StatusBadRequest)
 		return
 	}
 	id, err := strconv.Atoi(idStr)
