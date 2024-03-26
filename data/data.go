@@ -16,7 +16,6 @@ var db *sql.DB
 func OpenDb(cfg config.Config) (m MysqlServer, err error) {
 
 	urldb := fmt.Sprintf("%s:%s@%s/%s", cfg.Dbusr, cfg.Dbpsw, cfg.Dbsrc, cfg.Db)
-	fmt.Println(urldb)
 	db, err = sql.Open("mysql", urldb)
 	if err != nil {
 		return m, fmt.Errorf("sql Open() : %v", err)
