@@ -56,7 +56,7 @@ func TestGetTodos(t *testing.T) {
 	expectedTxt := ""
 	req := httptest.NewRequest(http.MethodGet, "/todos", nil)
 	w := httptest.NewRecorder()
-	HandleAddTodo(w, req)
+	HandleGetTodos(w, req)
 	res := w.Result()
 	defer res.Body.Close()
 	body, err := io.ReadAll(res.Body)
@@ -94,11 +94,12 @@ func TestHandleDeleteTodo(t *testing.T) {
 	db := fakeDb{}
 	Init(db)
 
+	expectedId := "10"
 	expectedTxt := "Blablabla"
-	url := fmt.Sprintf("/delete?text=%v", expectedTxt)
+	url := fmt.Sprintf("/delete?id=%v&text=%v", expectedId, expectedTxt)
 	req := httptest.NewRequest(http.MethodPost, url, nil)
 	w := httptest.NewRecorder()
-	HandleAddTodo(w, req)
+	HandleDeleteTodo(w, req)
 	res := w.Result()
 	defer res.Body.Close()
 	body, err := io.ReadAll(res.Body)
@@ -106,7 +107,7 @@ func TestHandleDeleteTodo(t *testing.T) {
 		t.Errorf("expected error to be nil got %v", err)
 	}
 	responseTxt := string(body)
-	if !strings.Contains(responseTxt, expectedTxt) {
+	if !strings.Contains(responseTxt, expectedTxt) || !strings.Contains(responseTxt, expectedId) {
 		t.Errorf("expected response to contain '%s', but got '%s'", expectedTxt, responseTxt)
 	}
 }
@@ -115,11 +116,12 @@ func TestHandleModifyTodo(t *testing.T) {
 	db := fakeDb{}
 	Init(db)
 
+	expectedId := "1"
 	expectedTxt := "Blablabla"
-	url := fmt.Sprintf("/modify?text=%v", expectedTxt)
+	url := fmt.Sprintf("/modify?id=%v&text=%v", expectedId, expectedTxt)
 	req := httptest.NewRequest(http.MethodPost, url, nil)
 	w := httptest.NewRecorder()
-	HandleAddTodo(w, req)
+	HandleModifyTodo(w, req)
 	res := w.Result()
 	defer res.Body.Close()
 	body, err := io.ReadAll(res.Body)
@@ -127,7 +129,7 @@ func TestHandleModifyTodo(t *testing.T) {
 		t.Errorf("expected error to be nil got %v", err)
 	}
 	responseTxt := string(body)
-	if !strings.Contains(responseTxt, expectedTxt) {
+	if !strings.Contains(responseTxt, expectedTxt) || !strings.Contains(responseTxt, expectedId) {
 		t.Errorf("expected response to contain '%s', but got '%s'", expectedTxt, responseTxt)
 	}
 }

@@ -3,7 +3,6 @@ package biz
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -15,7 +14,7 @@ var store Database
 
 func Init(db Database) error {
 	if db == nil {
-		return fmt.Errorf("db is nil")
+		return fmt.Errorf("db est nil")
 	}
 	store = db
 	return nil
@@ -100,7 +99,7 @@ func HandleGetTodos(w http.ResponseWriter, r *http.Request) {
 	list, err := store.GetTodos()
 	if err != nil {
 		http.Error(w, "erreur lors de la récupération des données : réessayez ultérieurement", http.StatusInternalServerError)
-		log.Fatal("GetTodos : ", err)
+		return
 	}
 	encodejson(w, list)
 }
