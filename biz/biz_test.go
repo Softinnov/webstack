@@ -74,28 +74,26 @@ func TestHandleAddTodo(t *testing.T) {
 	Init(db)
 
 	var tests = []struct {
-		entryTxt, want string
+		name, entryTxt, want string
 	}{
-		{"Blablabla", "Blablabla"},
-		{"", "veuillez renseigner du texte"},
-		{"(/$-_]&[~])=", "Caractères spéciaux non autorisés"},
+		{"Cas normal", "Blablabla", "Blablabla"},
+		{"Chaîne vide", "", "veuillez renseigner du texte"},
+		{"Caractères spéciaux", "(/$-_][~])=", "Caractères spéciaux non autorisés"},
 		// Quand % est dans la chaîne celle ci est renvoyée vide
 		// Le & "coupe" la requête http, seule la partie de la chaîne avant le & est considérée
 		// Si "%" avant "&" : text vide, si "&" en premier aussi
-		{"(/$-_]&[~]%)=", "Caractères spéciaux non autorisés"},
-		{"(/$%-_]&[~])=", "veuillez renseigner du texte"},
-		{"&(/$-_]&[~])=", "veuillez renseigner du texte"},
+		{"Caractères spéciaux '&' avant '%'", "(/$-_]&[~]%)=", "Caractères spéciaux non autorisés"},
+		{"Caractères spéciaux '%' avant '&'", "(/$%-_]&[~])=", "veuillez renseigner du texte"},
+		{"Caractère '&' en début de chaîne", "&(/$-_]&[~])=", "veuillez renseigner du texte"},
 		// Plusieurs espaces font fail le test pourtant l'application à bien le comportement attendu en test manuel
-		// {"   ", "veuillez renseigner du texte"},
+		// {"Plusieurs espaces en entrée", "   ", "veuillez renseigner du texte"},
 		// longue chaîne provoque une erreur dans le test mais fonctionne à la main
-		// {"Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui"},
+		// {"Chaîne longue", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui"},
 	}
 
 	for _, tt := range tests {
-		name := fmt.Sprintf("HandleAddTodo(%v)", tt.entryTxt)
-		t.Run(name, func(t *testing.T) {
+		t.Run(tt.name, func(t *testing.T) {
 			url := fmt.Sprintf("/add?text=%v", tt.entryTxt)
-			fmt.Println(url)
 			req := httptest.NewRequest(http.MethodPost, url, nil)
 			w := httptest.NewRecorder()
 			HandleAddTodo(w, req)
@@ -118,18 +116,17 @@ func TestHandleDeleteTodo(t *testing.T) {
 	Init(db)
 
 	var tests = []struct {
-		entryTxt, entryId, want string
+		name, entryTxt, entryId, want string
 	}{
-		{"Blablabla", "3", "Blablabla"},
-		{"", "123", "réessayez ultérieurement"},
-		{"BlablaASupprimer", "azerty", "erreur de conversion"},
-		{"BlablaASupprimer2", "", "erreur de conversion"},
-		// {"Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", "10", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui"},
+		{"Cas normal", "Blablabla", "3", "Blablabla"},
+		{"Chaîne vide", "", "123", "réessayez ultérieurement"},
+		{"Id non numérique", "BlablaASupprimer", "azerty", "erreur de conversion"},
+		{"Id vide", "BlablaASupprimer2", "", "erreur de conversion"},
+		// {"Chaîne longue","Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", "10", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui"},
 	}
 
 	for _, tt := range tests {
-		name := fmt.Sprintf("HandleAddTodo(%v)", tt.entryTxt)
-		t.Run(name, func(t *testing.T) {
+		t.Run(tt.name, func(t *testing.T) {
 			url := fmt.Sprintf("/delete?id=%v&text=%v", tt.entryId, tt.entryTxt)
 			req := httptest.NewRequest(http.MethodPost, url, nil)
 			w := httptest.NewRecorder()
@@ -153,19 +150,18 @@ func TestHandleModifyTodo(t *testing.T) {
 	Init(db)
 
 	var tests = []struct {
-		entryTxt, entryId, want string
+		name, entryTxt, entryId, want string
 	}{
-		{"Blabliblou", "3", "Blabliblou"},
-		{"", "123", "réessayez ultérieurement"},
-		{"(/$-_]&[~])=", "13", "Caractères spéciaux non autorisés"},
-		{"BlablaAModifier", "azerty", "erreur de conversion"},
-		{"BlablaAModifier2", "", "erreur de conversion"},
-		// {"Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", "2", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui"},
+		{"Cas normal", "Blabliblou", "3", "Blabliblou"},
+		{"Chaîne vide", "", "123", "réessayez ultérieurement"},
+		{"Caractères spéciaux", "(/$-_][~])=", "13", "Caractères spéciaux non autorisés"},
+		{"Id non numérique", "BlablaAModifier", "azerty", "erreur de conversion"},
+		{"Id vide", "BlablaAModifier2", "", "erreur de conversion"},
+		//{"Chaîne longue","Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", "2", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui"},
 	}
 
 	for _, tt := range tests {
-		name := fmt.Sprintf("HandleAddTodo(%v)", tt.entryTxt)
-		t.Run(name, func(t *testing.T) {
+		t.Run(tt.name, func(t *testing.T) {
 			url := fmt.Sprintf("/modify?id=%v&text=%v", tt.entryId, tt.entryTxt)
 			req := httptest.NewRequest(http.MethodPost, url, nil)
 			w := httptest.NewRecorder()
