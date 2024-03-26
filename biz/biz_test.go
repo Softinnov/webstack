@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 	"webstack/config"
@@ -92,10 +93,20 @@ func TestHandleAddTodo(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		name := fmt.Sprintf("HandleAddTodo(%v)", tt.entryTxt)
+		var name string
+		if tt.entryTxt == tt.want && len(tt.entryTxt) < 30 {
+			name = "Cas normal"
+		} else if len(tt.entryTxt) == 0 {
+			name = "Chaîne vide"
+		} else if len(tt.entryTxt) >= 30 {
+			name = "Chaîne longue"
+		} else if tt.want == "Caractères spéciaux non autorisés" {
+			name = "Caractères spéciaux"
+		} else {
+			name = fmt.Sprintf("Cas particulier : %v", tt.entryTxt)
+		}
 		t.Run(name, func(t *testing.T) {
 			url := fmt.Sprintf("/add?text=%v", tt.entryTxt)
-			fmt.Println(url)
 			req := httptest.NewRequest(http.MethodPost, url, nil)
 			w := httptest.NewRecorder()
 			HandleAddTodo(w, req)
@@ -128,7 +139,21 @@ func TestHandleDeleteTodo(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		name := fmt.Sprintf("HandleAddTodo(%v)", tt.entryTxt)
+		var name string
+		_, err := strconv.Atoi(tt.entryId)
+		if tt.entryTxt == tt.want && len(tt.entryTxt) < 30 {
+			name = "Cas normal"
+		} else if len(tt.entryId) == 0 {
+			name = "Id vide"
+		} else if err != nil {
+			name = "Id non-numérique"
+		} else if len(tt.entryTxt) == 0 {
+			name = "Chaîne vide"
+		} else if len(tt.entryTxt) >= 30 {
+			name = "Chaîne longue"
+		} else {
+			name = fmt.Sprintf("Cas particulier : %v", tt.entryTxt)
+		}
 		t.Run(name, func(t *testing.T) {
 			url := fmt.Sprintf("/delete?id=%v&text=%v", tt.entryId, tt.entryTxt)
 			req := httptest.NewRequest(http.MethodPost, url, nil)
@@ -160,11 +185,27 @@ func TestHandleModifyTodo(t *testing.T) {
 		{"(/$-_]&[~])=", "13", "Caractères spéciaux non autorisés"},
 		{"BlablaAModifier", "azerty", "erreur de conversion"},
 		{"BlablaAModifier2", "", "erreur de conversion"},
-		// {"Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", "2", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui"},
+		//{"Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", "2", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui"},
 	}
 
 	for _, tt := range tests {
-		name := fmt.Sprintf("HandleAddTodo(%v)", tt.entryTxt)
+		var name string
+		_, err := strconv.Atoi(tt.entryId)
+		if tt.entryTxt == tt.want && len(tt.entryTxt) < 30 {
+			name = "Cas normal"
+		} else if len(tt.entryId) == 0 {
+			name = "Id vide"
+		} else if err != nil {
+			name = "Id non-numérique"
+		} else if len(tt.entryTxt) == 0 {
+			name = "Chaîne vide"
+		} else if len(tt.entryTxt) >= 30 {
+			name = "Chaîne longue"
+		} else if tt.want == "Caractères spéciaux non autorisés" {
+			name = "Caractères spéciaux"
+		} else {
+			name = fmt.Sprintf("Cas particulier : %v", tt.entryTxt)
+		}
 		t.Run(name, func(t *testing.T) {
 			url := fmt.Sprintf("/modify?id=%v&text=%v", tt.entryId, tt.entryTxt)
 			req := httptest.NewRequest(http.MethodPost, url, nil)
