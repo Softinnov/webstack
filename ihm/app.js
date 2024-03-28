@@ -999,6 +999,11 @@ function create_fragment(ctx) {
     }
   };
 }
+function customQueryEscape(str) {
+  const uriStr = encodeURIComponent(str);
+  const finalQueryStr = uriStr.replace(/!/g, "%21").replace(/'/g, "%27").replace(/\(/g, "%28").replace(/\)/g, "%29").replace(/\*/g, "%2A").replace(/%20/g, "+");
+  return finalQueryStr;
+}
 function instance($$self, $$props, $$invalidate) {
   let remaining;
   let todos = [];
@@ -1047,6 +1052,7 @@ function instance($$self, $$props, $$invalidate) {
     }
   }
   async function sendTodo(todo, route) {
+    todo.text = customQueryEscape(todo.text);
     if (route == "add") {
       var url = `/${route}?text=${todo.text}`;
     } else {

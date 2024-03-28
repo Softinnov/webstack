@@ -33,7 +33,7 @@ func encodejson(w http.ResponseWriter, todo any) (any, error) {
 }
 
 func containsSpecialCharacters(s string) bool {
-	re := regexp.MustCompile(`[#$%^&*()_+{}/\[\]<>|\\]`)
+	re := regexp.MustCompile(`[#%^&*()_+{}/\[\]<>|\\]`)
 	return re.MatchString(s)
 }
 
@@ -41,7 +41,7 @@ func HandleAddTodo(w http.ResponseWriter, r *http.Request) {
 	text := r.FormValue("text")
 
 	if containsSpecialCharacters(text) {
-		http.Error(w, `Caractères spéciaux non autorisés : [#$%^&*()_+{}/\[\]<>|\\]`, http.StatusBadRequest)
+		http.Error(w, `Caractères spéciaux non autorisés : #%^&*()_+{}/\[]<>|`, http.StatusBadRequest)
 		return
 	}
 	noSpaceText := strings.ReplaceAll(text, " ", "")
@@ -88,7 +88,7 @@ func HandleModifyTodo(w http.ResponseWriter, r *http.Request) {
 	text := r.FormValue("text")
 
 	if containsSpecialCharacters(text) {
-		http.Error(w, `Caractères spéciaux non autorisés : [#$%^&*()_+{}/\[\]<>|\\]`, http.StatusBadRequest)
+		http.Error(w, `Caractères spéciaux non autorisés :  #%^&*()_+{}/\[]<>|`, http.StatusBadRequest)
 		return
 	}
 	noSpaceText := strings.ReplaceAll(text, " ", "")
