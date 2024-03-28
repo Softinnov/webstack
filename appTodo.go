@@ -4,9 +4,10 @@ import (
 	"log"
 	"net/http"
 
-	"webstack/biz"
 	"webstack/config"
 	"webstack/data"
+	"webstack/metier"
+	"webstack/web"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -19,16 +20,16 @@ func main() {
 		log.Fatal(err)
 	}
 	defer data.CloseDb()
-	err = biz.Init(msql)
+	err = metier.Init(msql)
 	if err != nil {
 		log.Fatal(err)
 	}
 	fs := http.FileServer(http.Dir(cfg.StaticDir))
 	http.Handle("/", fs)
-	http.HandleFunc("/add", biz.HandleAddTodo)
-	http.HandleFunc("/delete", biz.HandleDeleteTodo)
-	http.HandleFunc("/modify", biz.HandleModifyTodo)
-	http.HandleFunc("/todos", biz.HandleGetTodos)
+	http.HandleFunc("/add", web.HandleAddTodo)
+	http.HandleFunc("/delete", web.HandleDeleteTodo)
+	http.HandleFunc("/modify", web.HandleModifyTodo)
+	http.HandleFunc("/todos", web.HandleGetTodos)
 
 	http.ListenAndServe(cfg.Port, nil)
 }
