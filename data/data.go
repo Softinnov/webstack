@@ -27,7 +27,7 @@ func CloseDb() error {
 	return db.Close()
 }
 
-func (m MysqlServer) GetTodos() ([]models.Todo, error) {
+func (m MysqlServer) GetTodosDb() ([]models.Todo, error) {
 	var list []models.Todo
 
 	rows, err := db.Query("SELECT todoid, text FROM todos")
@@ -48,7 +48,7 @@ func (m MysqlServer) GetTodos() ([]models.Todo, error) {
 	return list, nil
 }
 
-func (m MysqlServer) AddTodo(td models.Todo) error {
+func (m MysqlServer) AddTodoDb(td models.Todo) error {
 	_, err := db.Exec("INSERT INTO todos (text) VALUES (?)", td.Text)
 	if err != nil {
 		return fmt.Errorf("addTodo error : %v", err)
@@ -56,7 +56,7 @@ func (m MysqlServer) AddTodo(td models.Todo) error {
 	return nil
 }
 
-func (m MysqlServer) DeleteTodo(td models.Todo) error {
+func (m MysqlServer) DeleteTodoDb(td models.Todo) error {
 	_, err := db.Exec("DELETE FROM todos WHERE todoid = (?)", td.Id)
 	if err != nil {
 		return fmt.Errorf("deleteTodo error : %v", err)
@@ -64,7 +64,7 @@ func (m MysqlServer) DeleteTodo(td models.Todo) error {
 	return nil
 }
 
-func (m MysqlServer) ModifyTodo(td models.Todo) error {
+func (m MysqlServer) ModifyTodoDb(td models.Todo) error {
 	_, err := db.Exec("UPDATE todos SET text = (?) WHERE todoid = (?)", td.Text, td.Id)
 	if err != nil {
 		return fmt.Errorf("modifyTodo error : %v", err)
