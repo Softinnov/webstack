@@ -690,7 +690,7 @@ if (typeof window !== "undefined")
 
 // ihm/app.svelte
 function add_css(target) {
-  append_styles(target, "svelte-1x3xxls", 'h1.svelte-1x3xxls{font-size:70px}p.svelte-1x3xxls{font-size:large;margin-left:20%;margin-right:auto}.button.svelte-1x3xxls{height:30px;width:30px;border:none;border-radius:5%;background-color:white;margin-right:2%}.button.svelte-1x3xxls:hover{background-color:rgba(146, 146, 146, 0.381);cursor:pointer}.centered.svelte-1x3xxls{max-width:20em;margin:0 auto}.newTask.svelte-1x3xxls{margin-bottom:15%;margin-right:1%}.todos.svelte-1x3xxls{margin-top:10%}.ajout.svelte-1x3xxls{height:30px;border:none;border-radius:5%;background-color:white;position:relative;right:-5%;top:-10%\n	}.ajout.svelte-1x3xxls:hover{background-color:rgba(146, 146, 146, 0.381);cursor:pointer}.ajout.svelte-1x3xxls:disabled{background-color:white;color:rgba(128, 128, 128, 0.836);cursor:default}.done.svelte-1x3xxls{opacity:0.4}li.svelte-1x3xxls{display:flex}input[type="text"].svelte-1x3xxls{flex:1;padding:0.5em;margin:-0.2em 0;border:none;font-size:large}');
+  append_styles(target, "svelte-5sbuja", 'h1.svelte-5sbuja{font-size:70px}p.svelte-5sbuja{font-size:large;left:45%;bottom:5%;position:fixed}.button.svelte-5sbuja{height:35px;width:35px;border:none;border-radius:5%;background-color:white;margin-right:3%}.button.svelte-5sbuja:hover{background-color:rgba(146, 146, 146, 0.381);cursor:pointer}.centered.svelte-5sbuja{width:25em;margin:auto;display:grid}.newTask.svelte-5sbuja{left:12%;margin-bottom:15%;margin-right:1%;position:relative}.todos.svelte-5sbuja{margin-top:10%}.ajout.svelte-5sbuja{height:35px;width:35px;border:none;border-radius:5%;background-color:white;margin-left:13%;position:relative}.ajout.svelte-5sbuja:hover{background-color:rgba(146, 146, 146, 0.381);cursor:pointer}.ajout.svelte-5sbuja:disabled{background-color:white;color:rgba(128, 128, 128, 0.836);cursor:default}.done.svelte-5sbuja{opacity:0.4}ul.svelte-5sbuja{max-height:15em;overflow:hidden;overflow-y:visible}li.svelte-5sbuja{display:flex;margin:3%}input[type="text"].svelte-5sbuja{flex:1;padding:0.5em;margin:-0.2em 0;border:none;font-size:large}');
 }
 function get_each_context(ctx, list, i) {
   const child_ctx = ctx.slice();
@@ -729,14 +729,11 @@ function create_each_block(ctx) {
       t3 = space();
       input = element("input");
       t4 = space();
-      attr(button0, "type", "button");
-      attr(button0, "class", "button svelte-1x3xxls");
-      attr(button1, "type", "button");
-      attr(button1, "class", "button svelte-1x3xxls");
-      attr(input, "id", "todo");
+      attr(button0, "class", "button svelte-5sbuja");
+      attr(button1, "class", "button svelte-5sbuja");
       attr(input, "type", "text");
-      attr(input, "class", "svelte-1x3xxls");
-      attr(li, "class", "svelte-1x3xxls");
+      attr(input, "class", "svelte-5sbuja");
+      attr(li, "class", "svelte-5sbuja");
       toggle_class(
         li,
         "done",
@@ -836,9 +833,10 @@ function create_each_block(ctx) {
   };
 }
 function create_fragment(ctx) {
-  let div;
+  let div1;
   let h1;
   let t1;
+  let div0;
   let input;
   let t2;
   let button;
@@ -862,10 +860,11 @@ function create_fragment(ctx) {
   }
   return {
     c() {
-      div = element("div");
+      div1 = element("div");
       h1 = element("h1");
       h1.textContent = "My TodoList";
       t1 = space();
+      div0 = element("div");
       input = element("input");
       t2 = space();
       button = element("button");
@@ -882,40 +881,41 @@ function create_fragment(ctx) {
         ctx[2]
       );
       t7 = text(" t\xE2ches restantes !");
-      attr(h1, "class", "svelte-1x3xxls");
-      attr(input, "class", "newTask svelte-1x3xxls");
+      attr(h1, "class", "svelte-5sbuja");
+      attr(input, "class", "newTask svelte-5sbuja");
       attr(input, "type", "text");
       attr(input, "placeholder", "Quoi d'autre?");
-      attr(button, "class", "ajout svelte-1x3xxls");
+      attr(button, "class", "ajout svelte-5sbuja");
       button.disabled = button_disabled_value = /*nouvelleTache*/
       ctx[1] == "";
       attr(ul, "id", "todo-list");
-      attr(ul, "class", "todos svelte-1x3xxls");
-      attr(p, "class", "svelte-1x3xxls");
-      attr(div, "class", "centered svelte-1x3xxls");
+      attr(ul, "class", "todos svelte-5sbuja");
+      attr(p, "class", "svelte-5sbuja");
+      attr(div1, "class", "centered svelte-5sbuja");
     },
     m(target, anchor) {
-      insert(target, div, anchor);
-      append(div, h1);
-      append(div, t1);
-      append(div, input);
+      insert(target, div1, anchor);
+      append(div1, h1);
+      append(div1, t1);
+      append(div1, div0);
+      append(div0, input);
       set_input_value(
         input,
         /*nouvelleTache*/
         ctx[1]
       );
-      append(div, t2);
-      append(div, button);
+      append(div0, t2);
+      append(div0, button);
       append(button, t3);
-      append(div, t4);
-      append(div, ul);
+      append(div1, t4);
+      append(div1, ul);
       for (let i = 0; i < each_blocks.length; i += 1) {
         if (each_blocks[i]) {
           each_blocks[i].m(ul, null);
         }
       }
-      append(div, t5);
-      append(div, p);
+      append(div1, t5);
+      append(div1, p);
       append(p, t6);
       append(p, t7);
       if (!mounted) {
@@ -991,7 +991,7 @@ function create_fragment(ctx) {
     o: noop,
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div1);
       }
       destroy_each(each_blocks, detaching);
       mounted = false;

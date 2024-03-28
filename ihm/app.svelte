@@ -73,7 +73,6 @@
 		} else {
 			url = `/${route}?id=${todo.id}&text=${todo.text}`;
 		}
-
 		try {
 			const reponse = await fetch(url,{method: "POST"});
 			if (!reponse.ok) {
@@ -106,38 +105,39 @@
 </script>
 
 <div class="centered">
-
 	<h1>My TodoList</h1>
 
-	<input  
+	<div>
+		<input  
 		class="newTask"
 		type="text" 
 		placeholder="Quoi d'autre?"
 		bind:value={nouvelleTache}
 		on:keydown={handleKeydown}
-	/>
-	<button class="ajout" disabled={nouvelleTache==""} on:click={add}>
-		✔️
-	</button>
+		/>
+		<button class="ajout" disabled={nouvelleTache==""} on:click={add}>
+			✔️
+		</button>
+	</div>
+	
 	<ul id="todo-list" class="todos">	
 		{#each todos as item}
 			<li class:done={item.done}>
-				<button type="button" class="button" on:click={modify(item)}>
+				<button class="button" on:click={modify(item)}>
 					✏️
 				</button>
-				<button type="button" class="button" on:click={xclear(item)}>
+				<button class="button" on:click={xclear(item)}>
 					🗑️
 				</button>
 
 				<input
-					id="todo"
 					type="text"
 					bind:value={item.text}
 					on:keydown={handleKeydown(item, "modify")}
 				/>
 			</li>
 		{/each}
-		</ul>
+	</ul>
 
 	<p>{remaining} tâches restantes !</p>
 </div>
@@ -148,40 +148,44 @@
 	}
 	p{
 		font-size: large;
-		margin-left: 20%;
-		margin-right: auto;
+		left: 45%;
+		bottom: 5%;
+		position: fixed;
 	}
 	.button {
-		height: 30px;
-		width: 30px;
+		height: 35px;
+		width: 35px;
 		border: none;
 		border-radius: 5%;
 		background-color: white;
-		margin-right: 2%;
+		margin-right: 3%;
 	}
 	.button:hover{
 		background-color: rgba(146, 146, 146, 0.381);
 		cursor: pointer;
 	}
 	.centered {
-		max-width: 20em;
-		margin: 0 auto;
+		width: 25em;
+		margin: auto;
+		display:grid;
 	}
 	.newTask {
+		left: 12%;
 		margin-bottom: 15%;
 		margin-right: 1%;
+		position: relative;
 	}
 	.todos {
 		margin-top: 10%;
 	}
 	.ajout {
-		height: 30px;
+		height: 35px;
+		width: 35px;
 		border: none;
 		border-radius: 5%;
 		background-color: white;
+		margin-left: 13%;
 		position: relative;
-		right: -5%;
-		top: -10%
 	}
 	.ajout:hover{
 		background-color: rgba(146, 146, 146, 0.381);
@@ -195,8 +199,14 @@
 	.done {
 		opacity: 0.4;
 	}
+	ul {
+		max-height: 15em;
+		overflow: hidden;
+		overflow-y: visible;
+	}
 	li {
 		display: flex;
+		margin: 3%;
 	}
 	input[type="text"] {
 		flex: 1;
