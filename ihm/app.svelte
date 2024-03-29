@@ -80,18 +80,16 @@
 				alert(errorData);
 				throw new Error(`Erreur lors de la requête : ${reponse.status} ${reponse.statusText}`);
 			}
-			const result = await reponse.json();
+			await reponse.json();
 			getTodoList();
 		} catch (error) {
 			console.error(`Une erreur s'est produite : ${error.message}`);
 		}
 	}
 
-	function handleKeydown(e, item, action) {
+	function handleKeydown(e, item) {
 		if(e.key=="Enter") {
-			// console.log("Enter");
-			if(action=="modify"){
-				console.log("on est la");
+			if(item != null){
 				modify(item);
 			}
 			else {
@@ -101,7 +99,7 @@
 	}
 
 	$: remaining = todos.length;	
-	
+
 	getTodoList();
 
 </script>
@@ -116,7 +114,7 @@
 		type="text" 
 		placeholder="Quoi d'autre?"
 		bind:value={nouvelleTache}
-		on:keydown={handleKeydown}
+		on:keydown={e => handleKeydown(e, null)}
 		/>
 		<button class="ajout" disabled={nouvelleTache==""} on:click={add}>
 			✔️
@@ -137,7 +135,7 @@
 					id="todo"
 					type="text"
 					bind:value={item.text}
-					on:keydown={handleKeydown(item, "modify")}
+					on:keydown={e => handleKeydown(e, item)}
 				/>
 			</li>
 		{/each}

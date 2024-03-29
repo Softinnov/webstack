@@ -691,9 +691,9 @@ function add_css(target) {
 }
 function get_each_context(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[11] = list[i];
-  child_ctx[12] = list;
-  child_ctx[13] = i;
+  child_ctx[13] = list[i];
+  child_ctx[14] = list;
+  child_ctx[15] = i;
   return child_ctx;
 }
 function create_each_block(ctx) {
@@ -707,12 +707,22 @@ function create_each_block(ctx) {
   let mounted;
   let dispose;
   function input_input_handler_1() {
-    ctx[8].call(
+    ctx[9].call(
       input,
       /*each_value*/
-      ctx[12],
+      ctx[14],
       /*item_index*/
-      ctx[13]
+      ctx[15]
+    );
+  }
+  function keydown_handler_1(...args) {
+    return (
+      /*keydown_handler_1*/
+      ctx[10](
+        /*item*/
+        ctx[13],
+        ...args
+      )
     );
   }
   return {
@@ -743,7 +753,7 @@ function create_each_block(ctx) {
       set_input_value(
         input,
         /*item*/
-        ctx[11].text
+        ctx[13].text
       );
       append(li, t4);
       if (!mounted) {
@@ -753,12 +763,12 @@ function create_each_block(ctx) {
               /*modify*/
               ctx[5](
                 /*item*/
-                ctx[11]
+                ctx[13]
               )
             ))
               ctx[5](
                 /*item*/
-                ctx[11]
+                ctx[13]
               ).apply(this, arguments);
           }),
           listen(button1, "click", function() {
@@ -766,30 +776,16 @@ function create_each_block(ctx) {
               /*xclear*/
               ctx[4](
                 /*item*/
-                ctx[11]
+                ctx[13]
               )
             ))
               ctx[4](
                 /*item*/
-                ctx[11]
+                ctx[13]
               ).apply(this, arguments);
           }),
           listen(input, "input", input_input_handler_1),
-          listen(input, "keydown", function() {
-            if (is_function(
-              /*handleKeydown*/
-              ctx[6](
-                /*item*/
-                ctx[11],
-                "modify"
-              )
-            ))
-              ctx[6](
-                /*item*/
-                ctx[11],
-                "modify"
-              ).apply(this, arguments);
-          })
+          listen(input, "keydown", keydown_handler_1)
         ];
         mounted = true;
       }
@@ -798,11 +794,11 @@ function create_each_block(ctx) {
       ctx = new_ctx;
       if (dirty & /*todos*/
       1 && input.value !== /*item*/
-      ctx[11].text) {
+      ctx[13].text) {
         set_input_value(
           input,
           /*item*/
-          ctx[11].text
+          ctx[13].text
         );
       }
     },
@@ -912,8 +908,8 @@ function create_fragment(ctx) {
           listen(
             input,
             "keydown",
-            /*handleKeydown*/
-            ctx[6]
+            /*keydown_handler*/
+            ctx[8]
           ),
           listen(
             button,
@@ -1048,16 +1044,15 @@ function instance($$self, $$props, $$invalidate) {
         alert(errorData);
         throw new Error(`Erreur lors de la requ\xEAte : ${reponse.status} ${reponse.statusText}`);
       }
-      const result = await reponse.json();
+      await reponse.json();
       getTodoList();
     } catch (error) {
       console.error(`Une erreur s'est produite : ${error.message}`);
     }
   }
-  function handleKeydown(e, item, action) {
+  function handleKeydown(e, item) {
     if (e.key == "Enter") {
-      if (action == "modify") {
-        console.log("on est la");
+      if (item != null) {
         modify(item);
       } else {
         add();
@@ -1069,10 +1064,12 @@ function instance($$self, $$props, $$invalidate) {
     nouvelleTache = this.value;
     $$invalidate(1, nouvelleTache);
   }
+  const keydown_handler = (e) => handleKeydown(e, null);
   function input_input_handler_1(each_value, item_index) {
     each_value[item_index].text = this.value;
     $$invalidate(0, todos);
   }
+  const keydown_handler_1 = (item, e) => handleKeydown(e, item);
   $$self.$$.update = () => {
     if ($$self.$$.dirty & /*todos*/
     1) {
@@ -1089,7 +1086,9 @@ function instance($$self, $$props, $$invalidate) {
     modify,
     handleKeydown,
     input_input_handler,
-    input_input_handler_1
+    keydown_handler,
+    input_input_handler_1,
+    keydown_handler_1
   ];
 }
 var App = class extends SvelteComponent {

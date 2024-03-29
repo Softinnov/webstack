@@ -7,15 +7,24 @@ import (
 	"webstack/config"
 	"webstack/data"
 	"webstack/models"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestInit(t *testing.T) {
-	step1, _ := data.OpenDb(config.GetConfig())
-	got := Init(step1)
-
-	if got != nil {
-		t.Errorf("got %q, wanted nil", got)
-	}
+	Convey("Test Init(db)", t, func() {
+		step1, _ := data.OpenDb(config.GetConfig())
+		got := Init(step1)
+		Convey("The value should be nil", func() {
+			So(got, ShouldBeNil)
+		})
+	})
+	Convey("Test Init(nil)", t, func() {
+		got := Init(nil)
+		Convey("The value souldn't be nil", func() {
+			So(got, ShouldNotBeNil)
+		})
+	})
 }
 
 type fakeDb struct {
@@ -120,7 +129,7 @@ func TestDeleteTodo(t *testing.T) {
 		name, entryTxt, entryId, want string
 	}{
 		{"Cas normal", "Blablabla", "3", "Blablabla"},
-		{"Chaîne vide", "", "123", "réessayez ultérieurement"},
+		{"Chaîne vide", "", "123", ""},
 		{"Id non numérique", "BlablaASupprimer", "azerty", "erreur de conversion"},
 		{"Id vide", "BlablaASupprimer2", "", "réessayez ultérieurement"},
 		{"Chaîne longue", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", "10", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui"},

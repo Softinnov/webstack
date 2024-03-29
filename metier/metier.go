@@ -60,7 +60,7 @@ func AddTodo(text string) (models.Todo, error) {
 }
 
 func DeleteTodo(idStr string, text string) (models.Todo, error) {
-	if containsOnlySpace(text) || containsOnlySpace(idStr) {
+	if containsOnlySpace(idStr) {
 		err = fmt.Errorf(errNoId)
 		return models.Todo{}, err
 	}
