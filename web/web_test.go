@@ -1,6 +1,7 @@
 package web
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -13,38 +14,81 @@ import (
 )
 
 func TestEncodejson(t *testing.T) {
-	w := httptest.NewRecorder()
-	model := models.Todo{Id: 10, Text: "Blabla"}
-	data, err := encodejson(w, model)
-	if err != nil {
-		t.Errorf("expected error to be nil got %v", err)
+	var tests = []struct {
+		Id   int
+		Text string
+	}{
+		{Id: 10, Text: "Blabla"},
+		{Id: 123, Text: "(/$-_~+)="},
+		{Id: 516, Text: ""},
+		{Id: 0, Text: "(/$-_]&[~]%)="},
+		{Id: 56, Text: "text"},
 	}
-	if data != model {
-		t.Errorf("expected %q got %q", model, data)
+
+	for i, tt := range tests {
+		t.Run(tt.Text, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			model := tests[i]
+			data, err := encodejson(w, model)
+			if err != nil {
+				t.Errorf("expected error to be nil got %v", err)
+			}
+			if data != model {
+				t.Errorf("expected %q got %q", model, data)
+			}
+		})
 	}
 }
 
 type fakeDb struct {
+	todos []models.Todo
 }
 
-func (f fakeDb) AddTodoDb(td models.Todo) error {
+func (f *fakeDb) AddTodoDb(td models.Todo) error {
+	f.todos = append(f.todos, td)
 	return nil
 }
-func (f fakeDb) DeleteTodoDb(td models.Todo) error {
+func (f *fakeDb) DeleteTodoDb(td models.Todo) error {
+	for i, t := range f.todos {
+		if t.Id == td.Id {
+			f.todos = append(f.todos[:i], f.todos[i+1:]...)
+			return nil
+		}
+	}
+	return nil
+
+}
+func (f *fakeDb) ModifyTodoDb(td models.Todo) error {
+	for _, t := range f.todos {
+		if t.Id == td.Id {
+			t.Text = td.Text
+			return nil
+		}
+	}
 	return nil
 }
-func (f fakeDb) ModifyTodoDb(td models.Todo) error {
-	return nil
-}
-func (f fakeDb) GetTodosDb() (t []models.Todo, e error) {
+func (f *fakeDb) GetTodosDb() (t []models.Todo, e error) {
+	t = f.todos
 	return t, nil
 }
 
-func TestGetTodos(t *testing.T) {
+func setupFakeDb() fakeDb {
 	db := fakeDb{}
-	metier.Init(db)
 
-	want := ""
+	todo1 := models.Todo{Id: 1, Text: "Faire les courses"}
+	todo2 := models.Todo{Id: 2, Text: "Sortir le chien"}
+
+	db.AddTodoDb(todo1)
+	db.AddTodoDb(todo2)
+
+	return db
+}
+
+func TestHandleGetTodos(t *testing.T) {
+	db := setupFakeDb()
+	metier.Init(&db)
+
+	want := db.todos
 	req := httptest.NewRequest(http.MethodGet, "/todos", nil)
 	w := httptest.NewRecorder()
 	HandleGetTodos(w, req)
@@ -54,15 +98,19 @@ func TestGetTodos(t *testing.T) {
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
+	wantJson, err2 := json.Marshal(want)
+	if err2 != nil {
+		panic(err2)
+	}
 	got := string(body)
-	if !strings.Contains(got, want) {
-		t.Errorf("expected response to contain '%s', but got '%s'", want, got)
+	if !strings.Contains(got, string(wantJson)) {
+		t.Errorf("expected response to contain '%s', but got '%s'", string(wantJson), got)
 	}
 }
 
 func TestHandleAddTodo(t *testing.T) {
 	db := fakeDb{}
-	metier.Init(db)
+	metier.Init(&db)
 
 	var tests = []struct {
 		name, entryTxt, want string
@@ -101,7 +149,7 @@ func TestHandleAddTodo(t *testing.T) {
 
 func TestHandleDeleteTodo(t *testing.T) {
 	db := fakeDb{}
-	metier.Init(db)
+	metier.Init(&db)
 
 	var tests = []struct {
 		name, entryTxt, entryId, want string
@@ -135,7 +183,7 @@ func TestHandleDeleteTodo(t *testing.T) {
 
 func TestHandleModifyTodo(t *testing.T) {
 	db := fakeDb{}
-	metier.Init(db)
+	metier.Init(&db)
 
 	var tests = []struct {
 		name, entryTxt, entryId, want string
