@@ -6,10 +6,7 @@ import (
 	"net/http"
 
 	"webstack/metier"
-	"webstack/models"
 )
-
-var todo models.Todo
 
 func encodejson(w http.ResponseWriter, a any) (any, error) {
 	w.Header().Set("Content-Type", "application/json")
@@ -24,7 +21,7 @@ func encodejson(w http.ResponseWriter, a any) (any, error) {
 func HandleAddTodo(w http.ResponseWriter, r *http.Request) {
 	text := r.FormValue("text")
 
-	_, err := metier.AddTodo(text)
+	todo, err := metier.AddTodo(text)
 	if err != nil {
 		err = fmt.Errorf("erreur ajout de todo : %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -37,7 +34,7 @@ func HandleDeleteTodo(w http.ResponseWriter, r *http.Request) {
 	id := r.FormValue("id")
 	text := r.FormValue("text")
 
-	_, err := metier.DeleteTodo(id, text)
+	todo, err := metier.DeleteTodo(id, text)
 	if err != nil {
 		err = fmt.Errorf("erreur suppression de todo : %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -50,7 +47,7 @@ func HandleModifyTodo(w http.ResponseWriter, r *http.Request) {
 	id := r.FormValue("id")
 	text := r.FormValue("text")
 
-	_, err := metier.ModifyTodo(id, text)
+	todo, err := metier.ModifyTodo(id, text)
 	if err != nil {
 		err = fmt.Errorf("erreur modification de todo : %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)

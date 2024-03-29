@@ -1,6 +1,7 @@
 package metier
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 	"webstack/config"
@@ -18,26 +19,54 @@ func TestInit(t *testing.T) {
 }
 
 type fakeDb struct {
+	todos []models.Todo
 }
 
-func (f fakeDb) AddTodoDb(td models.Todo) error {
+func (f *fakeDb) AddTodoDb(td models.Todo) error {
+	f.todos = append(f.todos, td)
 	return nil
 }
-func (f fakeDb) DeleteTodoDb(td models.Todo) error {
+func (f *fakeDb) DeleteTodoDb(td models.Todo) error {
+	for i, t := range f.todos {
+		if t.Id == td.Id {
+			f.todos = append(f.todos[:i], f.todos[i+1:]...)
+			return nil
+		}
+	}
+	return nil
+
+}
+func (f *fakeDb) ModifyTodoDb(td models.Todo) error {
+	for _, t := range f.todos {
+		if t.Id == td.Id {
+			t.Text = td.Text
+			return nil
+		}
+	}
 	return nil
 }
-func (f fakeDb) ModifyTodoDb(td models.Todo) error {
-	return nil
-}
-func (f fakeDb) GetTodosDb() (t []models.Todo, e error) {
+func (f *fakeDb) GetTodosDb() (t []models.Todo, e error) {
+	t = f.todos
 	return t, nil
 }
 
-func TestGetTodos(t *testing.T) {
+func setupFakeDb() fakeDb {
 	db := fakeDb{}
-	Init(db)
 
-	want := []models.Todo{}
+	todo1 := models.Todo{Id: 1, Text: "Faire les courses"}
+	todo2 := models.Todo{Id: 2, Text: "Sortir le chien"}
+
+	db.AddTodoDb(todo1)
+	db.AddTodoDb(todo2)
+
+	return db
+}
+
+func TestGetTodos(t *testing.T) {
+	db := setupFakeDb()
+	Init(&db)
+
+	want := db.todos
 	got, err := GetTodos()
 
 	if err != nil {
@@ -49,14 +78,14 @@ func TestGetTodos(t *testing.T) {
 	}
 	for i := range want {
 		if got[i] != want[i] {
-			t.Errorf("Expected item %d to be '%v', but got '%v'", i, want[i], got[i])
+			t.Errorf("Expecte item %d to be '%v', but got '%v'", i, want[i], got[i])
 		}
 	}
 }
 
 func TestAddTodo(t *testing.T) {
 	db := fakeDb{}
-	Init(db)
+	Init(&db)
 
 	var tests = []struct {
 		name, entryTxt, want string
@@ -72,7 +101,11 @@ func TestAddTodo(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := AddTodo(tt.entryTxt)
-			if !strings.Contains(got, tt.want) && !strings.Contains(err.Error(), tt.want) {
+			gotJson, err2 := json.Marshal(got)
+			if err2 != nil {
+				panic(err2)
+			}
+			if !strings.Contains(string(gotJson), tt.want) && !strings.Contains(err.Error(), tt.want) {
 				t.Errorf("expected response to contain '%s', but got '%s'", tt.want, err.Error())
 			}
 		})
@@ -81,7 +114,7 @@ func TestAddTodo(t *testing.T) {
 
 func TestDeleteTodo(t *testing.T) {
 	db := fakeDb{}
-	Init(db)
+	Init(&db)
 
 	var tests = []struct {
 		name, entryTxt, entryId, want string
@@ -96,7 +129,11 @@ func TestDeleteTodo(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := DeleteTodo(tt.entryId, tt.entryTxt)
-			if !strings.Contains(got, tt.want) && !strings.Contains(err.Error(), tt.want) {
+			gotJson, err2 := json.Marshal(got)
+			if err2 != nil {
+				panic(err2)
+			}
+			if (!strings.Contains(string(gotJson), tt.want) || !strings.Contains(string(gotJson), tt.entryId)) && !strings.Contains(err.Error(), tt.want) {
 				t.Errorf("expected response to contain '%s', but got '%s'", tt.want, err.Error())
 			}
 		})
@@ -105,7 +142,7 @@ func TestDeleteTodo(t *testing.T) {
 
 func TestModifyTodo(t *testing.T) {
 	db := fakeDb{}
-	Init(db)
+	Init(&db)
 
 	var tests = []struct {
 		name, entryTxt, entryId, want string
@@ -123,7 +160,11 @@ func TestModifyTodo(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := ModifyTodo(tt.entryId, tt.entryTxt)
-			if !strings.Contains(got, tt.want) && !strings.Contains(err.Error(), tt.want) {
+			gotJson, err2 := json.Marshal(got)
+			if err2 != nil {
+				panic(err2)
+			}
+			if (!strings.Contains(string(gotJson), tt.want) || !strings.Contains(string(gotJson), tt.entryId)) && !strings.Contains(err.Error(), tt.want) {
 				t.Errorf("expected response to contain '%s', but got '%s'", tt.want, err.Error())
 			}
 		})

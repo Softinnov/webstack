@@ -42,58 +42,64 @@ func GetTodos() ([]models.Todo, error) {
 	return list, nil
 }
 
-func AddTodo(text string) (string, error) {
+func AddTodo(text string) (models.Todo, error) {
 	if containsSpecialCharacters(text) {
 		err = fmt.Errorf(errSpecialChar)
-		return "", err
+		return models.Todo{}, err
 	}
 	if containsOnlySpace(text) {
 		err = fmt.Errorf(errNoText)
-		return "", err
+		return models.Todo{}, err
 	}
 	todo.Text = text
 	err = store.AddTodoDb(todo)
 	if err != nil {
-		return "", err
+		return models.Todo{}, err
 	}
-	return text, nil
+	return todo, nil
 }
 
-func DeleteTodo(idStr string, text string) (string, error) {
+func DeleteTodo(idStr string, text string) (models.Todo, error) {
 	if containsOnlySpace(text) || containsOnlySpace(idStr) {
 		err = fmt.Errorf(errNoId)
-		return "", err
+		return models.Todo{}, err
 	}
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		err = fmt.Errorf("erreur de conversion %v", err)
-		return "", err
+		return models.Todo{}, err
 	}
 	todo.Id = id
 	todo.Text = text
-	store.DeleteTodoDb(todo)
-	return text, nil
+	err = store.DeleteTodoDb(todo)
+	if err != nil {
+		return models.Todo{}, err
+	}
+	return todo, nil
 }
 
-func ModifyTodo(idStr string, text string) (string, error) {
+func ModifyTodo(idStr string, text string) (models.Todo, error) {
 	if containsOnlySpace(idStr) {
 		err = fmt.Errorf(errNoId)
-		return "", err
+		return models.Todo{}, err
 	} else if containsOnlySpace(text) {
 		err = fmt.Errorf(errNoText)
-		return "", err
+		return models.Todo{}, err
 	}
 	if containsSpecialCharacters(text) {
 		err = fmt.Errorf(errSpecialChar)
-		return "", err
+		return models.Todo{}, err
 	}
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		err = fmt.Errorf("erreur de conversion %v", err)
-		return "", err
+		return models.Todo{}, err
 	}
 	todo.Id = id
 	todo.Text = text
-	store.ModifyTodoDb(todo)
-	return text, nil
+	err = store.ModifyTodoDb(todo)
+	if err != nil {
+		return models.Todo{}, err
+	}
+	return todo, nil
 }

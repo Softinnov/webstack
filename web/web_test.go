@@ -141,12 +141,12 @@ func TestHandleModifyTodo(t *testing.T) {
 		name, entryTxt, entryId, want string
 	}{
 		{"Cas normal", "Blabliblou", "3", "Blabliblou"},
-		{"Chaîne vide", "", "123", "réessayez ultérieurement"},
+		{"Chaîne vide", "", "123", "veuillez renseigner du texte"},
 		{"Caractères spéciaux autorisés", "(/$-_~+)=", "13", "(/$-_~+)="},
 		{"Caractères spéciaux non autorisés", "(/${}-_~+)=", "13", "caractères spéciaux non autorisés"},
 		{"Id non numérique", "BlablaAModifier", "azerty", "erreur de conversion"},
 		{"Id vide", "BlablaAModifier2", "", "erreur de conversion"},
-		{"Plusieurs espaces en entrée", "    ", "56", "réessayez ultérieurement"},
+		{"Plusieurs espaces en entrée", "    ", "56", "veuillez renseigner du texte"},
 		{"Chaîne longue", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", "2", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui"},
 	}
 
