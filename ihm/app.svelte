@@ -89,7 +89,9 @@
 
 	function handleKeydown(e, item, action) {
 		if(e.key=="Enter") {
+			// console.log("Enter");
 			if(action=="modify"){
+				console.log("on est la");
 				modify(item);
 			}
 			else {
@@ -105,6 +107,7 @@
 </script>
 
 <div class="centered">
+	
 	<h1>My TodoList</h1>
 
 	<div>
@@ -122,7 +125,7 @@
 	
 	<ul id="todo-list" class="todos">	
 		{#each todos as item}
-			<li class:done={item.done}>
+			<li>
 				<button class="button" on:click={modify(item)}>
 					✏️
 				</button>
@@ -131,6 +134,7 @@
 				</button>
 
 				<input
+					id="todo"
 					type="text"
 					bind:value={item.text}
 					on:keydown={handleKeydown(item, "modify")}
@@ -140,6 +144,7 @@
 	</ul>
 
 	<p>{remaining} tâches restantes !</p>
+
 </div>
 
 <style>
@@ -195,9 +200,6 @@
 		background-color: white;
 		color: rgba(128, 128, 128, 0.836);
 		cursor: default;
-	}
-	.done {
-		opacity: 0.4;
 	}
 	ul {
 		max-height: 15em;

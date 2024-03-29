@@ -1,6 +1,7 @@
-package biz
+package web
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -8,53 +9,86 @@ import (
 	"net/url"
 	"strings"
 	"testing"
-	"webstack/config"
-	"webstack/data"
+	"webstack/metier"
 	"webstack/models"
 )
 
-func TestInit(t *testing.T) {
-	step1, _ := data.OpenDb(config.GetConfig())
-	got := Init(step1)
-
-	if got != nil {
-		t.Errorf("got %q, wanted nil", got)
-	}
-}
-
 func TestEncodejson(t *testing.T) {
-	w := httptest.NewRecorder()
-	model := models.Todo{Id: 10, Text: "Blabla"}
-	data, err := encodejson(w, model)
-	if err != nil {
-		t.Errorf("expected error to be nil got %v", err)
+	var tests = []struct {
+		Id   int
+		Text string
+	}{
+		{Id: 10, Text: "Blabla"},
+		{Id: 123, Text: "(/$-_~+)="},
+		{Id: 516, Text: ""},
+		{Id: 0, Text: "(/$-_]&[~]%)="},
+		{Id: 56, Text: "text"},
 	}
-	if data != model {
-		t.Errorf("expected %q got %q", model, data)
+
+	for i, tt := range tests {
+		t.Run(tt.Text, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			model := tests[i]
+			data, err := encodejson(w, model)
+			if err != nil {
+				t.Errorf("expected error to be nil got %v", err)
+			}
+			if data != model {
+				t.Errorf("expected %q got %q", model, data)
+			}
+		})
 	}
 }
 
 type fakeDb struct {
+	todos []models.Todo
 }
 
-func (f fakeDb) AddTodo(td models.Todo) error {
+func (f *fakeDb) AddTodoDb(td models.Todo) error {
+	f.todos = append(f.todos, td)
 	return nil
 }
-func (f fakeDb) DeleteTodo(td models.Todo) error {
+func (f *fakeDb) DeleteTodoDb(td models.Todo) error {
+	for i, t := range f.todos {
+		if t.Id == td.Id {
+			f.todos = append(f.todos[:i], f.todos[i+1:]...)
+			return nil
+		}
+	}
+	return nil
+
+}
+func (f *fakeDb) ModifyTodoDb(td models.Todo) error {
+	for _, t := range f.todos {
+		if t.Id == td.Id {
+			t.Text = td.Text
+			return nil
+		}
+	}
 	return nil
 }
-func (f fakeDb) ModifyTodo(td models.Todo) error {
-	return nil
-}
-func (f fakeDb) GetTodos() (t []models.Todo, e error) {
+func (f *fakeDb) GetTodosDb() (t []models.Todo, e error) {
+	t = f.todos
 	return t, nil
 }
 
-func TestGetTodos(t *testing.T) {
+func setupFakeDb() fakeDb {
 	db := fakeDb{}
-	Init(db)
 
-	want := ""
+	todo1 := models.Todo{Id: 1, Text: "Faire les courses"}
+	todo2 := models.Todo{Id: 2, Text: "Sortir le chien"}
+
+	db.AddTodoDb(todo1)
+	db.AddTodoDb(todo2)
+
+	return db
+}
+
+func TestHandleGetTodos(t *testing.T) {
+	db := setupFakeDb()
+	metier.Init(&db)
+
+	want := db.todos
 	req := httptest.NewRequest(http.MethodGet, "/todos", nil)
 	w := httptest.NewRecorder()
 	HandleGetTodos(w, req)
@@ -64,29 +98,31 @@ func TestGetTodos(t *testing.T) {
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
+	wantJson, err2 := json.Marshal(want)
+	if err2 != nil {
+		panic(err2)
+	}
 	got := string(body)
-	if !strings.Contains(got, want) {
-		t.Errorf("expected response to contain '%s', but got '%s'", want, got)
+	if !strings.Contains(got, string(wantJson)) {
+		t.Errorf("expected response to contain '%s', but got '%s'", string(wantJson), got)
 	}
 }
 
 func TestHandleAddTodo(t *testing.T) {
 	db := fakeDb{}
-	Init(db)
+	metier.Init(&db)
 
 	var tests = []struct {
 		name, entryTxt, want string
 	}{
 		{"Cas normal", "Blablabla", "Blablabla"},
 		{"Chaîne vide", "", "veuillez renseigner du texte"},
-		{"Caractères spéciaux", "(/$-_][~])=", "Caractères spéciaux non autorisés"},
+		{"Caractères spéciaux autorisés", "(/$-_~+)=", "(/$-_~+)="},
 		// Quand % est dans la chaîne celle ci est renvoyée vide
 		// Le & "coupe" la requête http, seule la partie de la chaîne avant le & est considérée
 		// Si "%" avant "&" : text vide, si "&" en premier aussi
 		// url.QueryEscape permet d'éviter le pb dans les tests mais ne reflète pas l'état de la donnée transmise par le client
-		{"Caractères spéciaux '&' avant '%'", "(/$-_]&[~]%)=", "Caractères spéciaux non autorisés"},
-		{"Caractères spéciaux '%' avant '&'", "(/$%-_]&[~])=", "Caractères spéciaux non autorisés"},
-		{"Caractère '&' en début de chaîne", "&(/$-_]&[~])=", "Caractères spéciaux non autorisés"},
+		{"Caractères spéciaux non autorisés", "(/$-_]&[~]%)=", "caractères spéciaux non autorisés"},
 		{"Plusieurs espaces en entrée", "    ", "veuillez renseigner du texte"},
 		{"Chaîne longue", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui"},
 	}
@@ -113,7 +149,7 @@ func TestHandleAddTodo(t *testing.T) {
 
 func TestHandleDeleteTodo(t *testing.T) {
 	db := fakeDb{}
-	Init(db)
+	metier.Init(&db)
 
 	var tests = []struct {
 		name, entryTxt, entryId, want string
@@ -147,17 +183,18 @@ func TestHandleDeleteTodo(t *testing.T) {
 
 func TestHandleModifyTodo(t *testing.T) {
 	db := fakeDb{}
-	Init(db)
+	metier.Init(&db)
 
 	var tests = []struct {
 		name, entryTxt, entryId, want string
 	}{
 		{"Cas normal", "Blabliblou", "3", "Blabliblou"},
-		{"Chaîne vide", "", "123", "réessayez ultérieurement"},
-		{"Caractères spéciaux", "(/$-_][~])=", "13", "Caractères spéciaux non autorisés"},
+		{"Chaîne vide", "", "123", "veuillez renseigner du texte"},
+		{"Caractères spéciaux autorisés", "(/$-_~+)=", "13", "(/$-_~+)="},
+		{"Caractères spéciaux non autorisés", "(/${}-_~+)=", "13", "caractères spéciaux non autorisés"},
 		{"Id non numérique", "BlablaAModifier", "azerty", "erreur de conversion"},
 		{"Id vide", "BlablaAModifier2", "", "erreur de conversion"},
-		{"Plusieurs espaces en entrée", "    ", "56", "réessayez ultérieurement"},
+		{"Plusieurs espaces en entrée", "    ", "56", "veuillez renseigner du texte"},
 		{"Chaîne longue", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", "2", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui"},
 	}
 

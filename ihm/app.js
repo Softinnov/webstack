@@ -161,9 +161,6 @@ function set_data(text2, data) {
 function set_input_value(input, value) {
   input.value = value == null ? "" : value;
 }
-function toggle_class(element2, name, toggle) {
-  element2.classList.toggle(name, !!toggle);
-}
 function get_custom_elements_slots(element2) {
   const result = {};
   element2.childNodes.forEach(
@@ -690,7 +687,7 @@ if (typeof window !== "undefined")
 
 // ihm/app.svelte
 function add_css(target) {
-  append_styles(target, "svelte-5sbuja", 'h1.svelte-5sbuja{font-size:70px}p.svelte-5sbuja{font-size:large;left:45%;bottom:5%;position:fixed}.button.svelte-5sbuja{height:35px;width:35px;border:none;border-radius:5%;background-color:white;margin-right:3%}.button.svelte-5sbuja:hover{background-color:rgba(146, 146, 146, 0.381);cursor:pointer}.centered.svelte-5sbuja{width:25em;margin:auto;display:grid}.newTask.svelte-5sbuja{left:12%;margin-bottom:15%;margin-right:1%;position:relative}.todos.svelte-5sbuja{margin-top:10%}.ajout.svelte-5sbuja{height:35px;width:35px;border:none;border-radius:5%;background-color:white;margin-left:13%;position:relative}.ajout.svelte-5sbuja:hover{background-color:rgba(146, 146, 146, 0.381);cursor:pointer}.ajout.svelte-5sbuja:disabled{background-color:white;color:rgba(128, 128, 128, 0.836);cursor:default}.done.svelte-5sbuja{opacity:0.4}ul.svelte-5sbuja{max-height:15em;overflow:hidden;overflow-y:visible}li.svelte-5sbuja{display:flex;margin:3%}input[type="text"].svelte-5sbuja{flex:1;padding:0.5em;margin:-0.2em 0;border:none;font-size:large}');
+  append_styles(target, "svelte-1v66ajq", 'h1.svelte-1v66ajq{font-size:70px}p.svelte-1v66ajq{font-size:large;left:45%;bottom:5%;position:fixed}.button.svelte-1v66ajq{height:35px;width:35px;border:none;border-radius:5%;background-color:white;margin-right:3%}.button.svelte-1v66ajq:hover{background-color:rgba(146, 146, 146, 0.381);cursor:pointer}.centered.svelte-1v66ajq{width:25em;margin:auto;display:grid}.newTask.svelte-1v66ajq{left:12%;margin-bottom:15%;margin-right:1%;position:relative}.todos.svelte-1v66ajq{margin-top:10%}.ajout.svelte-1v66ajq{height:35px;width:35px;border:none;border-radius:5%;background-color:white;margin-left:13%;position:relative}.ajout.svelte-1v66ajq:hover{background-color:rgba(146, 146, 146, 0.381);cursor:pointer}.ajout.svelte-1v66ajq:disabled{background-color:white;color:rgba(128, 128, 128, 0.836);cursor:default}ul.svelte-1v66ajq{max-height:15em;overflow:hidden;overflow-y:visible}li.svelte-1v66ajq{display:flex;margin:3%}input[type="text"].svelte-1v66ajq{flex:1;padding:0.5em;margin:-0.2em 0;border:none;font-size:large}');
 }
 function get_each_context(ctx, list, i) {
   const child_ctx = ctx.slice();
@@ -729,17 +726,12 @@ function create_each_block(ctx) {
       t3 = space();
       input = element("input");
       t4 = space();
-      attr(button0, "class", "button svelte-5sbuja");
-      attr(button1, "class", "button svelte-5sbuja");
+      attr(button0, "class", "button svelte-1v66ajq");
+      attr(button1, "class", "button svelte-1v66ajq");
+      attr(input, "id", "todo");
       attr(input, "type", "text");
-      attr(input, "class", "svelte-5sbuja");
-      attr(li, "class", "svelte-5sbuja");
-      toggle_class(
-        li,
-        "done",
-        /*item*/
-        ctx[11].done
-      );
+      attr(input, "class", "svelte-1v66ajq");
+      attr(li, "class", "svelte-1v66ajq");
     },
     m(target, anchor) {
       insert(target, li, anchor);
@@ -813,15 +805,6 @@ function create_each_block(ctx) {
           ctx[11].text
         );
       }
-      if (dirty & /*todos*/
-      1) {
-        toggle_class(
-          li,
-          "done",
-          /*item*/
-          ctx[11].done
-        );
-      }
     },
     d(detaching) {
       if (detaching) {
@@ -881,17 +864,17 @@ function create_fragment(ctx) {
         ctx[2]
       );
       t7 = text(" t\xE2ches restantes !");
-      attr(h1, "class", "svelte-5sbuja");
-      attr(input, "class", "newTask svelte-5sbuja");
+      attr(h1, "class", "svelte-1v66ajq");
+      attr(input, "class", "newTask svelte-1v66ajq");
       attr(input, "type", "text");
       attr(input, "placeholder", "Quoi d'autre?");
-      attr(button, "class", "ajout svelte-5sbuja");
+      attr(button, "class", "ajout svelte-1v66ajq");
       button.disabled = button_disabled_value = /*nouvelleTache*/
       ctx[1] == "";
       attr(ul, "id", "todo-list");
-      attr(ul, "class", "todos svelte-5sbuja");
-      attr(p, "class", "svelte-5sbuja");
-      attr(div1, "class", "centered svelte-5sbuja");
+      attr(ul, "class", "todos svelte-1v66ajq");
+      attr(p, "class", "svelte-1v66ajq");
+      attr(div1, "class", "centered svelte-1v66ajq");
     },
     m(target, anchor) {
       insert(target, div1, anchor);
@@ -1074,6 +1057,7 @@ function instance($$self, $$props, $$invalidate) {
   function handleKeydown(e, item, action) {
     if (e.key == "Enter") {
       if (action == "modify") {
+        console.log("on est la");
         modify(item);
       } else {
         add();
