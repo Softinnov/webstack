@@ -30,14 +30,14 @@ func CloseDb() error {
 func (m MysqlServer) GetTodosDb() ([]models.Todo, error) {
 	var list []models.Todo
 
-	rows, err := db.Query("SELECT todoid, text FROM todos")
+	rows, err := db.Query("SELECT todoid, text, priority FROM todos")
 	if err != nil {
 		return nil, fmt.Errorf("GetTodos error : %v", err)
 	}
 	defer rows.Close()
 	for rows.Next() {
 		todo := models.Todo{}
-		if err := rows.Scan(&todo.Id, &todo.Text); err != nil {
+		if err := rows.Scan(&todo.Id, &todo.Text, &todo.Priority); err != nil {
 			return nil, fmt.Errorf("GetTodos error : %v", err)
 		}
 		list = append(list, todo)
@@ -49,7 +49,7 @@ func (m MysqlServer) GetTodosDb() ([]models.Todo, error) {
 }
 
 func (m MysqlServer) AddTodoDb(td models.Todo) error {
-	_, err := db.Exec("INSERT INTO todos (text) VALUES (?)", td.Text)
+	_, err := db.Exec("INSERT INTO todos (text,priority) VALUES (?,?)", td.Text, td.Priority)
 	if err != nil {
 		return fmt.Errorf("addTodo error : %v", err)
 	}

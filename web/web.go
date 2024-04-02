@@ -20,8 +20,9 @@ func encodejson(w http.ResponseWriter, a any) (any, error) {
 
 func HandleAddTodo(w http.ResponseWriter, r *http.Request) {
 	text := r.FormValue("text")
+	priority := r.FormValue("priority")
 
-	todo, err := metier.AddTodo(text)
+	todo, err := metier.AddTodo(text, priority)
 	if err != nil {
 		err = fmt.Errorf("erreur ajout de todo : %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
