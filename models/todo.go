@@ -5,3 +5,8 @@ type Todo struct {
 	Text     string `json:"text"`
 	Priority int    `json:"priority"`
 }
+
+type User struct {
+	Email string
+	Mdp   string
+}
