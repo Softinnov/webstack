@@ -123,12 +123,6 @@ function detach(node) {
     node.parentNode.removeChild(node);
   }
 }
-function destroy_each(iterations, detaching) {
-  for (let i = 0; i < iterations.length; i += 1) {
-    if (iterations[i])
-      iterations[i].d(detaching);
-  }
-}
 function element(name) {
   return document.createElement(name);
 }
@@ -142,6 +136,12 @@ function listen(node, event, handler, options) {
   node.addEventListener(event, handler, options);
   return () => node.removeEventListener(event, handler, options);
 }
+function prevent_default(fn) {
+  return function(event) {
+    event.preventDefault();
+    return fn.call(this, event);
+  };
+}
 function attr(node, attribute, value) {
   if (value == null)
     node.removeAttribute(attribute);
@@ -151,22 +151,8 @@ function attr(node, attribute, value) {
 function children(element2) {
   return Array.from(element2.childNodes);
 }
-function set_data(text2, data) {
-  data = "" + data;
-  if (text2.data === data)
-    return;
-  text2.data = /** @type {string} */
-  data;
-}
 function set_input_value(input, value) {
   input.value = value == null ? "" : value;
-}
-function set_style(node, key, value, important) {
-  if (value == null) {
-    node.style.removeProperty(key);
-  } else {
-    node.style.setProperty(key, value, important ? "important" : "");
-  }
 }
 function get_custom_elements_slots(element2) {
   const result = {};
@@ -267,11 +253,6 @@ function transition_in(block, local) {
     outroing.delete(block);
     block.i(local);
   }
-}
-
-// ihm/node_modules/svelte/src/runtime/internal/each.js
-function ensure_array_like(array_like_or_iterator) {
-  return array_like_or_iterator?.length !== void 0 ? array_like_or_iterator : Array.from(array_like_or_iterator);
 }
 
 // ihm/node_modules/svelte/src/shared/boolean_attributes.js
@@ -692,551 +673,250 @@ var PUBLIC_VERSION = "4";
 if (typeof window !== "undefined")
   (window.__svelte || (window.__svelte = { v: /* @__PURE__ */ new Set() })).v.add(PUBLIC_VERSION);
 
-// ihm/app.svelte
+// ihm/signin.svelte
 function add_css(target) {
-  append_styles(target, "svelte-1ur7k5m", 'h1.svelte-1ur7k5m.svelte-1ur7k5m{font-size:70px}p.svelte-1ur7k5m.svelte-1ur7k5m{font-size:large;left:45%;bottom:5%;position:fixed}.button.svelte-1ur7k5m.svelte-1ur7k5m{height:35px;width:35px;border:none;border-radius:5%;background-color:white;margin-left:3%}.button.svelte-1ur7k5m.svelte-1ur7k5m:hover{background-color:rgba(146, 146, 146, 0.381);cursor:pointer}.centered.svelte-1ur7k5m.svelte-1ur7k5m{width:30em;margin:auto;display:grid}.newTask.svelte-1ur7k5m.svelte-1ur7k5m{flex:0.75;left:12%;margin-bottom:15%;margin-right:1%;position:relative}.todos.svelte-1ur7k5m.svelte-1ur7k5m{margin-top:10%}.ajout.svelte-1ur7k5m.svelte-1ur7k5m{height:35px;width:35px;border:none;border-radius:5%;background-color:white;margin-left:2%;position:relative}.ajout.svelte-1ur7k5m.svelte-1ur7k5m:hover{background-color:rgba(146, 146, 146, 0.381);cursor:pointer}.ajout.svelte-1ur7k5m.svelte-1ur7k5m:disabled{background-color:white;color:rgba(128, 128, 128, 0.836);cursor:default}ul.svelte-1ur7k5m.svelte-1ur7k5m{max-height:15em;overflow:hidden;overflow-y:visible}li.svelte-1ur7k5m.svelte-1ur7k5m{display:flex;margin:3%}input[type="text"].svelte-1ur7k5m.svelte-1ur7k5m{flex:0.75;padding:0.5em;margin:-0.2em 0;border:none;font-size:large}.priority-btn.svelte-1ur7k5m.svelte-1ur7k5m{position:relative;width:10px;height:10px;border-radius:50%;margin:3%}.priority-btn.svelte-1ur7k5m.svelte-1ur7k5m:hover{cursor:pointer}.priority.svelte-1ur7k5m.svelte-1ur7k5m{display:inline;margin-left:13%;justify-content:center}.priority.svelte-1ur7k5m button.svelte-1ur7k5m{position:relative;width:10px;height:10px;border-radius:50%;margin-right:1%;margin-left:1%;bottom:10%}.priority.svelte-1ur7k5m button.svelte-1ur7k5m:hover{cursor:pointer}.urgent.svelte-1ur7k5m.svelte-1ur7k5m{background-color:rgba(255, 0, 0, 0.475)}.prioritaire.svelte-1ur7k5m.svelte-1ur7k5m{background-color:rgba(255, 255, 0, 0.475)}.nonprioritaire.svelte-1ur7k5m.svelte-1ur7k5m{background-color:rgba(0, 128, 0, 0.475)}.selectedurg.svelte-1ur7k5m.svelte-1ur7k5m{border:2px solid;border-color:black;background-color:red;transform:scale(1.15)}.selectedprio.svelte-1ur7k5m.svelte-1ur7k5m{border:2px solid;border-color:black;background-color:yellow;transform:scale(1.15)}.selectednonurg.svelte-1ur7k5m.svelte-1ur7k5m{border:2px solid;border-color:black;background-color:green;transform:scale(1.15)}');
-}
-function get_each_context(ctx, list, i) {
-  const child_ctx = ctx.slice();
-  child_ctx[20] = list[i];
-  child_ctx[21] = list;
-  child_ctx[22] = i;
-  return child_ctx;
-}
-function create_each_block(ctx) {
-  let li;
-  let input;
-  let t0;
-  let button0;
-  let t1;
-  let button1;
-  let t3;
-  let button2;
-  let t5;
-  let mounted;
-  let dispose;
-  function input_input_handler_1() {
-    ctx[15].call(
-      input,
-      /*each_value*/
-      ctx[21],
-      /*item_index*/
-      ctx[22]
-    );
-  }
-  function keydown_handler_1(...args) {
-    return (
-      /*keydown_handler_1*/
-      ctx[16](
-        /*item*/
-        ctx[20],
-        ...args
-      )
-    );
-  }
-  function click_handler_3() {
-    return (
-      /*click_handler_3*/
-      ctx[17](
-        /*item*/
-        ctx[20]
-      )
-    );
-  }
-  return {
-    c() {
-      li = element("li");
-      input = element("input");
-      t0 = space();
-      button0 = element("button");
-      t1 = space();
-      button1 = element("button");
-      button1.textContent = "\u270F\uFE0F";
-      t3 = space();
-      button2 = element("button");
-      button2.textContent = "\u{1F5D1}\uFE0F";
-      t5 = space();
-      attr(input, "id", "todo");
-      attr(input, "type", "text");
-      attr(input, "class", "svelte-1ur7k5m");
-      attr(button0, "class", "priority-btn svelte-1ur7k5m");
-      set_style(button0, "background-color", getPriorityColor(
-        /*item*/
-        ctx[20].priority
-      ));
-      attr(button1, "class", "button svelte-1ur7k5m");
-      attr(button2, "class", "button svelte-1ur7k5m");
-      attr(li, "class", "svelte-1ur7k5m");
-    },
-    m(target, anchor) {
-      insert(target, li, anchor);
-      append(li, input);
-      set_input_value(
-        input,
-        /*item*/
-        ctx[20].text
-      );
-      append(li, t0);
-      append(li, button0);
-      append(li, t1);
-      append(li, button1);
-      append(li, t3);
-      append(li, button2);
-      append(li, t5);
-      if (!mounted) {
-        dispose = [
-          listen(input, "input", input_input_handler_1),
-          listen(input, "keydown", keydown_handler_1),
-          listen(button0, "click", click_handler_3),
-          listen(button1, "click", function() {
-            if (is_function(
-              /*modify*/
-              ctx[8](
-                /*item*/
-                ctx[20]
-              )
-            ))
-              ctx[8](
-                /*item*/
-                ctx[20]
-              ).apply(this, arguments);
-          }),
-          listen(button2, "click", function() {
-            if (is_function(
-              /*xclear*/
-              ctx[7](
-                /*item*/
-                ctx[20]
-              )
-            ))
-              ctx[7](
-                /*item*/
-                ctx[20]
-              ).apply(this, arguments);
-          })
-        ];
-        mounted = true;
-      }
-    },
-    p(new_ctx, dirty) {
-      ctx = new_ctx;
-      if (dirty & /*todos*/
-      1 && input.value !== /*item*/
-      ctx[20].text) {
-        set_input_value(
-          input,
-          /*item*/
-          ctx[20].text
-        );
-      }
-      if (dirty & /*todos*/
-      1) {
-        set_style(button0, "background-color", getPriorityColor(
-          /*item*/
-          ctx[20].priority
-        ));
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(li);
-      }
-      mounted = false;
-      run_all(dispose);
-    }
-  };
+  append_styles(target, "svelte-1p0t7jr", "h1.svelte-1p0t7jr{font-size:70px}label.svelte-1p0t7jr{font-size:large}.centered.svelte-1p0t7jr{width:30em;margin:auto;display:inline-flexbox}");
 }
 function create_fragment(ctx) {
-  let div2;
+  let div;
   let h1;
   let t1;
-  let div1;
-  let input;
+  let form;
+  let label0;
   let t2;
-  let div0;
-  let button0;
-  let button0_class_value;
+  let input0;
   let t3;
-  let button1;
-  let button1_class_value;
+  let br0;
   let t4;
-  let button2;
-  let button2_class_value;
+  let label1;
   let t5;
-  let button3;
+  let input1;
   let t6;
-  let button3_disabled_value;
+  let br1;
   let t7;
-  let ul;
+  let label2;
   let t8;
-  let p;
+  let input2;
   let t9;
+  let br2;
   let t10;
+  let button;
   let mounted;
   let dispose;
-  let each_value = ensure_array_like(
-    /*todos*/
-    ctx[0]
-  );
-  let each_blocks = [];
-  for (let i = 0; i < each_value.length; i += 1) {
-    each_blocks[i] = create_each_block(get_each_context(ctx, each_value, i));
-  }
   return {
     c() {
-      div2 = element("div");
+      div = element("div");
       h1 = element("h1");
       h1.textContent = "My TodoList";
       t1 = space();
-      div1 = element("div");
-      input = element("input");
-      t2 = space();
-      div0 = element("div");
-      button0 = element("button");
+      form = element("form");
+      label0 = element("label");
+      t2 = text("Email:\n            ");
+      input0 = element("input");
       t3 = space();
-      button1 = element("button");
+      br0 = element("br");
       t4 = space();
-      button2 = element("button");
-      t5 = space();
-      button3 = element("button");
-      t6 = text("\u2714\uFE0F");
+      label1 = element("label");
+      t5 = text("Mot de passe:\n            ");
+      input1 = element("input");
+      t6 = space();
+      br1 = element("br");
       t7 = space();
-      ul = element("ul");
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        each_blocks[i].c();
-      }
-      t8 = space();
-      p = element("p");
-      t9 = text(
-        /*remaining*/
-        ctx[3]
-      );
-      t10 = text(" t\xE2ches restantes !");
-      attr(h1, "class", "svelte-1ur7k5m");
-      attr(input, "class", "newTask svelte-1ur7k5m");
-      attr(input, "type", "text");
-      attr(input, "placeholder", "Quoi d'autre?");
-      attr(button0, "class", button0_class_value = "urgent " + /*selectedPriority*/
-      (ctx[2] === 3 ? "selectedurg" : "") + " svelte-1ur7k5m");
-      attr(button1, "class", button1_class_value = "prioritaire " + /*selectedPriority*/
-      (ctx[2] === 2 ? "selectedprio" : "") + " svelte-1ur7k5m");
-      attr(button2, "class", button2_class_value = "nonprioritaire " + /*selectedPriority*/
-      (ctx[2] === 1 ? "selectednonurg" : "") + " svelte-1ur7k5m");
-      attr(div0, "class", "priority svelte-1ur7k5m");
-      attr(button3, "class", "ajout svelte-1ur7k5m");
-      button3.disabled = button3_disabled_value = /*nouvelleTache*/
-      ctx[1] == "";
-      attr(ul, "id", "todo-list");
-      attr(ul, "class", "todos svelte-1ur7k5m");
-      attr(p, "class", "svelte-1ur7k5m");
-      attr(div2, "class", "centered svelte-1ur7k5m");
+      label2 = element("label");
+      t8 = text("Confirmer le mot de passe:\n            ");
+      input2 = element("input");
+      t9 = space();
+      br2 = element("br");
+      t10 = space();
+      button = element("button");
+      button.textContent = "S'inscrire";
+      attr(h1, "class", "svelte-1p0t7jr");
+      attr(input0, "type", "email");
+      input0.required = true;
+      attr(label0, "class", "svelte-1p0t7jr");
+      attr(input1, "type", "password");
+      input1.required = true;
+      attr(label1, "class", "svelte-1p0t7jr");
+      attr(input2, "type", "password");
+      input2.required = true;
+      attr(label2, "class", "svelte-1p0t7jr");
+      attr(button, "type", "submit");
+      attr(div, "class", "centered svelte-1p0t7jr");
     },
     m(target, anchor) {
-      insert(target, div2, anchor);
-      append(div2, h1);
-      append(div2, t1);
-      append(div2, div1);
-      append(div1, input);
+      insert(target, div, anchor);
+      append(div, h1);
+      append(div, t1);
+      append(div, form);
+      append(form, label0);
+      append(label0, t2);
+      append(label0, input0);
       set_input_value(
-        input,
-        /*nouvelleTache*/
+        input0,
+        /*email*/
+        ctx[0]
+      );
+      append(form, t3);
+      append(form, br0);
+      append(form, t4);
+      append(form, label1);
+      append(label1, t5);
+      append(label1, input1);
+      set_input_value(
+        input1,
+        /*password*/
         ctx[1]
       );
-      append(div1, t2);
-      append(div1, div0);
-      append(div0, button0);
-      append(div0, t3);
-      append(div0, button1);
-      append(div0, t4);
-      append(div0, button2);
-      append(div1, t5);
-      append(div1, button3);
-      append(button3, t6);
-      append(div2, t7);
-      append(div2, ul);
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        if (each_blocks[i]) {
-          each_blocks[i].m(ul, null);
-        }
-      }
-      append(div2, t8);
-      append(div2, p);
-      append(p, t9);
-      append(p, t10);
+      append(form, t6);
+      append(form, br1);
+      append(form, t7);
+      append(form, label2);
+      append(label2, t8);
+      append(label2, input2);
+      set_input_value(
+        input2,
+        /*confirmpassword*/
+        ctx[2]
+      );
+      append(form, t9);
+      append(form, br2);
+      append(form, t10);
+      append(form, button);
       if (!mounted) {
         dispose = [
           listen(
-            input,
+            input0,
             "input",
-            /*input_input_handler*/
-            ctx[10]
+            /*input0_input_handler*/
+            ctx[4]
           ),
           listen(
-            input,
-            "keydown",
-            /*keydown_handler*/
-            ctx[11]
+            input1,
+            "input",
+            /*input1_input_handler*/
+            ctx[5]
           ),
           listen(
-            button0,
-            "click",
-            /*click_handler*/
-            ctx[12]
-          ),
-          listen(
-            button1,
-            "click",
-            /*click_handler_1*/
-            ctx[13]
-          ),
-          listen(
-            button2,
-            "click",
-            /*click_handler_2*/
-            ctx[14]
-          ),
-          listen(
-            button3,
-            "click",
-            /*add*/
+            input2,
+            "input",
+            /*input2_input_handler*/
             ctx[6]
-          )
+          ),
+          listen(form, "submit", prevent_default(
+            /*handleSubmit*/
+            ctx[3]
+          ))
         ];
         mounted = true;
       }
     },
     p(ctx2, [dirty]) {
-      if (dirty & /*nouvelleTache*/
-      2 && input.value !== /*nouvelleTache*/
+      if (dirty & /*email*/
+      1 && input0.value !== /*email*/
+      ctx2[0]) {
+        set_input_value(
+          input0,
+          /*email*/
+          ctx2[0]
+        );
+      }
+      if (dirty & /*password*/
+      2 && input1.value !== /*password*/
       ctx2[1]) {
         set_input_value(
-          input,
-          /*nouvelleTache*/
+          input1,
+          /*password*/
           ctx2[1]
         );
       }
-      if (dirty & /*selectedPriority*/
-      4 && button0_class_value !== (button0_class_value = "urgent " + /*selectedPriority*/
-      (ctx2[2] === 3 ? "selectedurg" : "") + " svelte-1ur7k5m")) {
-        attr(button0, "class", button0_class_value);
-      }
-      if (dirty & /*selectedPriority*/
-      4 && button1_class_value !== (button1_class_value = "prioritaire " + /*selectedPriority*/
-      (ctx2[2] === 2 ? "selectedprio" : "") + " svelte-1ur7k5m")) {
-        attr(button1, "class", button1_class_value);
-      }
-      if (dirty & /*selectedPriority*/
-      4 && button2_class_value !== (button2_class_value = "nonprioritaire " + /*selectedPriority*/
-      (ctx2[2] === 1 ? "selectednonurg" : "") + " svelte-1ur7k5m")) {
-        attr(button2, "class", button2_class_value);
-      }
-      if (dirty & /*nouvelleTache*/
-      2 && button3_disabled_value !== (button3_disabled_value = /*nouvelleTache*/
-      ctx2[1] == "")) {
-        button3.disabled = button3_disabled_value;
-      }
-      if (dirty & /*xclear, todos, modify, getPriorityColor, changePriority, handleKeydown*/
-      929) {
-        each_value = ensure_array_like(
-          /*todos*/
-          ctx2[0]
+      if (dirty & /*confirmpassword*/
+      4 && input2.value !== /*confirmpassword*/
+      ctx2[2]) {
+        set_input_value(
+          input2,
+          /*confirmpassword*/
+          ctx2[2]
         );
-        let i;
-        for (i = 0; i < each_value.length; i += 1) {
-          const child_ctx = get_each_context(ctx2, each_value, i);
-          if (each_blocks[i]) {
-            each_blocks[i].p(child_ctx, dirty);
-          } else {
-            each_blocks[i] = create_each_block(child_ctx);
-            each_blocks[i].c();
-            each_blocks[i].m(ul, null);
-          }
-        }
-        for (; i < each_blocks.length; i += 1) {
-          each_blocks[i].d(1);
-        }
-        each_blocks.length = each_value.length;
       }
-      if (dirty & /*remaining*/
-      8)
-        set_data(
-          t9,
-          /*remaining*/
-          ctx2[3]
-        );
     },
     i: noop,
     o: noop,
     d(detaching) {
       if (detaching) {
-        detach(div2);
+        detach(div);
       }
-      destroy_each(each_blocks, detaching);
       mounted = false;
       run_all(dispose);
     }
   };
-}
-function getPriorityColor(priority) {
-  switch (priority) {
-    case 3:
-      return "rgba(255, 0, 0)";
-    case 2:
-      return "rgba(255, 255, 0)";
-    case 1:
-      return "rgba(0, 128, 0)";
-    default:
-      return "rgba(0, 0, 0)";
-  }
 }
 function customQueryEscape(str) {
   const uriStr = encodeURIComponent(str);
   const finalQueryStr = uriStr.replace(/!/g, "%21").replace(/'/g, "%27").replace(/\(/g, "%28").replace(/\)/g, "%29").replace(/\*/g, "%2A").replace(/%20/g, "+");
   return finalQueryStr;
 }
+async function sendUser(user) {
+  user.email = customQueryEscape(user.email);
+  user.password = customQueryEscape(user.password);
+  user.confirmpassword = customQueryEscape(user.confirmpassword);
+  const url = `/signin?email=${user.email}&password=${user.password}&confirmpassword=${user.confirmpassword}`;
+  try {
+    const reponse = await fetch(url, { method: "POST" });
+    if (!reponse.ok) {
+      const errorData = await reponse.text();
+      alert(errorData);
+      throw new Error(`Erreur lors de la requ\xEAte : ${reponse.status} ${reponse.statusText}`);
+    }
+    await reponse.json();
+  } catch (error) {
+    console.error(`Une erreur s'est produite : ${error.message}`);
+  }
+}
 function instance($$self, $$props, $$invalidate) {
-  let remaining;
-  let todos = [];
-  let nouvelleTache = "";
-  let selectedPriority = 2;
-  function selectPriority(priority) {
-    $$invalidate(2, selectedPriority = priority);
-  }
-  function changePriority(item) {
-    if (item.priority >= 3) {
-      item.priority = 0;
-      item.priority += 1;
-    } else {
-      item.priority += 1;
-    }
-    modify(item);
-  }
-  function add() {
-    let todo = {
-      text: nouvelleTache,
-      priority: selectedPriority
-    };
+  let email = "";
+  let password = "";
+  let confirmpassword = "";
+  const handleSubmit = () => {
+    let newuser = { email, password, confirmpassword };
+    console.log("Email:", email);
+    console.log("Password:", password);
+    console.log("Password2:", confirmpassword);
     try {
-      sendTodo(todo, "add");
+      sendUser(newuser);
     } catch (error) {
       console.error(`Erreur lors de la connection au serveur : ${error.message}`);
-    }
-    $$invalidate(1, nouvelleTache = "");
-  }
-  function xclear(item) {
-    try {
-      sendTodo(item, "delete");
-    } catch (error) {
-      console.error(`Erreur lors de la connection au serveur : ${error.message}`);
-    }
-  }
-  function modify(item) {
-    try {
-      sendTodo(item, "modify");
-    } catch (error) {
-      console.error(`Erreur lors de la connection au serveur : ${error.message}`);
-    }
-  }
-  async function getTodoList() {
-    const url = `/todos`;
-    try {
-      const reponse = await fetch(url, { method: "GET" });
-      if (!reponse.ok) {
-        const errorData = await reponse.text();
-        alert(errorData);
-        throw new Error(`Erreur lors de la requ\xEAte : ${reponse.status} ${reponse.statusText}`);
-      }
-      const result = await reponse.json();
-      if (result != null) {
-        $$invalidate(0, todos = result);
-      }
-      if (result == null) {
-        $$invalidate(0, todos = []);
-      }
-    } catch (error) {
-      console.error(`Une erreur s'est produite : ${error.message}`);
-    }
-  }
-  async function sendTodo(todo, route) {
-    todo.text = customQueryEscape(todo.text);
-    if (route == "add") {
-      var url = `/${route}?text=${todo.text}&priority=${todo.priority}`;
-    } else {
-      url = `/${route}?id=${todo.id}&text=${todo.text}&priority=${todo.priority}`;
-    }
-    try {
-      const reponse = await fetch(url, { method: "POST" });
-      if (!reponse.ok) {
-        const errorData = await reponse.text();
-        alert(errorData);
-        throw new Error(`Erreur lors de la requ\xEAte : ${reponse.status} ${reponse.statusText}`);
-      }
-      await reponse.json();
-      getTodoList();
-    } catch (error) {
-      console.error(`Une erreur s'est produite : ${error.message}`);
-    }
-  }
-  function handleKeydown(e, item) {
-    if (e.key == "Enter") {
-      if (item != null) {
-        modify(item);
-      } else {
-        add();
-      }
-    }
-  }
-  getTodoList();
-  function input_input_handler() {
-    nouvelleTache = this.value;
-    $$invalidate(1, nouvelleTache);
-  }
-  const keydown_handler = (e) => handleKeydown(e, null);
-  const click_handler = () => selectPriority(3);
-  const click_handler_1 = () => selectPriority(2);
-  const click_handler_2 = () => selectPriority(1);
-  function input_input_handler_1(each_value, item_index) {
-    each_value[item_index].text = this.value;
-    $$invalidate(0, todos);
-  }
-  const keydown_handler_1 = (item, e) => handleKeydown(e, item);
-  const click_handler_3 = (item) => changePriority(item);
-  $$self.$$.update = () => {
-    if ($$self.$$.dirty & /*todos*/
-    1) {
-      $:
-        $$invalidate(3, remaining = todos.length);
     }
   };
+  function input0_input_handler() {
+    email = this.value;
+    $$invalidate(0, email);
+  }
+  function input1_input_handler() {
+    password = this.value;
+    $$invalidate(1, password);
+  }
+  function input2_input_handler() {
+    confirmpassword = this.value;
+    $$invalidate(2, confirmpassword);
+  }
   return [
-    todos,
-    nouvelleTache,
-    selectedPriority,
-    remaining,
-    selectPriority,
-    changePriority,
-    add,
-    xclear,
-    modify,
-    handleKeydown,
-    input_input_handler,
-    keydown_handler,
-    click_handler,
-    click_handler_1,
-    click_handler_2,
-    input_input_handler_1,
-    keydown_handler_1,
-    click_handler_3
+    email,
+    password,
+    confirmpassword,
+    handleSubmit,
+    input0_input_handler,
+    input1_input_handler,
+    input2_input_handler
   ];
 }
-var App = class extends SvelteComponent {
+var Signin = class extends SvelteComponent {
   constructor(options) {
     super();
     init(this, options, instance, create_fragment, safe_not_equal, {}, add_css);
   }
 };
-customElements.define("app-todo", create_custom_element(App, {}, [], [], true));
-var app_default = App;
+customElements.define("signin-todo", create_custom_element(Signin, {}, [], [], true));
+var signin_default = Signin;
 export {
-  app_default as default
+  signin_default as default
 };

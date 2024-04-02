@@ -4,7 +4,7 @@ import sveltePlugin from 'esbuild-svelte';
 const isDev = process.argv.includes('--dev')
 
 let commonOptions = {
-	entryPoints: ['ihm/app.svelte'],
+	entryPoints: ['ihm/index.svelte','ihm/signin.svelte','ihm/login.svelte','ihm/app.svelte'],
 	bundle: true,
 	format: 'esm',
 	plugins: [

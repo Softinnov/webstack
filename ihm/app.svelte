@@ -30,7 +30,6 @@
 		} else {
 			item.priority += 1;
 		}
-		console.log(item.priority);
 		modify(item);
 	}
 
