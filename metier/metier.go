@@ -13,12 +13,6 @@ var store Database
 var todo models.Todo
 var err error
 
-const (
-	Urgent      = 3
-	Prioritaire = 2
-	NonUrgent   = 1
-)
-
 const errSpecialChar = "caractères spéciaux non autorisés : {}[]|"
 const errNoText = "veuillez renseigner du texte"
 const errNoId = "todo introuvable, réessayez ultérieurement"
@@ -100,7 +94,7 @@ func DeleteTodo(idStr string, text string) (models.Todo, error) {
 	return todo, nil
 }
 
-func ModifyTodo(idStr string, text string) (models.Todo, error) {
+func ModifyTodo(idStr string, text string, priorityStr string) (models.Todo, error) {
 	if containsOnlySpace(idStr) {
 		err = fmt.Errorf(errNoId)
 		return models.Todo{}, err
@@ -117,8 +111,15 @@ func ModifyTodo(idStr string, text string) (models.Todo, error) {
 		err = fmt.Errorf("erreur de conversion %v", err)
 		return models.Todo{}, err
 	}
+	priority, err := strconv.Atoi(priorityStr)
+	if err != nil {
+		err = fmt.Errorf("erreur de conversion %v", err)
+		return models.Todo{}, err
+	}
+
 	todo.Id = id
 	todo.Text = text
+	todo.Priority = priority
 	err = store.ModifyTodoDb(todo)
 	if err != nil {
 		return models.Todo{}, err

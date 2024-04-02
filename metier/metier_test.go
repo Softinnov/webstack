@@ -97,19 +97,19 @@ func TestAddTodo(t *testing.T) {
 	Init(&db)
 
 	var tests = []struct {
-		name, entryTxt, want string
+		name, entryTxt, entryPrio, want string
 	}{
-		{"Cas normal", "Blablabla", "Blablabla"},
-		{"Chaîne vide", "", "veuillez renseigner du texte"},
-		{"Caractères spéciaux autorisés", "(/$-_~+)=", "(/$-_~+)="},
-		{"Caractères spéciaux non autorisés", "(/$-_]&[~]%)=", "caractères spéciaux non autorisés"},
-		{"Plusieurs espaces en entrée", "    ", "veuillez renseigner du texte"},
-		{"Chaîne longue", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui"},
+		{"Cas normal", "Blablabla", "2", "Blablabla"},
+		{"Chaîne vide", "", "1", "veuillez renseigner du texte"},
+		{"Caractères spéciaux autorisés", "(/$-_~+)=", "1", "(/$-_~+)="},
+		{"Caractères spéciaux non autorisés", "(/$-_]&[~]%)=", "3", "caractères spéciaux non autorisés"},
+		{"Plusieurs espaces en entrée", "    ", "2", "veuillez renseigner du texte"},
+		{"Chaîne longue", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", "1", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := AddTodo(tt.entryTxt)
+			got, err := AddTodo(tt.entryTxt, tt.entryPrio)
 			gotJson, err2 := json.Marshal(got)
 			if err2 != nil {
 				panic(err2)
@@ -154,21 +154,21 @@ func TestModifyTodo(t *testing.T) {
 	Init(&db)
 
 	var tests = []struct {
-		name, entryTxt, entryId, want string
+		name, entryTxt, entryId, entryPrio, want string
 	}{
-		{"Cas normal", "Blabliblou", "3", "Blabliblou"},
-		{"Chaîne vide", "", "123", "veuillez renseigner du texte"},
-		{"Caractères spéciaux autorisés", "(/$-_~+)=", "13", "(/$-_~+)="},
-		{"Caractères spéciaux non autorisés", "(/${}-_~+)=", "13", "caractères spéciaux non autorisés"},
-		{"Id non numérique", "BlablaAModifier", "azerty", "erreur de conversion"},
-		{"Id vide", "BlablaAModifier2", "", "réessayez ultérieurement"},
-		{"Plusieurs espaces en entrée", "    ", "56", "veuillez renseigner du texte"},
-		{"Chaîne longue", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", "2", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui"},
+		{"Cas normal", "Blabliblou", "3", "2", "Blabliblou"},
+		{"Chaîne vide", "", "123", "1", "veuillez renseigner du texte"},
+		{"Caractères spéciaux autorisés", "(/$-_~+)=", "13", "3", "(/$-_~+)="},
+		{"Caractères spéciaux non autorisés", "(/${}-_~+)=", "13", "1", "caractères spéciaux non autorisés"},
+		{"Id non numérique", "BlablaAModifier", "azerty", "2", "erreur de conversion"},
+		{"Id vide", "BlablaAModifier2", "", "1", "réessayez ultérieurement"},
+		{"Plusieurs espaces en entrée", "    ", "56", "2", "veuillez renseigner du texte"},
+		{"Chaîne longue", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", "2", "3", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ModifyTodo(tt.entryId, tt.entryTxt)
+			got, err := ModifyTodo(tt.entryId, tt.entryTxt, tt.entryPrio)
 			gotJson, err2 := json.Marshal(got)
 			if err2 != nil {
 				panic(err2)

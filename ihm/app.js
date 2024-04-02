@@ -161,6 +161,13 @@ function set_data(text2, data) {
 function set_input_value(input, value) {
   input.value = value == null ? "" : value;
 }
+function set_style(node, key, value, important) {
+  if (value == null) {
+    node.style.removeProperty(key);
+  } else {
+    node.style.setProperty(key, value, important ? "important" : "");
+  }
+}
 function get_custom_elements_slots(element2) {
   const result = {};
   element2.childNodes.forEach(
@@ -687,105 +694,126 @@ if (typeof window !== "undefined")
 
 // ihm/app.svelte
 function add_css(target) {
-  append_styles(target, "svelte-1v66ajq", 'h1.svelte-1v66ajq{font-size:70px}p.svelte-1v66ajq{font-size:large;left:45%;bottom:5%;position:fixed}.button.svelte-1v66ajq{height:35px;width:35px;border:none;border-radius:5%;background-color:white;margin-right:3%}.button.svelte-1v66ajq:hover{background-color:rgba(146, 146, 146, 0.381);cursor:pointer}.centered.svelte-1v66ajq{width:25em;margin:auto;display:grid}.newTask.svelte-1v66ajq{left:12%;margin-bottom:15%;margin-right:1%;position:relative}.todos.svelte-1v66ajq{margin-top:10%}.ajout.svelte-1v66ajq{height:35px;width:35px;border:none;border-radius:5%;background-color:white;margin-left:13%;position:relative}.ajout.svelte-1v66ajq:hover{background-color:rgba(146, 146, 146, 0.381);cursor:pointer}.ajout.svelte-1v66ajq:disabled{background-color:white;color:rgba(128, 128, 128, 0.836);cursor:default}ul.svelte-1v66ajq{max-height:15em;overflow:hidden;overflow-y:visible}li.svelte-1v66ajq{display:flex;margin:3%}input[type="text"].svelte-1v66ajq{flex:1;padding:0.5em;margin:-0.2em 0;border:none;font-size:large}');
+  append_styles(target, "svelte-1ur7k5m", 'h1.svelte-1ur7k5m.svelte-1ur7k5m{font-size:70px}p.svelte-1ur7k5m.svelte-1ur7k5m{font-size:large;left:45%;bottom:5%;position:fixed}.button.svelte-1ur7k5m.svelte-1ur7k5m{height:35px;width:35px;border:none;border-radius:5%;background-color:white;margin-left:3%}.button.svelte-1ur7k5m.svelte-1ur7k5m:hover{background-color:rgba(146, 146, 146, 0.381);cursor:pointer}.centered.svelte-1ur7k5m.svelte-1ur7k5m{width:30em;margin:auto;display:grid}.newTask.svelte-1ur7k5m.svelte-1ur7k5m{flex:0.75;left:12%;margin-bottom:15%;margin-right:1%;position:relative}.todos.svelte-1ur7k5m.svelte-1ur7k5m{margin-top:10%}.ajout.svelte-1ur7k5m.svelte-1ur7k5m{height:35px;width:35px;border:none;border-radius:5%;background-color:white;margin-left:2%;position:relative}.ajout.svelte-1ur7k5m.svelte-1ur7k5m:hover{background-color:rgba(146, 146, 146, 0.381);cursor:pointer}.ajout.svelte-1ur7k5m.svelte-1ur7k5m:disabled{background-color:white;color:rgba(128, 128, 128, 0.836);cursor:default}ul.svelte-1ur7k5m.svelte-1ur7k5m{max-height:15em;overflow:hidden;overflow-y:visible}li.svelte-1ur7k5m.svelte-1ur7k5m{display:flex;margin:3%}input[type="text"].svelte-1ur7k5m.svelte-1ur7k5m{flex:0.75;padding:0.5em;margin:-0.2em 0;border:none;font-size:large}.priority-btn.svelte-1ur7k5m.svelte-1ur7k5m{position:relative;width:10px;height:10px;border-radius:50%;margin:3%}.priority-btn.svelte-1ur7k5m.svelte-1ur7k5m:hover{cursor:pointer}.priority.svelte-1ur7k5m.svelte-1ur7k5m{display:inline;margin-left:13%;justify-content:center}.priority.svelte-1ur7k5m button.svelte-1ur7k5m{position:relative;width:10px;height:10px;border-radius:50%;margin-right:1%;margin-left:1%;bottom:10%}.priority.svelte-1ur7k5m button.svelte-1ur7k5m:hover{cursor:pointer}.urgent.svelte-1ur7k5m.svelte-1ur7k5m{background-color:rgba(255, 0, 0, 0.475)}.prioritaire.svelte-1ur7k5m.svelte-1ur7k5m{background-color:rgba(255, 255, 0, 0.475)}.nonprioritaire.svelte-1ur7k5m.svelte-1ur7k5m{background-color:rgba(0, 128, 0, 0.475)}.selectedurg.svelte-1ur7k5m.svelte-1ur7k5m{border:2px solid;border-color:black;background-color:red;transform:scale(1.15)}.selectedprio.svelte-1ur7k5m.svelte-1ur7k5m{border:2px solid;border-color:black;background-color:yellow;transform:scale(1.15)}.selectednonurg.svelte-1ur7k5m.svelte-1ur7k5m{border:2px solid;border-color:black;background-color:green;transform:scale(1.15)}');
 }
 function get_each_context(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[13] = list[i];
-  child_ctx[14] = list;
-  child_ctx[15] = i;
+  child_ctx[20] = list[i];
+  child_ctx[21] = list;
+  child_ctx[22] = i;
   return child_ctx;
 }
 function create_each_block(ctx) {
   let li;
+  let input;
+  let t0;
   let button0;
   let t1;
   let button1;
   let t3;
-  let input;
-  let t4;
+  let button2;
+  let t5;
   let mounted;
   let dispose;
   function input_input_handler_1() {
-    ctx[9].call(
+    ctx[15].call(
       input,
       /*each_value*/
-      ctx[14],
+      ctx[21],
       /*item_index*/
-      ctx[15]
+      ctx[22]
     );
   }
   function keydown_handler_1(...args) {
     return (
       /*keydown_handler_1*/
-      ctx[10](
+      ctx[16](
         /*item*/
-        ctx[13],
+        ctx[20],
         ...args
+      )
+    );
+  }
+  function click_handler_3() {
+    return (
+      /*click_handler_3*/
+      ctx[17](
+        /*item*/
+        ctx[20]
       )
     );
   }
   return {
     c() {
       li = element("li");
+      input = element("input");
+      t0 = space();
       button0 = element("button");
-      button0.textContent = "\u270F\uFE0F";
       t1 = space();
       button1 = element("button");
-      button1.textContent = "\u{1F5D1}\uFE0F";
+      button1.textContent = "\u270F\uFE0F";
       t3 = space();
-      input = element("input");
-      t4 = space();
-      attr(button0, "class", "button svelte-1v66ajq");
-      attr(button1, "class", "button svelte-1v66ajq");
+      button2 = element("button");
+      button2.textContent = "\u{1F5D1}\uFE0F";
+      t5 = space();
       attr(input, "id", "todo");
       attr(input, "type", "text");
-      attr(input, "class", "svelte-1v66ajq");
-      attr(li, "class", "svelte-1v66ajq");
+      attr(input, "class", "svelte-1ur7k5m");
+      attr(button0, "class", "priority-btn svelte-1ur7k5m");
+      set_style(button0, "background-color", getPriorityColor(
+        /*item*/
+        ctx[20].priority
+      ));
+      attr(button1, "class", "button svelte-1ur7k5m");
+      attr(button2, "class", "button svelte-1ur7k5m");
+      attr(li, "class", "svelte-1ur7k5m");
     },
     m(target, anchor) {
       insert(target, li, anchor);
-      append(li, button0);
-      append(li, t1);
-      append(li, button1);
-      append(li, t3);
       append(li, input);
       set_input_value(
         input,
         /*item*/
-        ctx[13].text
+        ctx[20].text
       );
-      append(li, t4);
+      append(li, t0);
+      append(li, button0);
+      append(li, t1);
+      append(li, button1);
+      append(li, t3);
+      append(li, button2);
+      append(li, t5);
       if (!mounted) {
         dispose = [
-          listen(button0, "click", function() {
-            if (is_function(
-              /*modify*/
-              ctx[5](
-                /*item*/
-                ctx[13]
-              )
-            ))
-              ctx[5](
-                /*item*/
-                ctx[13]
-              ).apply(this, arguments);
-          }),
+          listen(input, "input", input_input_handler_1),
+          listen(input, "keydown", keydown_handler_1),
+          listen(button0, "click", click_handler_3),
           listen(button1, "click", function() {
             if (is_function(
-              /*xclear*/
-              ctx[4](
+              /*modify*/
+              ctx[8](
                 /*item*/
-                ctx[13]
+                ctx[20]
               )
             ))
-              ctx[4](
+              ctx[8](
                 /*item*/
-                ctx[13]
+                ctx[20]
               ).apply(this, arguments);
           }),
-          listen(input, "input", input_input_handler_1),
-          listen(input, "keydown", keydown_handler_1)
+          listen(button2, "click", function() {
+            if (is_function(
+              /*xclear*/
+              ctx[7](
+                /*item*/
+                ctx[20]
+              )
+            ))
+              ctx[7](
+                /*item*/
+                ctx[20]
+              ).apply(this, arguments);
+          })
         ];
         mounted = true;
       }
@@ -794,12 +822,19 @@ function create_each_block(ctx) {
       ctx = new_ctx;
       if (dirty & /*todos*/
       1 && input.value !== /*item*/
-      ctx[13].text) {
+      ctx[20].text) {
         set_input_value(
           input,
           /*item*/
-          ctx[13].text
+          ctx[20].text
         );
+      }
+      if (dirty & /*todos*/
+      1) {
+        set_style(button0, "background-color", getPriorityColor(
+          /*item*/
+          ctx[20].priority
+        ));
       }
     },
     d(detaching) {
@@ -812,21 +847,31 @@ function create_each_block(ctx) {
   };
 }
 function create_fragment(ctx) {
-  let div1;
+  let div2;
   let h1;
   let t1;
-  let div0;
+  let div1;
   let input;
   let t2;
-  let button;
+  let div0;
+  let button0;
+  let button0_class_value;
   let t3;
-  let button_disabled_value;
+  let button1;
+  let button1_class_value;
   let t4;
-  let ul;
+  let button2;
+  let button2_class_value;
   let t5;
-  let p;
+  let button3;
   let t6;
+  let button3_disabled_value;
   let t7;
+  let ul;
+  let t8;
+  let p;
+  let t9;
+  let t10;
   let mounted;
   let dispose;
   let each_value = ensure_array_like(
@@ -839,83 +884,122 @@ function create_fragment(ctx) {
   }
   return {
     c() {
-      div1 = element("div");
+      div2 = element("div");
       h1 = element("h1");
       h1.textContent = "My TodoList";
       t1 = space();
-      div0 = element("div");
+      div1 = element("div");
       input = element("input");
       t2 = space();
-      button = element("button");
-      t3 = text("\u2714\uFE0F");
+      div0 = element("div");
+      button0 = element("button");
+      t3 = space();
+      button1 = element("button");
       t4 = space();
+      button2 = element("button");
+      t5 = space();
+      button3 = element("button");
+      t6 = text("\u2714\uFE0F");
+      t7 = space();
       ul = element("ul");
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      t5 = space();
+      t8 = space();
       p = element("p");
-      t6 = text(
+      t9 = text(
         /*remaining*/
-        ctx[2]
+        ctx[3]
       );
-      t7 = text(" t\xE2ches restantes !");
-      attr(h1, "class", "svelte-1v66ajq");
-      attr(input, "class", "newTask svelte-1v66ajq");
+      t10 = text(" t\xE2ches restantes !");
+      attr(h1, "class", "svelte-1ur7k5m");
+      attr(input, "class", "newTask svelte-1ur7k5m");
       attr(input, "type", "text");
       attr(input, "placeholder", "Quoi d'autre?");
-      attr(button, "class", "ajout svelte-1v66ajq");
-      button.disabled = button_disabled_value = /*nouvelleTache*/
+      attr(button0, "class", button0_class_value = "urgent " + /*selectedPriority*/
+      (ctx[2] === 3 ? "selectedurg" : "") + " svelte-1ur7k5m");
+      attr(button1, "class", button1_class_value = "prioritaire " + /*selectedPriority*/
+      (ctx[2] === 2 ? "selectedprio" : "") + " svelte-1ur7k5m");
+      attr(button2, "class", button2_class_value = "nonprioritaire " + /*selectedPriority*/
+      (ctx[2] === 1 ? "selectednonurg" : "") + " svelte-1ur7k5m");
+      attr(div0, "class", "priority svelte-1ur7k5m");
+      attr(button3, "class", "ajout svelte-1ur7k5m");
+      button3.disabled = button3_disabled_value = /*nouvelleTache*/
       ctx[1] == "";
       attr(ul, "id", "todo-list");
-      attr(ul, "class", "todos svelte-1v66ajq");
-      attr(p, "class", "svelte-1v66ajq");
-      attr(div1, "class", "centered svelte-1v66ajq");
+      attr(ul, "class", "todos svelte-1ur7k5m");
+      attr(p, "class", "svelte-1ur7k5m");
+      attr(div2, "class", "centered svelte-1ur7k5m");
     },
     m(target, anchor) {
-      insert(target, div1, anchor);
-      append(div1, h1);
-      append(div1, t1);
-      append(div1, div0);
-      append(div0, input);
+      insert(target, div2, anchor);
+      append(div2, h1);
+      append(div2, t1);
+      append(div2, div1);
+      append(div1, input);
       set_input_value(
         input,
         /*nouvelleTache*/
         ctx[1]
       );
-      append(div0, t2);
-      append(div0, button);
-      append(button, t3);
-      append(div1, t4);
-      append(div1, ul);
+      append(div1, t2);
+      append(div1, div0);
+      append(div0, button0);
+      append(div0, t3);
+      append(div0, button1);
+      append(div0, t4);
+      append(div0, button2);
+      append(div1, t5);
+      append(div1, button3);
+      append(button3, t6);
+      append(div2, t7);
+      append(div2, ul);
       for (let i = 0; i < each_blocks.length; i += 1) {
         if (each_blocks[i]) {
           each_blocks[i].m(ul, null);
         }
       }
-      append(div1, t5);
-      append(div1, p);
-      append(p, t6);
-      append(p, t7);
+      append(div2, t8);
+      append(div2, p);
+      append(p, t9);
+      append(p, t10);
       if (!mounted) {
         dispose = [
           listen(
             input,
             "input",
             /*input_input_handler*/
-            ctx[7]
+            ctx[10]
           ),
           listen(
             input,
             "keydown",
             /*keydown_handler*/
-            ctx[8]
+            ctx[11]
           ),
           listen(
-            button,
+            button0,
+            "click",
+            /*click_handler*/
+            ctx[12]
+          ),
+          listen(
+            button1,
+            "click",
+            /*click_handler_1*/
+            ctx[13]
+          ),
+          listen(
+            button2,
+            "click",
+            /*click_handler_2*/
+            ctx[14]
+          ),
+          listen(
+            button3,
             "click",
             /*add*/
-            ctx[3]
+            ctx[6]
           )
         ];
         mounted = true;
@@ -931,13 +1015,28 @@ function create_fragment(ctx) {
           ctx2[1]
         );
       }
-      if (dirty & /*nouvelleTache*/
-      2 && button_disabled_value !== (button_disabled_value = /*nouvelleTache*/
-      ctx2[1] == "")) {
-        button.disabled = button_disabled_value;
+      if (dirty & /*selectedPriority*/
+      4 && button0_class_value !== (button0_class_value = "urgent " + /*selectedPriority*/
+      (ctx2[2] === 3 ? "selectedurg" : "") + " svelte-1ur7k5m")) {
+        attr(button0, "class", button0_class_value);
       }
-      if (dirty & /*todos, handleKeydown, xclear, modify*/
-      113) {
+      if (dirty & /*selectedPriority*/
+      4 && button1_class_value !== (button1_class_value = "prioritaire " + /*selectedPriority*/
+      (ctx2[2] === 2 ? "selectedprio" : "") + " svelte-1ur7k5m")) {
+        attr(button1, "class", button1_class_value);
+      }
+      if (dirty & /*selectedPriority*/
+      4 && button2_class_value !== (button2_class_value = "nonprioritaire " + /*selectedPriority*/
+      (ctx2[2] === 1 ? "selectednonurg" : "") + " svelte-1ur7k5m")) {
+        attr(button2, "class", button2_class_value);
+      }
+      if (dirty & /*nouvelleTache*/
+      2 && button3_disabled_value !== (button3_disabled_value = /*nouvelleTache*/
+      ctx2[1] == "")) {
+        button3.disabled = button3_disabled_value;
+      }
+      if (dirty & /*xclear, todos, modify, getPriorityColor, changePriority, handleKeydown*/
+      929) {
         each_value = ensure_array_like(
           /*todos*/
           ctx2[0]
@@ -959,24 +1058,36 @@ function create_fragment(ctx) {
         each_blocks.length = each_value.length;
       }
       if (dirty & /*remaining*/
-      4)
+      8)
         set_data(
-          t6,
+          t9,
           /*remaining*/
-          ctx2[2]
+          ctx2[3]
         );
     },
     i: noop,
     o: noop,
     d(detaching) {
       if (detaching) {
-        detach(div1);
+        detach(div2);
       }
       destroy_each(each_blocks, detaching);
       mounted = false;
       run_all(dispose);
     }
   };
+}
+function getPriorityColor(priority) {
+  switch (priority) {
+    case 3:
+      return "rgba(255, 0, 0)";
+    case 2:
+      return "rgba(255, 255, 0)";
+    case 1:
+      return "rgba(0, 128, 0)";
+    default:
+      return "rgba(0, 0, 0)";
+  }
 }
 function customQueryEscape(str) {
   const uriStr = encodeURIComponent(str);
@@ -987,8 +1098,25 @@ function instance($$self, $$props, $$invalidate) {
   let remaining;
   let todos = [];
   let nouvelleTache = "";
+  let selectedPriority = 2;
+  function selectPriority(priority) {
+    $$invalidate(2, selectedPriority = priority);
+  }
+  function changePriority(item) {
+    if (item.priority >= 3) {
+      item.priority = 0;
+      item.priority += 1;
+    } else {
+      item.priority += 1;
+    }
+    console.log(item.priority);
+    modify(item);
+  }
   function add() {
-    let todo = { text: nouvelleTache };
+    let todo = {
+      text: nouvelleTache,
+      priority: selectedPriority
+    };
     try {
       sendTodo(todo, "add");
     } catch (error) {
@@ -1033,9 +1161,9 @@ function instance($$self, $$props, $$invalidate) {
   async function sendTodo(todo, route) {
     todo.text = customQueryEscape(todo.text);
     if (route == "add") {
-      var url = `/${route}?text=${todo.text}`;
+      var url = `/${route}?text=${todo.text}&priority=${todo.priority}`;
     } else {
-      url = `/${route}?id=${todo.id}&text=${todo.text}`;
+      url = `/${route}?id=${todo.id}&text=${todo.text}&priority=${todo.priority}`;
     }
     try {
       const reponse = await fetch(url, { method: "POST" });
@@ -1065,30 +1193,41 @@ function instance($$self, $$props, $$invalidate) {
     $$invalidate(1, nouvelleTache);
   }
   const keydown_handler = (e) => handleKeydown(e, null);
+  const click_handler = () => selectPriority(3);
+  const click_handler_1 = () => selectPriority(2);
+  const click_handler_2 = () => selectPriority(1);
   function input_input_handler_1(each_value, item_index) {
     each_value[item_index].text = this.value;
     $$invalidate(0, todos);
   }
   const keydown_handler_1 = (item, e) => handleKeydown(e, item);
+  const click_handler_3 = (item) => changePriority(item);
   $$self.$$.update = () => {
     if ($$self.$$.dirty & /*todos*/
     1) {
       $:
-        $$invalidate(2, remaining = todos.length);
+        $$invalidate(3, remaining = todos.length);
     }
   };
   return [
     todos,
     nouvelleTache,
+    selectedPriority,
     remaining,
+    selectPriority,
+    changePriority,
     add,
     xclear,
     modify,
     handleKeydown,
     input_input_handler,
     keydown_handler,
+    click_handler,
+    click_handler_1,
+    click_handler_2,
     input_input_handler_1,
-    keydown_handler_1
+    keydown_handler_1,
+    click_handler_3
   ];
 }
 var App = class extends SvelteComponent {

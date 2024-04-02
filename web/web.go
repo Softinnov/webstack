@@ -47,8 +47,9 @@ func HandleDeleteTodo(w http.ResponseWriter, r *http.Request) {
 func HandleModifyTodo(w http.ResponseWriter, r *http.Request) {
 	id := r.FormValue("id")
 	text := r.FormValue("text")
+	priority := r.FormValue("priority")
 
-	todo, err := metier.ModifyTodo(id, text)
+	todo, err := metier.ModifyTodo(id, text, priority)
 	if err != nil {
 		err = fmt.Errorf("erreur modification de todo : %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)

@@ -65,7 +65,7 @@ func (m MysqlServer) DeleteTodoDb(td models.Todo) error {
 }
 
 func (m MysqlServer) ModifyTodoDb(td models.Todo) error {
-	_, err := db.Exec("UPDATE todos SET text = (?) WHERE todoid = (?)", td.Text, td.Id)
+	_, err := db.Exec("UPDATE todos SET text = (?), priority = (?) WHERE todoid = (?)", td.Text, td.Priority, td.Id)
 	if err != nil {
 		return fmt.Errorf("modifyTodo error : %v", err)
 	}
