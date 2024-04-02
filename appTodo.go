@@ -30,6 +30,7 @@ func main() {
 	http.HandleFunc("/delete", web.HandleDeleteTodo)
 	http.HandleFunc("/modify", web.HandleModifyTodo)
 	http.HandleFunc("/todos", web.HandleGetTodos)
+	http.HandleFunc("/signin", web.HandleSignin)
 
 	http.ListenAndServe(cfg.Port, nil)
 }
