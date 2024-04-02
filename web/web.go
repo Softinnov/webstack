@@ -18,6 +18,20 @@ func encodejson(w http.ResponseWriter, a any) (any, error) {
 	return a, nil
 }
 
+func HandleSignin(w http.ResponseWriter, r *http.Request) {
+	email := r.FormValue("email")
+	password := r.FormValue("password")
+	confirmpassword := r.FormValue("confirmpassword")
+
+	user, err := metier.AddUser(email, password, confirmpassword)
+	if err != nil {
+		err = fmt.Errorf("erreur : %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	encodejson(w, user)
+}
+
 func HandleAddTodo(w http.ResponseWriter, r *http.Request) {
 	text := r.FormValue("text")
 	priority := r.FormValue("priority")

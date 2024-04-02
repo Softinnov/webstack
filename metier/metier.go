@@ -11,6 +11,7 @@ import (
 
 var store Database
 var todo models.Todo
+var user models.User
 var err error
 
 const errSpecialChar = "caractères spéciaux non autorisés : {}[]|"
@@ -40,6 +41,19 @@ func sortByPriorityDesc(todos []models.Todo) []models.Todo {
 		return todos[i].Priority > todos[j].Priority
 	})
 	return todos
+}
+
+func AddUser(email string, mdp string, confirmmdp string) (models.User, error) {
+	user.Email = email
+	if mdp != confirmmdp {
+		return models.User{}, fmt.Errorf("mots de passe différents, réessayez")
+	}
+	user.Mdp = mdp
+	err = store.AddUserDb(user)
+	if err != nil {
+		return models.User{}, err
+	}
+	return user, nil
 }
 
 func GetTodos() ([]models.Todo, error) {

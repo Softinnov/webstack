@@ -27,6 +27,23 @@ func CloseDb() error {
 	return db.Close()
 }
 
+func (m MysqlServer) AddUserDb(u models.User) error {
+	var count int
+	err := db.QueryRow("SELECT COUNT(*) FROM users WHERE email = ?", u.Email).Scan(&count)
+	if err != nil {
+		return fmt.Errorf("AddUser error : %v", err)
+	}
+
+	if count > 0 {
+		return fmt.Errorf("email déjà utilisé")
+	}
+	_, err = db.Exec("INSERT INTO users (email, password) VALUES (?,?)", u.Email, u.Mdp)
+	if err != nil {
+		return fmt.Errorf("AddUser error : %v", err)
+	}
+	return nil
+}
+
 func (m MysqlServer) GetTodosDb() ([]models.Todo, error) {
 	var list []models.Todo
 
