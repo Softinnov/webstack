@@ -30,6 +30,22 @@ func HandleSignin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	encodejson(w, user)
+	fmt.Printf("Utilisateur enregistré : %v", user.Email)
+	// http.Redirect(w, r, "./todo.html", http.StatusSeeOther)
+}
+
+func HandleLogin(w http.ResponseWriter, r *http.Request) {
+	email := r.FormValue("email")
+	password := r.FormValue("password")
+
+	user, err := metier.Login(email, password)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	encodejson(w, user)
+	fmt.Printf("Utilisateur connecté : %v", user.Email)
+	// http.Redirect(w, r, "./todo.html", http.StatusSeeOther)
 }
 
 func HandleAddTodo(w http.ResponseWriter, r *http.Request) {

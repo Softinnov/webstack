@@ -1,6 +1,8 @@
 <svelte:options customElement="signin-todo" />
 
-<script>
+<script context="module">
+    import { customQueryEscape } from './app.svelte';
+    // import { redirectToTodo } from './index.svelte'
 
     let email = '';
     let password = '';
@@ -16,29 +18,22 @@
         console.log("Password:", password);
         console.log("Password2:", confirmpassword);
         try {
-            sendUser(newuser);
+            sendUser(newuser,"signin");
         } catch (error) {
 			console.error(`Erreur lors de la connection au serveur : ${error.message}`);
 		}
     };
 
-    function customQueryEscape(str){
-		const uriStr = encodeURIComponent(str);
-		const finalQueryStr = uriStr
-		.replace(/!/g, '%21')
-		.replace(/'/g, '%27')
-		.replace(/\(/g, '%28')
-        .replace(/\)/g, '%29')
-		.replace(/\*/g, '%2A')
-		.replace(/%20/g,'+');
-    	return finalQueryStr;
-	}
-
-    async function sendUser(user) {
+    export async function sendUser(user, route) {
 		user.email = customQueryEscape(user.email);
         user.password = customQueryEscape(user.password);
-        user.confirmpassword = customQueryEscape(user.confirmpassword);
-        const url =`/signin?email=${user.email}&password=${user.password}&confirmpassword=${user.confirmpassword}`;
+        if (route == "signin"){
+            user.confirmpassword = customQueryEscape(user.confirmpassword);
+            var url =`/${route}?email=${user.email}&password=${user.password}&confirmpassword=${user.confirmpassword}`;
+        } else {
+            url = `/${route}?email=${user.email}&password=${user.password}`;
+        }
+        
 		try {
 			const reponse = await fetch(url,{method: "POST"});
 			if (!reponse.ok) {
@@ -51,8 +46,6 @@
 			console.error(`Une erreur s'est produite : ${error.message}`);
 		}
 	}
-    
-
 </script>
 
 <style>

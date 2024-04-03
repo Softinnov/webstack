@@ -31,6 +31,7 @@ func main() {
 	http.HandleFunc("/modify", web.HandleModifyTodo)
 	http.HandleFunc("/todos", web.HandleGetTodos)
 	http.HandleFunc("/signin", web.HandleSignin)
+	http.HandleFunc("/login", web.HandleLogin)
 
 	http.ListenAndServe(cfg.Port, nil)
 }

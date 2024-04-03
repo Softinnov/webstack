@@ -1,12 +1,24 @@
 <svelte:options customElement="login-todo" />
 
 <script>
+    import { sendUser } from './signin.svelte'
+    // import { redirectToTodo } from './index.svelte'
+
     let email = '';
     let password = '';
   
     const handleSubmit = () => {
-        console.log("Email:", email);
-        console.log("Password:", password);
+        let user = {
+            email,
+            password
+        }
+        console.log("Email:", user.email);
+        console.log("Password:", user.passwordpassword);
+        try{
+            sendUser(user,"login")
+        }catch (error) {
+            console.error(`Erreur lors de la connection au serveur : ${error.message}`);
+        }
     };
 </script>
 

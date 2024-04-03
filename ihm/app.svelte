@@ -1,6 +1,20 @@
 <!--permet d'appeler le composant svelte dans le fichier html avec une simple balise-->
 <svelte:options customElement="app-todo" />
 
+<script context="module">
+	export function customQueryEscape(str){
+		const uriStr = encodeURIComponent(str);
+		const finalQueryStr = uriStr
+		.replace(/!/g, '%21')
+		.replace(/'/g, '%27')
+		.replace(/\(/g, '%28')
+        .replace(/\)/g, '%29')
+		.replace(/\*/g, '%2A')
+		.replace(/%20/g,'+');
+    	return finalQueryStr;
+	}
+</script>
+
 <script>
 	let todos = [];
 	let nouvelleTache='';
@@ -31,18 +45,6 @@
 			item.priority += 1;
 		}
 		modify(item);
-	}
-
-	function customQueryEscape(str){
-		const uriStr = encodeURIComponent(str);
-		const finalQueryStr = uriStr
-		.replace(/!/g, '%21')
-		.replace(/'/g, '%27')
-		.replace(/\(/g, '%28')
-        .replace(/\)/g, '%29')
-		.replace(/\*/g, '%2A')
-		.replace(/%20/g,'+');
-    	return finalQueryStr;
 	}
 
 	function add() {

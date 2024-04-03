@@ -56,6 +56,16 @@ func AddUser(email string, mdp string, confirmmdp string) (models.User, error) {
 	return user, nil
 }
 
+func Login(email string, mdp string) (models.User, error) {
+	user.Email = email
+	user.Mdp = mdp
+	_, err := store.GetUser(user)
+	if err != nil {
+		return models.User{}, fmt.Errorf("erreur de login : %v", err)
+	}
+	return user, nil
+}
+
 func GetTodos() ([]models.Todo, error) {
 	list, err := store.GetTodosDb()
 	if err != nil {

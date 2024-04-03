@@ -48,6 +48,10 @@ func (f *fakeDb) AddUserDb(u models.User) error {
 	return nil
 }
 
+func (f *fakeDb) GetUser(u models.User) (models.User, error) {
+	return models.User{}, nil
+}
+
 func (f *fakeDb) AddTodoDb(td models.Todo) error {
 	f.todos = append(f.todos, td)
 	return nil

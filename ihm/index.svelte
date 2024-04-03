@@ -1,12 +1,15 @@
 <svelte:options customElement="index-todo" />
 
-<script>
+<script context="module">
     function redirectToSignIn() {
       window.location.href = 'signin.html';
     }
   
     function redirectToLogin() {
       window.location.href = 'login.html';
+    }
+    export function redirectToTodo() {
+      window.location.href = 'todo.html';
     }
 </script>
   
