@@ -7,7 +7,6 @@ import (
 	"webstack/config"
 	"webstack/models"
 )
-
 type MysqlServer struct {
 }
 
@@ -42,6 +41,29 @@ func (m MysqlServer) AddUserDb(u models.User) error {
 		return fmt.Errorf("AddUser error : %v", err)
 	}
 	return nil
+}
+
+func (m MysqlServer) GetUser(u models.User) (models.User, error) {
+	var storedPassword string
+	var count int
+	
+	err := db.QueryRow("SELECT COUNT(*) FROM users WHERE email = ?", u.Email).Scan(&count)
+	if err != nil {
+		return models.User{}, fmt.Errorf("count error : %v", err)
+	}
+	
+	if count == 0 {
+		return models.User{}, fmt.Errorf("email introuvable")
+	}
+	err = db.QueryRow("SELECT password FROM users WHERE email = ?", u.Email).Scan(&storedPassword)
+	if err != nil {
+		return models.User{}, fmt.Errorf("erreur de connexion à la base de donnée : %v", err)
+	}
+	if storedPassword == u.Mdp {
+		return u, nil
+	} else {
+		return models.User{}, fmt.Errorf("mot de passe incorrect")
+	}
 }
 
 func (m MysqlServer) GetTodosDb() ([]models.Todo, error) {
