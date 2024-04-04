@@ -62,7 +62,7 @@ func (f *fakeDb) ModifyTodoDb(td models.Todo) error {
 	}
 	return nil
 }
-func (f *fakeDb) GetTodosDb() (t []models.Todo, e error) {
+func (f *fakeDb) GetTodosDb(u models.User) (t []models.Todo, e error) {
 	t = f.todos
 	return t, nil
 }

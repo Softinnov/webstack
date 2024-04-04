@@ -2,11 +2,9 @@ package metier
 
 import "webstack/models"
 
-type Database interface {
-	AddUserDb(u models.User) error
+type DatabaseTodo interface {
 	AddTodoDb(td models.Todo) error
 	DeleteTodoDb(td models.Todo) error
 	ModifyTodoDb(td models.Todo) error
-	GetUser(u models.User) (models.User, error)
-	GetTodosDb() ([]models.Todo, error)
+	GetTodosDb(u models.User) ([]models.Todo, error)
 }

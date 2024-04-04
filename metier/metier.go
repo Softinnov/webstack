@@ -9,7 +9,7 @@ import (
 	"webstack/models"
 )
 
-var store Database
+var storeTodo DatabaseTodo
 var todo models.Todo
 var user models.User
 var err error
@@ -18,11 +18,11 @@ const errSpecialChar = "caractères spéciaux non autorisés : {}[]|"
 const errNoText = "veuillez renseigner du texte"
 const errNoId = "todo introuvable, réessayez ultérieurement"
 
-func Init(db Database) error {
+func Init(db DatabaseTodo) error {
 	if db == nil {
 		return fmt.Errorf("db est nil")
 	}
-	store = db
+	storeTodo = db
 	return nil
 }
 
@@ -43,31 +43,8 @@ func sortByPriorityDesc(todos []models.Todo) []models.Todo {
 	return todos
 }
 
-func AddUser(email string, mdp string, confirmmdp string) (models.User, error) {
-	user.Email = email
-	if mdp != confirmmdp {
-		return models.User{}, fmt.Errorf("mots de passe différents, réessayez")
-	}
-	user.Mdp = mdp
-	err = store.AddUserDb(user)
-	if err != nil {
-		return models.User{}, err
-	}
-	return user, nil
-}
-
-func Login(email string, mdp string) (models.User, error) {
-	user.Email = email
-	user.Mdp = mdp
-	_, err := store.GetUser(user)
-	if err != nil {
-		return models.User{}, fmt.Errorf("erreur de login : %v", err)
-	}
-	return user, nil
-}
-
 func GetTodos() ([]models.Todo, error) {
-	list, err := store.GetTodosDb()
+	list, err := storeTodo.GetTodosDb(user)
 	if err != nil {
 		return nil, fmt.Errorf("erreur lors de la récupération des données : %v", err)
 	}
@@ -92,7 +69,7 @@ func AddTodo(text string, priorityStr string) (models.Todo, error) {
 
 	todo.Text = text
 	todo.Priority = priority
-	err = store.AddTodoDb(todo)
+	err = storeTodo.AddTodoDb(todo)
 	if err != nil {
 		return models.Todo{}, err
 	}
@@ -111,7 +88,7 @@ func DeleteTodo(idStr string, text string) (models.Todo, error) {
 	}
 	todo.Id = id
 	todo.Text = text
-	err = store.DeleteTodoDb(todo)
+	err = storeTodo.DeleteTodoDb(todo)
 	if err != nil {
 		return models.Todo{}, err
 	}
@@ -144,7 +121,7 @@ func ModifyTodo(idStr string, text string, priorityStr string) (models.Todo, err
 	todo.Id = id
 	todo.Text = text
 	todo.Priority = priority
-	err = store.ModifyTodoDb(todo)
+	err = storeTodo.ModifyTodoDb(todo)
 	if err != nil {
 		return models.Todo{}, err
 	}

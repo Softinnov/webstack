@@ -6,24 +6,12 @@ import (
 
 	"webstack/config"
 	"webstack/models"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 type MysqlServer struct {
 }
 
 var db *sql.DB
-
-func checkPasswordHash(password, hash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err == nil
-}
-
-func hashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
-	return string(bytes), err
-}
 
 func OpenDb(cfg config.Config) (m MysqlServer, err error) {
 
@@ -49,10 +37,6 @@ func (m MysqlServer) AddUserDb(u models.User) error {
 	if count > 0 {
 		return fmt.Errorf("email déjà utilisé")
 	}
-	u.Mdp, err = hashPassword(u.Mdp)
-	if err != nil {
-		return fmt.Errorf("hashPassword error : %v", err)
-	}
 	fmt.Println(u.Mdp)
 	_, err = db.Exec("INSERT INTO users (email, password) VALUES (?,?)", u.Email, u.Mdp)
 	if err != nil {
@@ -63,29 +47,19 @@ func (m MysqlServer) AddUserDb(u models.User) error {
 
 func (m MysqlServer) GetUser(u models.User) (models.User, error) {
 	var storedPassword string
-	var count int
 
-	err := db.QueryRow("SELECT COUNT(*) FROM users WHERE email = ?", u.Email).Scan(&count)
+	err := db.QueryRow("SELECT password FROM users WHERE email = ?", u.Email).Scan(&storedPassword)
 	if err != nil {
-		return models.User{}, fmt.Errorf("count error : %v", err)
-	}
-
-	if count == 0 {
-		return models.User{}, fmt.Errorf("email introuvable")
-	}
-	err = db.QueryRow("SELECT password FROM users WHERE email = ?", u.Email).Scan(&storedPassword)
-	if err != nil {
+		if err == sql.ErrNoRows {
+			return models.User{}, fmt.Errorf("email not found")
+		}
 		return models.User{}, fmt.Errorf("erreur de connexion à la base de donnée : %v", err)
 	}
-	if checkPasswordHash(u.Mdp, storedPassword) {
-		fmt.Println(u.Mdp, "correspond bien à", storedPassword)
-		return u, nil
-	} else {
-		return models.User{}, fmt.Errorf("mot de passe incorrect")
-	}
+	u.Mdp = storedPassword
+	return u, nil
 }
 
-func (m MysqlServer) GetTodosDb() ([]models.Todo, error) {
+func (m MysqlServer) GetTodosDb(u models.User) ([]models.Todo, error) {
 	var list []models.Todo
 
 	rows, err := db.Query("SELECT todoid, text, priority FROM todos")
