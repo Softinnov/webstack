@@ -14,9 +14,6 @@
             password,
             confirmpassword
         }
-        console.log("Email:", email);
-        console.log("Password:", password);
-        console.log("Password2:", confirmpassword);
         try {
             sendUser(newuser,"signin");
         } catch (error) {

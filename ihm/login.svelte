@@ -12,8 +12,6 @@
             email,
             password
         }
-        console.log("Email:", user.email);
-        console.log("Password:", user.passwordpassword);
         try{
             sendUser(user,"login")
         }catch (error) {
