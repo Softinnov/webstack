@@ -29,7 +29,10 @@ func HandleSignin(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	encodejson(w, user)
+	_, err = encodejson(w, user)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 	fmt.Printf("Utilisateur enregistré : %v", user.Email)
 	// http.Redirect(w, r, "./todo.html", http.StatusSeeOther)
 }
@@ -43,7 +46,10 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-	encodejson(w, user)
+	_, err = encodejson(w, user)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 	fmt.Printf("Utilisateur connecté : %v", user.Email)
 	// http.Redirect(w, r, "./todo.html", http.StatusSeeOther)
 }
@@ -58,7 +64,10 @@ func HandleAddTodo(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	encodejson(w, todo)
+	_, err = encodejson(w, todo)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func HandleDeleteTodo(w http.ResponseWriter, r *http.Request) {
@@ -71,7 +80,10 @@ func HandleDeleteTodo(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	encodejson(w, todo)
+	_, err = encodejson(w, todo)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func HandleModifyTodo(w http.ResponseWriter, r *http.Request) {
@@ -85,7 +97,10 @@ func HandleModifyTodo(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	encodejson(w, todo)
+	_, err = encodejson(w, todo)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func HandleGetTodos(w http.ResponseWriter, r *http.Request) {
@@ -94,5 +109,8 @@ func HandleGetTodos(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "erreur lors de la récupération des données : réessayez ultérieurement", http.StatusInternalServerError)
 		return
 	}
-	encodejson(w, list)
+	_, err = encodejson(w, list)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
