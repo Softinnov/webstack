@@ -3,6 +3,7 @@ package metier
 import (
 	"fmt"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"webstack/models"
@@ -10,6 +11,7 @@ import (
 
 var store Database
 var todo models.Todo
+var user models.User
 var err error
 
 const errSpecialChar = "caractères spéciaux non autorisés : {}[]|"
@@ -34,15 +36,46 @@ func containsOnlySpace(s string) bool {
 	return noSpaceText == ""
 }
 
+func sortByPriorityDesc(todos []models.Todo) []models.Todo {
+	sort.Slice(todos, func(i, j int) bool {
+		return todos[i].Priority > todos[j].Priority
+	})
+	return todos
+}
+
+func AddUser(email string, mdp string, confirmmdp string) (models.User, error) {
+	user.Email = email
+	if mdp != confirmmdp {
+		return models.User{}, fmt.Errorf("mots de passe différents, réessayez")
+	}
+	user.Mdp = mdp
+	err = store.AddUserDb(user)
+	if err != nil {
+		return models.User{}, err
+	}
+	return user, nil
+}
+
+func Login(email string, mdp string) (models.User, error) {
+	user.Email = email
+	user.Mdp = mdp
+	_, err := store.GetUser(user)
+	if err != nil {
+		return models.User{}, fmt.Errorf("erreur de login : %v", err)
+	}
+	return user, nil
+}
+
 func GetTodos() ([]models.Todo, error) {
 	list, err := store.GetTodosDb()
 	if err != nil {
 		return nil, fmt.Errorf("erreur lors de la récupération des données : %v", err)
 	}
-	return list, nil
+	listDesc := sortByPriorityDesc(list)
+	return listDesc, nil
 }
 
-func AddTodo(text string) (models.Todo, error) {
+func AddTodo(text string, priorityStr string) (models.Todo, error) {
 	if containsSpecialCharacters(text) {
 		err = fmt.Errorf(errSpecialChar)
 		return models.Todo{}, err
@@ -51,7 +84,14 @@ func AddTodo(text string) (models.Todo, error) {
 		err = fmt.Errorf(errNoText)
 		return models.Todo{}, err
 	}
+	priority, err := strconv.Atoi(priorityStr)
+	if err != nil {
+		err = fmt.Errorf("erreur de conversion %v", err)
+		return models.Todo{}, err
+	}
+
 	todo.Text = text
+	todo.Priority = priority
 	err = store.AddTodoDb(todo)
 	if err != nil {
 		return models.Todo{}, err
@@ -60,7 +100,7 @@ func AddTodo(text string) (models.Todo, error) {
 }
 
 func DeleteTodo(idStr string, text string) (models.Todo, error) {
-	if containsOnlySpace(text) || containsOnlySpace(idStr) {
+	if containsOnlySpace(idStr) {
 		err = fmt.Errorf(errNoId)
 		return models.Todo{}, err
 	}
@@ -78,7 +118,7 @@ func DeleteTodo(idStr string, text string) (models.Todo, error) {
 	return todo, nil
 }
 
-func ModifyTodo(idStr string, text string) (models.Todo, error) {
+func ModifyTodo(idStr string, text string, priorityStr string) (models.Todo, error) {
 	if containsOnlySpace(idStr) {
 		err = fmt.Errorf(errNoId)
 		return models.Todo{}, err
@@ -95,8 +135,15 @@ func ModifyTodo(idStr string, text string) (models.Todo, error) {
 		err = fmt.Errorf("erreur de conversion %v", err)
 		return models.Todo{}, err
 	}
+	priority, err := strconv.Atoi(priorityStr)
+	if err != nil {
+		err = fmt.Errorf("erreur de conversion %v", err)
+		return models.Todo{}, err
+	}
+
 	todo.Id = id
 	todo.Text = text
+	todo.Priority = priority
 	err = store.ModifyTodoDb(todo)
 	if err != nil {
 		return models.Todo{}, err

@@ -1,11 +1,8 @@
 <!--permet d'appeler le composant svelte dans le fichier html avec une simple balise-->
 <svelte:options customElement="app-todo" />
 
-<script>
-	let todos = [];
-	let nouvelleTache='';
-
-	function customQueryEscape(str){
+<script context="module">
+	export function customQueryEscape(str){
 		const uriStr = encodeURIComponent(str);
 		const finalQueryStr = uriStr
 		.replace(/!/g, '%21')
@@ -16,10 +13,44 @@
 		.replace(/%20/g,'+');
     	return finalQueryStr;
 	}
+</script>
+
+<script>
+	let todos = [];
+	let nouvelleTache='';
+	let selectedPriority = 2;
+
+	function selectPriority(priority) {
+		selectedPriority = priority;
+	}
+
+	function getPriorityColor(priority) {
+		switch (priority) {
+			case 3:
+				return "rgba(255, 0, 0)"; // Rouge pour les tâches urgentes
+			case 2:
+				return "rgba(255, 255, 0)"; // Jaune pour les tâches prioritaires
+			case 1:
+				return "rgba(0, 128, 0)"; // Vert pour les tâches non prioritaires
+			default:
+				return "rgba(0, 0, 0)";
+		}
+	}
+
+	function changePriority(item){
+		if (item.priority >= 3){
+			item.priority = 0;
+			item.priority +=1;
+		} else {
+			item.priority += 1;
+		}
+		modify(item);
+	}
 
 	function add() {
 		let todo = {
-			text: nouvelleTache
+			text: nouvelleTache,
+			priority: selectedPriority
 		}
 		try{
 			sendTodo(todo,"add");
@@ -69,9 +100,9 @@
 	async function sendTodo(todo, route) {
 		todo.text = customQueryEscape(todo.text)
 		if(route=="add") {
-			var url = `/${route}?text=${todo.text}`;
+			var url = `/${route}?text=${todo.text}&priority=${todo.priority}`;
 		} else {
-			url = `/${route}?id=${todo.id}&text=${todo.text}`;
+			url = `/${route}?id=${todo.id}&text=${todo.text}&priority=${todo.priority}`;
 		}
 		try {
 			const reponse = await fetch(url,{method: "POST"});
@@ -80,18 +111,16 @@
 				alert(errorData);
 				throw new Error(`Erreur lors de la requête : ${reponse.status} ${reponse.statusText}`);
 			}
-			const result = await reponse.json();
+			await reponse.json();
 			getTodoList();
 		} catch (error) {
 			console.error(`Une erreur s'est produite : ${error.message}`);
 		}
 	}
 
-	function handleKeydown(e, item, action) {
+	function handleKeydown(e, item) {
 		if(e.key=="Enter") {
-			// console.log("Enter");
-			if(action=="modify"){
-				console.log("on est la");
+			if(item != null){
 				modify(item);
 			}
 			else {
@@ -101,7 +130,7 @@
 	}
 
 	$: remaining = todos.length;	
-	
+
 	getTodoList();
 
 </script>
@@ -116,8 +145,15 @@
 		type="text" 
 		placeholder="Quoi d'autre?"
 		bind:value={nouvelleTache}
-		on:keydown={handleKeydown}
+		on:keydown={e => handleKeydown(e, null)}
 		/>
+		<div class="priority">
+			<button class="urgent {selectedPriority === 3 ? 'selectedurg' : ''}" on:click={() => selectPriority(3)}></button>
+			<button class="prioritaire {selectedPriority === 2 ? 'selectedprio' : ''}" on:click={() => selectPriority(2)}></button>
+			<button class="nonprioritaire {selectedPriority === 1 ? 'selectednonurg' : ''}" on:click={() => selectPriority(1)}></button>
+		</div>
+		  
+		
 		<button class="ajout" disabled={nouvelleTache==""} on:click={add}>
 			✔️
 		</button>
@@ -126,19 +162,24 @@
 	<ul id="todo-list" class="todos">	
 		{#each todos as item}
 			<li>
+				<input
+					id="todo"
+					type="text"
+					bind:value={item.text}
+					on:keydown={e => handleKeydown(e, item)}
+				/>
+				<button
+					class="priority-btn"
+					on:click={() => changePriority(item)}
+					style="background-color: {getPriorityColor(item.priority)}"
+				>
+				</button>
 				<button class="button" on:click={modify(item)}>
 					✏️
 				</button>
 				<button class="button" on:click={xclear(item)}>
 					🗑️
 				</button>
-
-				<input
-					id="todo"
-					type="text"
-					bind:value={item.text}
-					on:keydown={handleKeydown(item, "modify")}
-				/>
 			</li>
 		{/each}
 	</ul>
@@ -163,18 +204,19 @@
 		border: none;
 		border-radius: 5%;
 		background-color: white;
-		margin-right: 3%;
+		margin-left: 3%;
 	}
 	.button:hover{
 		background-color: rgba(146, 146, 146, 0.381);
 		cursor: pointer;
 	}
 	.centered {
-		width: 25em;
+		width: 30em;
 		margin: auto;
 		display:grid;
 	}
 	.newTask {
+		flex: 0.75;
 		left: 12%;
 		margin-bottom: 15%;
 		margin-right: 1%;
@@ -189,7 +231,7 @@
 		border: none;
 		border-radius: 5%;
 		background-color: white;
-		margin-left: 13%;
+		margin-left: 2%;
 		position: relative;
 	}
 	.ajout:hover{
@@ -211,10 +253,74 @@
 		margin: 3%;
 	}
 	input[type="text"] {
-		flex: 1;
+		flex: 0.75;
 		padding: 0.5em;
 		margin: -0.2em 0;
 		border: none;
 		font-size: large;
+	}
+
+	.priority-btn{
+		position: relative;
+		width: 10px;
+		height: 10px;
+		border-radius: 50%;
+		margin: 3%;
+	}
+	.priority-btn:hover{
+		cursor: pointer;
+	}
+
+	.priority {
+		display: inline;
+		margin-left: 13%;
+		justify-content: center;
+	}
+
+	.priority button{
+		position: relative;
+		width: 10px;
+		height: 10px;
+		border-radius: 50%;
+		margin-right: 1%;
+		margin-left: 1%;
+		bottom: 10%;
+	}
+
+	.priority button:hover{
+		cursor: pointer;
+	}
+
+	.urgent {
+    	background-color: rgba(255, 0, 0, 0.475);
+	}
+
+	.prioritaire {
+		background-color: rgba(255, 255, 0, 0.475);
+	}
+
+	.nonprioritaire {
+		background-color: rgba(0, 128, 0, 0.475);
+	}
+
+	.selectedurg {
+		border: 2px solid;
+		border-color: black;
+		background-color: red;
+		transform: scale(1.15);
+	}
+
+	.selectedprio {
+		border: 2px solid;
+		border-color: black;
+		background-color: yellow;
+		transform: scale(1.15);
+	}
+
+	.selectednonurg {
+		border: 2px solid;
+		border-color: black;
+		background-color: green;
+		transform: scale(1.15);
 	}
 </style>
