@@ -24,6 +24,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	err = metier.InitUser(msql)
+	if err != nil {
+		log.Fatal(err)
+	}
 	fs := http.FileServer(http.Dir(cfg.StaticDir))
 	http.Handle("/", fs)
 	http.HandleFunc("/add", web.HandleAddTodo)
@@ -32,6 +36,7 @@ func main() {
 	http.HandleFunc("/todos", web.HandleGetTodos)
 	http.HandleFunc("/signin", web.HandleSignin)
 	http.HandleFunc("/login", web.HandleLogin)
+	http.HandleFunc("/logout", web.HandleLogout)
 
 	http.ListenAndServe(cfg.Port, nil)
 }
