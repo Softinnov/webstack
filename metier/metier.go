@@ -14,9 +14,9 @@ var todo models.Todo
 var user models.User
 var err error
 
-const errSpecialChar = "caractères spéciaux non autorisés : {}[]|"
-const errNoText = "veuillez renseigner du texte"
-const errNoId = "todo introuvable, réessayez ultérieurement"
+const ERR_SPECIAL_CHAR = "caractères spéciaux non autorisés : {}[]|"
+const ERR_NO_TEXT = "veuillez renseigner du texte"
+const ERR_NO_ID = "todo introuvable, réessayez ultérieurement"
 
 func Init(db DatabaseTodo) error {
 	if db == nil {
@@ -43,7 +43,8 @@ func sortByPriorityDesc(todos []models.Todo) []models.Todo {
 	return todos
 }
 
-func GetTodos() ([]models.Todo, error) {
+func GetTodos(email string) ([]models.Todo, error) {
+	user.Email = email
 	list, err := storeTodo.GetTodosDb(user)
 	if err != nil {
 		return nil, fmt.Errorf("erreur lors de la récupération des données : %v", err)
@@ -52,13 +53,13 @@ func GetTodos() ([]models.Todo, error) {
 	return listDesc, nil
 }
 
-func AddTodo(text string, priorityStr string) (models.Todo, error) {
+func AddTodo(text string, priorityStr string, email string) (models.Todo, error) {
 	if containsSpecialCharacters(text) {
-		err = fmt.Errorf(errSpecialChar)
+		err = fmt.Errorf(ERR_SPECIAL_CHAR)
 		return models.Todo{}, err
 	}
 	if containsOnlySpace(text) {
-		err = fmt.Errorf(errNoText)
+		err = fmt.Errorf(ERR_NO_TEXT)
 		return models.Todo{}, err
 	}
 	priority, err := strconv.Atoi(priorityStr)
@@ -66,10 +67,10 @@ func AddTodo(text string, priorityStr string) (models.Todo, error) {
 		err = fmt.Errorf("erreur de conversion %v", err)
 		return models.Todo{}, err
 	}
-
+	user.Email = email
 	todo.Text = text
 	todo.Priority = priority
-	err = storeTodo.AddTodoDb(todo)
+	err = storeTodo.AddTodoDb(todo, user)
 	if err != nil {
 		return models.Todo{}, err
 	}
@@ -78,7 +79,7 @@ func AddTodo(text string, priorityStr string) (models.Todo, error) {
 
 func DeleteTodo(idStr string, text string) (models.Todo, error) {
 	if containsOnlySpace(idStr) {
-		err = fmt.Errorf(errNoId)
+		err = fmt.Errorf(ERR_NO_ID)
 		return models.Todo{}, err
 	}
 	id, err := strconv.Atoi(idStr)
@@ -97,14 +98,14 @@ func DeleteTodo(idStr string, text string) (models.Todo, error) {
 
 func ModifyTodo(idStr string, text string, priorityStr string) (models.Todo, error) {
 	if containsOnlySpace(idStr) {
-		err = fmt.Errorf(errNoId)
+		err = fmt.Errorf(ERR_NO_ID)
 		return models.Todo{}, err
 	} else if containsOnlySpace(text) {
-		err = fmt.Errorf(errNoText)
+		err = fmt.Errorf(ERR_NO_TEXT)
 		return models.Todo{}, err
 	}
 	if containsSpecialCharacters(text) {
-		err = fmt.Errorf(errSpecialChar)
+		err = fmt.Errorf(ERR_SPECIAL_CHAR)
 		return models.Todo{}, err
 	}
 	id, err := strconv.Atoi(idStr)
