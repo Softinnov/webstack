@@ -16,6 +16,8 @@
 </script>
 
 <script>
+	import { redirect } from './index.svelte';
+	
 	let todos = [];
 	let nouvelleTache='';
 	let selectedPriority = 2;
@@ -118,6 +120,21 @@
 		}
 	}
 
+	async function logout(){
+		try {
+			const reponse = await fetch("/logout",{method: "GET"});
+			if (!reponse.ok) {
+				const errorData = await reponse.text();
+				alert(errorData);
+				throw new Error(`Erreur lors de la requête : ${reponse.status} ${reponse.statusText}`);
+			}
+			await reponse.text();
+		} catch (error) {
+			console.error(`Erreur lors de la connection au serveur : ${error.message}`);
+		}
+		redirect('index.html');
+	}
+
 	function handleKeydown(e, item) {
 		if(e.key=="Enter") {
 			if(item != null){
@@ -132,11 +149,10 @@
 	$: remaining = todos.length;	
 
 	getTodoList();
-
 </script>
 
 <div class="centered">
-	
+
 	<h1>My TodoList</h1>
 
 	<div>
@@ -152,8 +168,6 @@
 			<button class="prioritaire {selectedPriority === 2 ? 'selectedprio' : ''}" on:click={() => selectPriority(2)}></button>
 			<button class="nonprioritaire {selectedPriority === 1 ? 'selectednonurg' : ''}" on:click={() => selectPriority(1)}></button>
 		</div>
-		  
-		
 		<button class="ajout" disabled={nouvelleTache==""} on:click={add}>
 			✔️
 		</button>
@@ -184,18 +198,33 @@
 		{/each}
 	</ul>
 
+</div>
+
+<div class="bottom">
+
 	<p>{remaining} tâches restantes !</p>
+	<button class="disconnect" on:click={logout}>Se deconnecter</button>
 
 </div>
 
 <style>
 	h1{
+		margin-left: 5%;
+		margin-right: auto;
 		font-size: 70px;
 	}
 	p{
 		font-size: large;
-		left: 45%;
 		bottom: 5%;
+	}
+	.bottom{
+		margin: auto;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+	.disconnect{
+		bottom: 2%;
 		position: fixed;
 	}
 	.button {
@@ -264,6 +293,7 @@
 		position: relative;
 		width: 10px;
 		height: 10px;
+		border: 2px solid rgba(0, 0, 0, 0.75);
 		border-radius: 50%;
 		margin: 3%;
 	}

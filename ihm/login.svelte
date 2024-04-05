@@ -2,18 +2,19 @@
 
 <script>
     import { sendUser } from './signin.svelte'
-    // import { redirectToTodo } from './index.svelte'
+    import { redirect } from './index.svelte'
 
     let email = '';
     let password = '';
   
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         let user = {
             email,
             password
         }
         try{
-            sendUser(user,"login")
+            await sendUser(user,"login");
+            redirect('app.html');
         }catch (error) {
             console.error(`Erreur lors de la connection au serveur : ${error.message}`);
         }

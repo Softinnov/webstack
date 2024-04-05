@@ -2,23 +2,24 @@
 
 <script context="module">
     import { customQueryEscape } from './app.svelte';
-    // import { redirectToTodo } from './index.svelte'
+    import { redirect } from './index.svelte';
 
     let email = '';
     let password = '';
     let confirmpassword = '';
   
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         let newuser = {
             email,
             password,
             confirmpassword
         }
         try {
-            sendUser(newuser,"signin");
+            await sendUser(newuser,"signin");
         } catch (error) {
 			console.error(`Erreur lors de la connection au serveur : ${error.message}`);
 		}
+        redirect('app.html');
     };
 
     export async function sendUser(user, route) {
@@ -38,7 +39,7 @@
 				alert(errorData);
 				throw new Error(`Erreur lors de la requête : ${reponse.status} ${reponse.statusText}`);
 			}
-			await reponse.json();
+			await reponse.text();
 		} catch (error) {
 			console.error(`Une erreur s'est produite : ${error.message}`);
 		}
