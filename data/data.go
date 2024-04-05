@@ -51,7 +51,7 @@ func (m MysqlServer) GetUser(u models.User) (models.User, error) {
 	err := db.QueryRow("SELECT password FROM users WHERE email = ?", u.Email).Scan(&storedPassword)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return models.User{}, fmt.Errorf("email not found")
+			return models.User{}, fmt.Errorf("utilisateur introuvable")
 		}
 		return models.User{}, fmt.Errorf("erreur de connexion à la base de donnée : %v", err)
 	}
@@ -62,7 +62,7 @@ func (m MysqlServer) GetUser(u models.User) (models.User, error) {
 func (m MysqlServer) GetTodosDb(u models.User) ([]models.Todo, error) {
 	var list []models.Todo
 
-	rows, err := db.Query("SELECT todoid, text, priority FROM todos")
+	rows, err := db.Query("SELECT todoid, text, priority FROM todos JOIN users ON todos.userid = users.userid WHERE users.email = (?)", u.Email)
 	if err != nil {
 		return nil, fmt.Errorf("GetTodos error : %v", err)
 	}
@@ -80,8 +80,8 @@ func (m MysqlServer) GetTodosDb(u models.User) ([]models.Todo, error) {
 	return list, nil
 }
 
-func (m MysqlServer) AddTodoDb(td models.Todo) error {
-	_, err := db.Exec("INSERT INTO todos (text,priority) VALUES (?,?)", td.Text, td.Priority)
+func (m MysqlServer) AddTodoDb(td models.Todo, u models.User) error {
+	_, err := db.Exec("INSERT INTO todos (text, priority, userid) VALUES (?,?,(SELECT userid FROM users WHERE email = (?)))", td.Text, td.Priority, u.Email)
 	if err != nil {
 		return fmt.Errorf("addTodo error : %v", err)
 	}
