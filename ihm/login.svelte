@@ -69,10 +69,14 @@
 		border-radius: 5%;
 		background-color: white;
 		margin-left: 3%;
+		transition: transform 0.2s ease;
 	}
 	button:hover{
 		background-color: rgba(146, 146, 146, 0.381);
 		cursor: pointer;
+	}
+    button:active {
+		transform: scale(0.95);
 	}
     .module{
         align-items: center;

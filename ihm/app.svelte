@@ -85,7 +85,9 @@
 			if (!reponse.ok) {
 				const errorData = await reponse.text();
 				alert(errorData);
-				redirectTo("index.html");
+				if (errorData.includes("http: named cookie not present")){
+					redirectTo("index.html");
+				}
 				throw new Error(`Erreur lors de la requête : ${reponse.status} ${reponse.statusText}`);
 			}
 			const result = await reponse.json();
@@ -112,6 +114,9 @@
 			if (!reponse.ok) {
 				const errorData = await reponse.text();
 				alert(errorData);
+				if (errorData.includes("http: named cookie not present")){
+					redirectTo("index.html");
+				}
 				throw new Error(`Erreur lors de la requête : ${reponse.status} ${reponse.statusText}`);
 			}
 			await reponse.json();
@@ -204,7 +209,7 @@
 <div class="bottom">
 
 	<p>{remaining} tâches restantes !</p>
-	<button class="disconnect" on:click={logout}>Se deconnecter</button>
+	<button class="disconnect" on:click={logout}>Se déconnecter</button>
 
 </div>
 
@@ -225,8 +230,22 @@
 		align-items: center;
 	}
 	.disconnect{
+		width: 200px;
+		height: 20px;
+		font-size: small;
 		bottom: 2%;
 		position: fixed;
+		border: none;
+		border-radius: 5%;
+		background-color: white;
+		transition: transform 0.1s ease;
+	}
+	.disconnect:hover{
+		background-color: rgba(146, 146, 146, 0.381);
+		cursor: pointer;
+	}
+	.disconnect:active {
+		transform: scale(0.95);
 	}
 	.button {
 		height: 35px;
@@ -235,10 +254,14 @@
 		border-radius: 5%;
 		background-color: white;
 		margin-left: 3%;
+		transition: transform 0.2s ease;
 	}
 	.button:hover{
 		background-color: rgba(146, 146, 146, 0.381);
 		cursor: pointer;
+	}
+	button:active {
+		transform: scale(0.95);
 	}
 	.centered {
 		width: 30em;

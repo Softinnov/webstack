@@ -19,14 +19,15 @@ type Claims struct {
 const SECRET_KEY = "codesecret123"
 
 var now = time.Now()
-var token_exp = now.Add(time.Hour * 3) // Délai d'expiration du token : 3h
+var token_exp = now.Add(time.Hour * 12) // Délai d'expiration du token : 12h
 
-var invalidatedTokens = make(map[string]bool)
+// var invalidatedTokens = make(map[string]bool)
 
 func getActiveCookieTkn(w http.ResponseWriter, r *http.Request) string {
 	cookie, err := r.Cookie("cookie")
 	if err != nil {
 		if err == http.ErrNoCookie {
+			err = fmt.Errorf("aucun token des les cookies : %v", err)
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return ""
 		}
@@ -44,6 +45,7 @@ func getActiveCookieTkn(w http.ResponseWriter, r *http.Request) string {
 
 	if err != nil {
 		if err == jwt.ErrSignatureInvalid {
+			err = fmt.Errorf("erreur signature invalide : %v", err)
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return ""
 		}
@@ -51,43 +53,44 @@ func getActiveCookieTkn(w http.ResponseWriter, r *http.Request) string {
 	}
 
 	if !tkn.Valid {
+		err = fmt.Errorf("erreur token invalide : %v", err)
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return ""
 	}
 	return tokenStr
 }
 
-func invalidateToken(token string) {
-	invalidatedTokens[token] = true
-}
+// func invalidateToken(token string) {
+// 	invalidatedTokens[token] = true
+// }
 
-func validateToken(token string) bool {
-	_, invalidated := invalidatedTokens[token]
-	return !invalidated
-}
+// func validateToken(token string) bool {
+// 	_, invalidated := invalidatedTokens[token]
+// 	return !invalidated
+// }
 
-func checkExpiredTokens() error {
-	for token := range invalidatedTokens {
-		if validateToken(token) {
-			tknclaims, err := jwt.ParseWithClaims(token, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-				return []byte(SECRET_KEY), nil
-			})
-			if err != nil {
-				return fmt.Errorf("%v : %v", err, http.StatusInternalServerError)
-			}
+// func checkExpiredTokens() error {
+// 	for tokenStr := range invalidatedTokens {
+// 		if !validateToken(tokenStr) {
+// 			tknclaims, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(t *jwt.Token) (interface{}, error) {
+// 				return []byte(SECRET_KEY), nil
+// 			})
+// 			if err != nil {
+// 				return fmt.Errorf("%v : %v", err, http.StatusInternalServerError)
+// 			}
 
-			claims, ok := tknclaims.Claims.(*Claims)
-			if !ok || !tknclaims.Valid {
-				return fmt.Errorf("%v : %v", err, http.StatusInternalServerError)
-			}
-
-			if claims.ExpiresAt <= now.Unix() {
-				delete(invalidatedTokens, token)
-			}
-		}
-	}
-	return nil
-}
+// 			claims, ok := tknclaims.Claims.(*Claims)
+// 			if !ok || !tknclaims.Valid {
+// 				return fmt.Errorf("%v : %v", err, http.StatusInternalServerError)
+// 			}
+// 			fmt.Println(claims.ExpiresAt, now.Unix())
+// 			if claims.ExpiresAt <= now.Unix() {
+// 				invalidateToken(tokenStr)
+// 			}
+// 		}
+// 	}
+// 	return nil
+// }
 
 func jsonwebToken(u models.User) string {
 	t := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
@@ -128,7 +131,7 @@ func HandleSignin(w http.ResponseWriter, r *http.Request) {
 			Value:   token,
 			Expires: token_exp,
 		})
-	fmt.Printf("Utilisateur enregistré : %v", getUserEmail(token))
+	// fmt.Printf("Utilisateur enregistré : %v", getUserEmail(token))
 }
 
 func HandleLogin(w http.ResponseWriter, r *http.Request) {
@@ -143,19 +146,29 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 	token := jsonwebToken(user)
 	http.SetCookie(w,
 		&http.Cookie{
-			Name:    "cookie",
-			Value:   token,
-			Expires: token_exp,
+			Name:     "cookie",
+			Value:    "",
+			Expires:  time.Now().Add(-1 * time.Hour),
+			SameSite: http.SameSiteLaxMode,
 		})
+	http.SetCookie(w,
+		&http.Cookie{
+			Name:     "cookie",
+			Value:    token,
+			Expires:  token_exp,
+			SameSite: http.SameSiteLaxMode,
+		})
+	// fmt.Println("handle login ok", invalidatedTokens)
+	// fmt.Println(r.Cookie("cookie"))
 }
 
 func HandleLogout(w http.ResponseWriter, r *http.Request) {
-	invalidateToken(getActiveCookieTkn(w, r))
+	// invalidateToken(getActiveCookieTkn(w, r))
 	http.SetCookie(w, &http.Cookie{
 		Name:    "cookie",
 		Value:   "",
 		Expires: time.Now().Add(-time.Hour),
 		Path:    "/",
 	})
-	checkExpiredTokens()
+	// fmt.Println(invalidatedTokens)
 }

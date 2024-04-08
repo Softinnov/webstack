@@ -16,6 +16,24 @@
 		margin: auto;
 		display: inline-flexbox;
 	}
+	button {
+    margin: 2%;
+		height: 35px;
+		width: 350px;
+		border: none;
+		border-radius: 5%;
+		background-color: white;
+		margin-left: 3%;
+    font-size: large;
+		transition: transform 0.2s ease;
+	}
+	button:hover{
+		background-color: rgba(146, 146, 146, 0.381);
+		cursor: pointer;
+	}
+  button:active {
+		transform: scale(0.95);
+	}
 </style>
   
 <div class="centered">
