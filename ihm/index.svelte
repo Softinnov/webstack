@@ -1,7 +1,7 @@
 <svelte:options customElement="index-todo" />
 
 <script context="module">
-    export function redirect(url) {
+    export function redirectTo(url) {
       window.location.href = url;
     }
 </script>
@@ -20,7 +20,7 @@
   
 <div class="centered">
     <h1>My TodoList</h1>
-    <button on:click={redirectToSignIn}>Inscription</button>
-    <button on:click={redirectToLogin}>Connexion</button>
+    <button on:click={() => redirectTo("signin.html")}>Inscription</button>
+    <button on:click={() => redirectTo("login.html")}>Connexion</button>
 </div>
   

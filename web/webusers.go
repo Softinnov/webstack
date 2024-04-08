@@ -18,11 +18,12 @@ type Claims struct {
 
 const SECRET_KEY = "codesecret123"
 
-var token_exp = time.Now().Add(time.Hour * 3) // Délai d'expiration du token : 3h
+var now = time.Now()
+var token_exp = now.Add(time.Hour * 3) // Délai d'expiration du token : 3h
 
 var invalidatedTokens = make(map[string]bool)
 
-func getCookieToken(w http.ResponseWriter, r *http.Request) string {
+func getActiveCookieTkn(w http.ResponseWriter, r *http.Request) string {
 	cookie, err := r.Cookie("cookie")
 	if err != nil {
 		if err == http.ErrNoCookie {
@@ -60,10 +61,33 @@ func invalidateToken(token string) {
 	invalidatedTokens[token] = true
 }
 
-// func validateToken(token string) bool {
-// 	_, invalidated := invalidatedTokens[token]
-// 	return !invalidated
-// }
+func validateToken(token string) bool {
+	_, invalidated := invalidatedTokens[token]
+	return !invalidated
+}
+
+func checkExpiredTokens() error {
+	for token := range invalidatedTokens {
+		if validateToken(token) {
+			tknclaims, err := jwt.ParseWithClaims(token, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+				return []byte(SECRET_KEY), nil
+			})
+			if err != nil {
+				return fmt.Errorf("%v : %v", err, http.StatusInternalServerError)
+			}
+
+			claims, ok := tknclaims.Claims.(*Claims)
+			if !ok || !tknclaims.Valid {
+				return fmt.Errorf("%v : %v", err, http.StatusInternalServerError)
+			}
+
+			if claims.ExpiresAt <= now.Unix() {
+				delete(invalidatedTokens, token)
+			}
+		}
+	}
+	return nil
+}
 
 func jsonwebToken(u models.User) string {
 	t := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
@@ -94,7 +118,6 @@ func HandleSignin(w http.ResponseWriter, r *http.Request) {
 
 	user, err := metier.AddUser(email, password, confirmpassword)
 	if err != nil {
-		err = fmt.Errorf("erreur signin : %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -114,7 +137,6 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 
 	user, err := metier.Login(email, password)
 	if err != nil {
-		err = fmt.Errorf("erreur login : %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -125,18 +147,15 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 			Value:   token,
 			Expires: token_exp,
 		})
-	fmt.Printf("Utilisateur connecté : %v", getUserEmail(token))
 }
 
 func HandleLogout(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Déconnexion utilisateur :", getUserEmail(getCookieToken(w, r)))
-
-	invalidateToken(getCookieToken(w, r))
-
+	invalidateToken(getActiveCookieTkn(w, r))
 	http.SetCookie(w, &http.Cookie{
 		Name:    "cookie",
 		Value:   "",
 		Expires: time.Now().Add(-time.Hour),
 		Path:    "/",
 	})
+	checkExpiredTokens()
 }

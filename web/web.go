@@ -21,7 +21,7 @@ func HandleAddTodo(w http.ResponseWriter, r *http.Request) {
 	text := r.FormValue("text")
 	priority := r.FormValue("priority")
 
-	tokenStr := getCookieToken(w, r)
+	tokenStr := getActiveCookieTkn(w, r)
 
 	todo, err := metier.AddTodo(text, priority, getUserEmail(tokenStr))
 	if err != nil {
@@ -72,7 +72,7 @@ func HandleModifyTodo(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleGetTodos(w http.ResponseWriter, r *http.Request) {
-	tokenStr := getCookieToken(w, r)
+	tokenStr := getActiveCookieTkn(w, r)
 
 	list, err := metier.GetTodos(getUserEmail(tokenStr))
 	if err != nil {

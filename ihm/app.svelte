@@ -16,7 +16,7 @@
 </script>
 
 <script>
-	import { redirect } from './index.svelte';
+	import { redirectTo } from './index.svelte';
 	
 	let todos = [];
 	let nouvelleTache='';
@@ -85,6 +85,7 @@
 			if (!reponse.ok) {
 				const errorData = await reponse.text();
 				alert(errorData);
+				redirectTo("index.html");
 				throw new Error(`Erreur lors de la requête : ${reponse.status} ${reponse.statusText}`);
 			}
 			const result = await reponse.json();
@@ -132,7 +133,7 @@
 		} catch (error) {
 			console.error(`Erreur lors de la connection au serveur : ${error.message}`);
 		}
-		redirect('index.html');
+		redirectTo('index.html');
 	}
 
 	function handleKeydown(e, item) {
