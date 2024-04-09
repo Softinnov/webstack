@@ -37,7 +37,6 @@ func (m MysqlServer) AddUserDb(u models.User) error {
 	if count > 0 {
 		return fmt.Errorf("email déjà utilisé")
 	}
-	fmt.Println(u.Mdp)
 	_, err = db.Exec("INSERT INTO users (email, password) VALUES (?,?)", u.Email, u.Mdp)
 	if err != nil {
 		return fmt.Errorf("AddUser error : %v", err)

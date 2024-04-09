@@ -17,11 +17,19 @@ func encodejson(w http.ResponseWriter, a any) (any, error) {
 	return a, nil
 }
 
+// func GoHomeHandler(w http.ResponseWriter, r *http.Request) {
+// 	http.Redirect(w, r, "./index.html", http.StatusSeeOther)
+// }
+
 func HandleAddTodo(w http.ResponseWriter, r *http.Request) {
 	text := r.FormValue("text")
 	priority := r.FormValue("priority")
 
-	tokenStr := getActiveCookieTkn(w, r)
+	tokenStr, err := GetTokenString(r, COOKIE_NAME)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	todo, err := metier.AddTodo(text, priority, getUserEmail(tokenStr))
 	if err != nil {
@@ -34,6 +42,7 @@ func HandleAddTodo(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 }
 
 func HandleDeleteTodo(w http.ResponseWriter, r *http.Request) {
@@ -72,7 +81,11 @@ func HandleModifyTodo(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleGetTodos(w http.ResponseWriter, r *http.Request) {
-	tokenStr := getActiveCookieTkn(w, r)
+	tokenStr, err := GetTokenString(r, COOKIE_NAME)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	list, err := metier.GetTodos(getUserEmail(tokenStr))
 	if err != nil {

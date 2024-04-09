@@ -78,16 +78,29 @@
 		}
 	}
 
+	async function answerResponse(text,statusCode) {
+		try {
+			if (statusCode == 403) {
+				alert(`${text}`);
+				redirectTo("index.html");
+			} else if (statusCode == 500) {
+				alert(`${text}, réessayez`);
+			} else {
+				alert(`${text}`);
+				console.log('Unexpected status code:', statusCode);
+			}
+		} catch (error) {
+			console.error("Error while analysing server's response:", error);
+		}
+	}
+
 	async function getTodoList() {
 		const url = `/todos`	
 		try {
 			const reponse = await fetch(url,{method: "GET"});
 			if (!reponse.ok) {
 				const errorData = await reponse.text();
-				alert(errorData);
-				if (errorData.includes("http: named cookie not present")){
-					redirectTo("index.html");
-				}
+				answerResponse(errorData,reponse.status);
 				throw new Error(`Erreur lors de la requête : ${reponse.status} ${reponse.statusText}`);
 			}
 			const result = await reponse.json();
@@ -113,10 +126,7 @@
 			const reponse = await fetch(url,{method: "POST"});
 			if (!reponse.ok) {
 				const errorData = await reponse.text();
-				alert(errorData);
-				if (errorData.includes("http: named cookie not present")){
-					redirectTo("index.html");
-				}
+				answerResponse(errorData,reponse.status);
 				throw new Error(`Erreur lors de la requête : ${reponse.status} ${reponse.statusText}`);
 			}
 			await reponse.json();
@@ -221,7 +231,8 @@
 	}
 	p{
 		font-size: large;
-		bottom: 5%;
+		margin: 1%;
+		bottom: 7%;
 	}
 	.bottom{
 		margin: auto;
@@ -232,8 +243,9 @@
 	.disconnect{
 		width: 200px;
 		height: 20px;
+		margin: 1%;
 		font-size: small;
-		bottom: 2%;
+		bottom: 1%;
 		position: fixed;
 		border: none;
 		border-radius: 5%;
@@ -241,7 +253,7 @@
 		transition: transform 0.1s ease;
 	}
 	.disconnect:hover{
-		background-color: rgba(146, 146, 146, 0.381);
+		background-color: rgba(146, 146, 146, 0.181);
 		cursor: pointer;
 	}
 	.disconnect:active {
@@ -257,7 +269,7 @@
 		transition: transform 0.2s ease;
 	}
 	.button:hover{
-		background-color: rgba(146, 146, 146, 0.381);
+		background-color: rgba(146, 146, 146, 0.181);
 		cursor: pointer;
 	}
 	button:active {
@@ -288,7 +300,7 @@
 		position: relative;
 	}
 	.ajout:hover{
-		background-color: rgba(146, 146, 146, 0.381);
+		background-color: rgba(146, 146, 146, 0.181);
 		cursor: pointer;
 	}
 	.ajout:disabled{
@@ -297,7 +309,8 @@
 		cursor: default;
 	}
 	ul {
-		max-height: 15em;
+		min-height: 10em;
+		max-height: 14em;
 		overflow: hidden;
 		overflow-y: visible;
 	}

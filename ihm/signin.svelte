@@ -35,7 +35,7 @@
 			const reponse = await fetch(url,{method: "POST"});
 			if (!reponse.ok) {
 				const errorData = await reponse.text();
-				alert(errorData);
+				answerResponse(errorData,reponse.status);
 				throw new Error(`Erreur lors de la requête : ${reponse.status} ${reponse.statusText}`);
 			}
 			await reponse.text();
@@ -107,7 +107,7 @@
 		transition: transform 0.2s ease;
 	}
 	button:hover{
-		background-color: rgba(146, 146, 146, 0.381);
+		background-color: rgba(146, 146, 146, 0.181);
 		cursor: pointer;
 	}
     button:active {

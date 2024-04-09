@@ -28,7 +28,7 @@
 		transition: transform 0.2s ease;
 	}
 	button:hover{
-		background-color: rgba(146, 146, 146, 0.381);
+		background-color: rgba(146, 146, 146, 0.181);
 		cursor: pointer;
 	}
   button:active {
