@@ -8,24 +8,26 @@ import (
 	"webstack/metier"
 )
 
+const ERR_AJOUT = "erreur d'ajout de votre tâche"
+const ERR_SUPR = "erreur de suppression de votre tâche"
+const ERR_MODIF = "erreur de modification de votre tâche"
+const ERR_GETDATA = "erreur lors de la récupération des données"
+const ERR_ENCOD = "erreur d'encodage json"
+
 func encodejson(w http.ResponseWriter, a any) (any, error) {
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewEncoder(w).Encode(a)
 	if err != nil {
-		return nil, fmt.Errorf("erreur d'encodage json : %v", err)
+		return nil, fmt.Errorf("%v : %v", ERR_ENCOD, err)
 	}
 	return a, nil
 }
-
-// func GoHomeHandler(w http.ResponseWriter, r *http.Request) {
-// 	http.Redirect(w, r, "./index.html", http.StatusSeeOther)
-// }
 
 func HandleAddTodo(w http.ResponseWriter, r *http.Request) {
 	text := r.FormValue("text")
 	priority := r.FormValue("priority")
 
-	tokenStr, err := GetTokenString(r, COOKIE_NAME)
+	tokenStr, err := getTokenString(r, COOKIE_NAME)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -33,7 +35,7 @@ func HandleAddTodo(w http.ResponseWriter, r *http.Request) {
 
 	todo, err := metier.AddTodo(text, priority, getUserEmail(tokenStr))
 	if err != nil {
-		err = fmt.Errorf("erreur ajout de todo : %v", err)
+		err = fmt.Errorf("%v : %v", ERR_AJOUT, err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -51,7 +53,7 @@ func HandleDeleteTodo(w http.ResponseWriter, r *http.Request) {
 
 	todo, err := metier.DeleteTodo(id, text)
 	if err != nil {
-		err = fmt.Errorf("erreur suppression de todo : %v", err)
+		err = fmt.Errorf("%v : %v", ERR_SUPR, err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -69,7 +71,7 @@ func HandleModifyTodo(w http.ResponseWriter, r *http.Request) {
 
 	todo, err := metier.ModifyTodo(id, text, priority)
 	if err != nil {
-		err = fmt.Errorf("erreur modification de todo : %v", err)
+		err = fmt.Errorf("%v : %v", ERR_MODIF, err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -81,7 +83,7 @@ func HandleModifyTodo(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleGetTodos(w http.ResponseWriter, r *http.Request) {
-	tokenStr, err := GetTokenString(r, COOKIE_NAME)
+	tokenStr, err := getTokenString(r, COOKIE_NAME)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -89,7 +91,7 @@ func HandleGetTodos(w http.ResponseWriter, r *http.Request) {
 
 	list, err := metier.GetTodos(getUserEmail(tokenStr))
 	if err != nil {
-		http.Error(w, "erreur lors de la récupération des données : réessayez ultérieurement", http.StatusInternalServerError)
+		http.Error(w, ERR_GETDATA, http.StatusInternalServerError)
 		return
 	}
 	_, err = encodejson(w, list)

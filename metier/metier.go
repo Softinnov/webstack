@@ -17,10 +17,12 @@ var err error
 const ERR_SPECIAL_CHAR = "caractères spéciaux non autorisés : {}[]|"
 const ERR_NO_TEXT = "veuillez renseigner du texte"
 const ERR_NO_ID = "todo introuvable, réessayez ultérieurement"
-
+const ERR_GETDATA = "erreur lors de la récupération des données"
+const ERR_CONV = "erreur de conversion"
+const ERR_DBNIL = "error db nil"
 func Init(db DatabaseTodo) error {
 	if db == nil {
-		return fmt.Errorf("db est nil")
+		return fmt.Errorf(ERR_DBNIL)
 	}
 	storeTodo = db
 	return nil
@@ -47,7 +49,7 @@ func GetTodos(email string) ([]models.Todo, error) {
 	user.Email = email
 	list, err := storeTodo.GetTodosDb(user)
 	if err != nil {
-		return nil, fmt.Errorf("erreur lors de la récupération des données : %v", err)
+		return nil, fmt.Errorf("%v : %v", ERR_GETDATA, err)
 	}
 	listDesc := sortByPriorityDesc(list)
 	return listDesc, nil
@@ -64,7 +66,7 @@ func AddTodo(text string, priorityStr string, email string) (models.Todo, error)
 	}
 	priority, err := strconv.Atoi(priorityStr)
 	if err != nil {
-		err = fmt.Errorf("erreur de conversion %v", err)
+		err = fmt.Errorf(" %v", err)
 		return models.Todo{}, err
 	}
 	user.Email = email
@@ -84,7 +86,7 @@ func DeleteTodo(idStr string, text string) (models.Todo, error) {
 	}
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		err = fmt.Errorf("erreur de conversion %v", err)
+		err = fmt.Errorf("%v : %v", ERR_CONV, err)
 		return models.Todo{}, err
 	}
 	todo.Id = id
@@ -110,12 +112,12 @@ func ModifyTodo(idStr string, text string, priorityStr string) (models.Todo, err
 	}
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		err = fmt.Errorf("erreur de conversion %v", err)
+		err = fmt.Errorf("%v : %v", ERR_CONV, err)
 		return models.Todo{}, err
 	}
 	priority, err := strconv.Atoi(priorityStr)
 	if err != nil {
-		err = fmt.Errorf("erreur de conversion %v", err)
+		err = fmt.Errorf("%v : %v", ERR_CONV, err)
 		return models.Todo{}, err
 	}
 

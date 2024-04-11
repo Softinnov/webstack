@@ -29,11 +29,11 @@
 	function getPriorityColor(priority) {
 		switch (priority) {
 			case 3:
-				return "rgba(255, 0, 0)"; // Rouge pour les tâches urgentes
+				return "rgba(255, 0, 0)";
 			case 2:
-				return "rgba(255, 255, 0)"; // Jaune pour les tâches prioritaires
+				return "rgba(255, 255, 0)";
 			case 1:
-				return "rgba(0, 128, 0)"; // Vert pour les tâches non prioritaires
+				return "rgba(0, 128, 0)";
 			default:
 				return "rgba(0, 0, 0)";
 		}
@@ -85,12 +85,14 @@
 				redirectTo("index.html");
 			} else if (statusCode == 500) {
 				alert(`${text}, réessayez`);
-			} else {
+			} else if (statusCode == 401) {
+				alert(`${text}, échec d'authentification`)
+			}else {
 				alert(`${text}`);
-				console.log('Unexpected status code:', statusCode);
+				console.log("Statut d'erreur inattendu :", statusCode);
 			}
 		} catch (error) {
-			console.error("Error while analysing server's response:", error);
+			console.error("Erreur d'analyse de la réponse du serveur :", error);
 		}
 	}
 
