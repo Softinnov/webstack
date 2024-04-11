@@ -22,10 +22,10 @@ type Claims struct {
 const COOKIE_NAME = "cookie"
 const SECRET_KEY = "codesecret123"
 
-const ERR_NOTAUTH = "aucun utilisateur connecté"
+const ERR_NOCOOKIE = "connexion expirée"
 const ERR_INVTOKEN = "token invalide"
 
-var token_exp = time.Now().Add(time.Hour * 12) // Délai d'expiration du token : 12h
+var token_exp time.Time // Délai d'expiration du token : 1h
 
 var invalidatedTokens = make(map[string]bool)
 
@@ -58,16 +58,17 @@ func WrapAuth(handler http.Handler, info TokenInfo) http.HandlerFunc {
 						Expires: time.Now().Add(-1 * time.Hour),
 						Path:    "/",
 					})
-				token_exp = time.Now().Add(time.Hour * 12)
-				err = fmt.Errorf(ERR_NOTAUTH)
+				err = fmt.Errorf(ERR_NOCOOKIE)
+				http.Error(w, err.Error(), http.StatusForbidden)
+			} else {
+				err = fmt.Errorf("err getToken")
 				http.Error(w, err.Error(), http.StatusForbidden)
 			}
 			return
 		}
-
 		if !validateToken(tokenStr) {
 			err = fmt.Errorf(ERR_INVTOKEN)
-			http.Error(w, err.Error(), http.StatusUnauthorized)
+			http.Error(w, err.Error(), http.StatusForbidden)
 			return
 		}
 
@@ -134,6 +135,7 @@ func validateToken(tokenStr string) bool {
 }
 
 func jsonwebToken(u models.User) string {
+	token_exp = time.Now().Add(time.Hour * 1)
 	t := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: token_exp.Unix(),
@@ -197,8 +199,8 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 func HandleLogout(w http.ResponseWriter, r *http.Request) {
 	tokenStr, err := getTokenString(r, COOKIE_NAME)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
-		return
+		err = fmt.Errorf(ERR_INVTOKEN)
+		http.Error(w, err.Error(), http.StatusForbidden)
 	}
 	invalidateToken(tokenStr)
 	http.SetCookie(w, &http.Cookie{

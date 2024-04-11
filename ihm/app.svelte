@@ -13,6 +13,39 @@
 		.replace(/%20/g,'+');
     	return finalQueryStr;
 	}
+
+	export function answerResponse(text,statusCode) {
+		try {
+			if (statusCode == 403) {
+				alert(`${text}reconnectez vous`);
+				redirectTo("index.html");
+			} else if (statusCode == 500) {
+				alert(`${text}réessayez`);
+			} else if (statusCode == 401) {
+				alert(`${text}échec d'authentification`);
+			}else {
+				alert(`${text}`);
+				console.log("statut d'erreur inattendu :", statusCode);
+			}
+		} catch (error) {
+			console.error("erreur d'analyse de la réponse du serveur :", error);
+		}
+	}
+	
+	export async function logout(){
+		try {
+			const reponse = await fetch("/logout",{method: "GET"});
+			if (!reponse.ok) {
+				const errorData = await reponse.text();
+				alert(errorData);
+				throw new Error(`Erreur lors de la requête : ${reponse.status} ${reponse.statusText}`);
+			}
+			await reponse.text();
+		} catch (error) {
+			console.error(error.message);
+		}
+		redirectTo('index.html');
+	}
 </script>
 
 <script>
@@ -78,24 +111,6 @@
 		}
 	}
 
-	async function answerResponse(text,statusCode) {
-		try {
-			if (statusCode == 403) {
-				alert(`${text}reconnectez vous`);
-				redirectTo("index.html");
-			} else if (statusCode == 500) {
-				alert(`${text}réessayez`);
-			} else if (statusCode == 401) {
-				alert(`${text}échec d'authentification`)
-			}else {
-				alert(`${text}`);
-				console.log("statut d'erreur inattendu :", statusCode);
-			}
-		} catch (error) {
-			console.error("erreur d'analyse de la réponse du serveur :", error);
-		}
-	}
-
 	async function getTodoList() {
 		const url = `/todos`	
 		try {
@@ -113,7 +128,7 @@
 				todos = [];
 			}
 		} catch (error) {
-			console.error(`Une erreur s'est produite : ${error.message}`);
+			console.error(error.message);
 		}
 	}
 
@@ -134,23 +149,8 @@
 			await reponse.json();
 			getTodoList();
 		} catch (error) {
-			console.error(`Une erreur s'est produite : ${error.message}`);
+			console.error(error.message);
 		}
-	}
-
-	async function logout(){
-		try {
-			const reponse = await fetch("/logout",{method: "GET"});
-			if (!reponse.ok) {
-				const errorData = await reponse.text();
-				alert(errorData);
-				throw new Error(`Erreur lors de la requête : ${reponse.status} ${reponse.statusText}`);
-			}
-			await reponse.text();
-		} catch (error) {
-			console.error(`Erreur lors de la connection au serveur : ${error.message}`);
-		}
-		redirectTo('index.html');
 	}
 
 	function handleKeydown(e, item) {
@@ -330,8 +330,8 @@
 
 	.priority-btn{
 		position: relative;
-		width: 10px;
-		height: 10px;
+		width: 15px;
+		height: 12.5px;
 		border: 2px solid rgba(0, 0, 0, 0.75);
 		border-radius: 50%;
 		margin: 3%;
@@ -348,8 +348,9 @@
 
 	.priority button{
 		position: relative;
-		width: 10px;
-		height: 10px;
+		width: 15px;
+		height: 12.5px;
+		border: 2px solid rgba(0, 0, 0, 0.75);
 		border-radius: 50%;
 		margin-right: 1%;
 		margin-left: 1%;
@@ -361,35 +362,35 @@
 	}
 
 	.urgent {
-    	background-color: rgba(255, 0, 0, 0.475);
+    	background-color: rgba(255, 0, 0, 0.25);
 	}
 
 	.prioritaire {
-		background-color: rgba(255, 255, 0, 0.475);
+		background-color: rgba(255, 255, 0, 0.25);
 	}
 
 	.nonprioritaire {
-		background-color: rgba(0, 128, 0, 0.475);
+		background-color: rgba(0, 128, 0, 0.25);
 	}
 
 	.selectedurg {
 		border: 2px solid;
 		border-color: black;
 		background-color: red;
-		transform: scale(1.15);
+		transform: scale(1.2);
 	}
 
 	.selectedprio {
 		border: 2px solid;
 		border-color: black;
 		background-color: yellow;
-		transform: scale(1.15);
+		transform: scale(1.2);
 	}
 
 	.selectednonurg {
 		border: 2px solid;
 		border-color: black;
 		background-color: green;
-		transform: scale(1.15);
+		transform: scale(1.2);
 	}
 </style>

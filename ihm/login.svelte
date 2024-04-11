@@ -1,8 +1,9 @@
 <svelte:options customElement="login-todo" />
 
-<script>
-    import { redirectTo } from './index.svelte';
-    import { sendUser } from './signin.svelte'
+<script context="module">
+    import { redirectTo, isAuthenticated } from './index.svelte';
+    import { sendUser } from './signin.svelte';
+    import { onMount } from "svelte";
 
     let email = '';
     let password = '';
@@ -20,6 +21,12 @@
     };
 </script>
 
+<script>
+	onMount (() => {
+		isAuthenticated();
+	})
+</script>
+
   
 <div class="centered">
     <h2>My TodoList</h2>
@@ -27,12 +34,12 @@
     <form on:submit|preventDefault={handleSubmit}>
         <label>
         Email:
-            <input type="email" style="margin-left: 66.3px;" bind:value={email} required>
+            <input type="email" style="margin-left: 106.22px;" bind:value={email} required>
         </label>
         <br>
         <label>
         Mot de passe:
-            <input type="password" style="margin-left: 20px;" bind:value={password} required>
+            <input type="password" style="margin-left: 60px;" bind:value={password} required>
         </label>
   
         <button type="submit">Se connecter</button>
@@ -54,7 +61,6 @@
         margin: 1%;
     }
 	label{
-        margin-left: 2%;
 		font-size: medium;
 	}
 	p{
@@ -85,6 +91,6 @@
 	.centered {
 		width: 30em;
 		margin: auto;
-		display:grid;
+		display: grid;
 	}
 </style>

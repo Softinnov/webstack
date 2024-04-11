@@ -2,7 +2,9 @@
 
 <script context="module">
     import { customQueryEscape } from './app.svelte';
-    import { redirectTo } from './index.svelte';
+    import { redirectTo,isAuthenticated } from './index.svelte';
+    import { answerResponse } from './app.svelte';
+    import { onMount } from "svelte";
 
     let email = '';
     let password = '';
@@ -43,9 +45,15 @@
                 redirectTo('app.html');
             }
 		} catch (error) {
-			console.error(`Une erreur s'est produite : ${error.message}`);
+			console.error(error.message);
 		}
 	}
+</script>
+    
+<script>
+    onMount (() => {
+        isAuthenticated();
+    })
 </script>
 
 <div class="centered">
@@ -57,17 +65,17 @@
     <form on:submit|preventDefault={handleSubmit}>
         <label>
         Email:
-            <input type="email" bind:value={email} required>
+            <input style="margin-left: 140.64px;" type="email" bind:value={email} required>
         </label>
         <br>
         <label>
         Mot de passe:
-            <input type="password" bind:value={password} required>
+            <input style="margin-left: 94.42px;" type="password" bind:value={password} required>
         </label>
         <br>
         <label>
         Confirmer le mot de passe:
-            <input type="password" bind:value={confirmpassword} required>
+            <input style="margin-left: 10px;" type="password" bind:value={confirmpassword} required>
         </label>
         <br>
         <button type="submit">S'inscrire</button>

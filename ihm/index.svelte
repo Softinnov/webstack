@@ -4,8 +4,24 @@
     export function redirectTo(url) {
       window.location.href = url;
     }
+	export function isAuthenticated() {
+		const isAuth = document.cookie.includes("cookie");
+
+		if (isAuth) {
+			alert("Vous êtes connectez ! Pensez à vous déconnecter si vous souhaitez quitter la page !")
+			redirectTo('app.html');
+		}
+	}
 </script>
-  
+
+<script>
+	import { onMount } from "svelte";
+
+	onMount (() => {
+		isAuthenticated();
+	})
+</script>
+
 <style>
     h1{
 		font-size: 70px;
