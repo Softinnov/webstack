@@ -22,9 +22,12 @@ type Claims struct {
 const COOKIE_NAME = "cookie"
 const SECRET_KEY = "codesecret123"
 
-const ERR_NOTAUTH = "aucun utilisateur connecté, reconnectez vous"
+const ERR_NOTAUTH = "aucun utilisateur connecté"
+const ERR_INVTOKEN = "token invalide"
 
 var token_exp = time.Now().Add(time.Hour * 12) // Délai d'expiration du token : 12h
+
+var invalidatedTokens = make(map[string]bool)
 
 type TokenInfo struct {
 	CookieName string
@@ -44,7 +47,7 @@ func WrapAuth(handler http.Handler, info TokenInfo) http.HandlerFunc {
 			return
 		}
 
-		tokenString, err := getTokenString(r, info.CookieName)
+		tokenStr, err := getTokenString(r, info.CookieName)
 		if err != nil {
 			if err == http.ErrNoCookie {
 				http.SetCookie(w,
@@ -62,14 +65,20 @@ func WrapAuth(handler http.Handler, info TokenInfo) http.HandlerFunc {
 			return
 		}
 
-		if ok, err := isAuthenticated(tokenString, info.PrivateKey); !(ok && err == nil) {
+		if !validateToken(tokenStr) {
+			err = fmt.Errorf(ERR_INVTOKEN)
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
+		}
+
+		if ok, err := isAuthenticated(tokenStr, info.PrivateKey); !(ok && err == nil) {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
 
 		m := make(map[string]interface{})
 
-		err = parseTokenString(tokenString, &m)
+		err = parseTokenString(tokenStr, &m)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
@@ -78,8 +87,8 @@ func WrapAuth(handler http.Handler, info TokenInfo) http.HandlerFunc {
 	}
 }
 
-func parseTokenString(tokenString string, v *map[string]interface{}) (err error) {
-	encodedStrings := strings.Split(tokenString, ".")
+func parseTokenString(tokenStr string, v *map[string]interface{}) (err error) {
+	encodedStrings := strings.Split(tokenStr, ".")
 	if len(encodedStrings) < 2 {
 		err = http.ErrNoCookie
 		return
@@ -100,8 +109,8 @@ func getTokenString(r *http.Request, cookieName string) (string, error) {
 	return cookie.Value, nil
 }
 
-func isAuthenticated(tokenString string, privateKey string) (bool, error) {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+func isAuthenticated(tokenStr string, privateKey string) (bool, error) {
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, jwt.ErrSignatureInvalid
 		}
@@ -113,6 +122,15 @@ func isAuthenticated(tokenString string, privateKey string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+func invalidateToken(tokenStr string) {
+	invalidatedTokens[tokenStr] = true
+}
+
+func validateToken(tokenStr string) bool {
+	_, invalidated := invalidatedTokens[tokenStr]
+	return !invalidated
 }
 
 func jsonwebToken(u models.User) string {
@@ -177,6 +195,12 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleLogout(w http.ResponseWriter, r *http.Request) {
+	tokenStr, err := getTokenString(r, COOKIE_NAME)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+	invalidateToken(tokenStr)
 	http.SetCookie(w, &http.Cookie{
 		Name:    COOKIE_NAME,
 		Value:   "",

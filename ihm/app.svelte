@@ -81,18 +81,18 @@
 	async function answerResponse(text,statusCode) {
 		try {
 			if (statusCode == 403) {
-				alert(`${text}`);
+				alert(`${text}reconnectez vous`);
 				redirectTo("index.html");
 			} else if (statusCode == 500) {
-				alert(`${text}, réessayez`);
+				alert(`${text}réessayez`);
 			} else if (statusCode == 401) {
-				alert(`${text}, échec d'authentification`)
+				alert(`${text}échec d'authentification`)
 			}else {
 				alert(`${text}`);
-				console.log("Statut d'erreur inattendu :", statusCode);
+				console.log("statut d'erreur inattendu :", statusCode);
 			}
 		} catch (error) {
-			console.error("Erreur d'analyse de la réponse du serveur :", error);
+			console.error("erreur d'analyse de la réponse du serveur :", error);
 		}
 	}
 
