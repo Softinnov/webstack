@@ -4,7 +4,7 @@
     import { customQueryEscape } from './app.svelte';
     import { redirectTo,isAuthenticated } from './index.svelte';
     import { answerResponse } from './app.svelte';
-    import { onMount } from "svelte";
+    import { beforeUpdate } from "svelte";
 
     let email = '';
     let password = '';
@@ -51,7 +51,7 @@
 </script>
     
 <script>
-    onMount (() => {
+    beforeUpdate (() => {
         isAuthenticated();
     })
 </script>

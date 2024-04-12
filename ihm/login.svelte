@@ -3,7 +3,7 @@
 <script context="module">
     import { redirectTo, isAuthenticated } from './index.svelte';
     import { sendUser } from './signin.svelte';
-    import { onMount } from "svelte";
+    import { beforeUpdate } from "svelte";
 
     let email = '';
     let password = '';
@@ -22,7 +22,7 @@
 </script>
 
 <script>
-	onMount (() => {
+	beforeUpdate (() => {
 		isAuthenticated();
 	})
 </script>

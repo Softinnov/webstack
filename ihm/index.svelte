@@ -8,16 +8,22 @@
 		const isAuth = document.cookie.includes("cookie");
 
 		if (isAuth) {
-			alert("Vous êtes connectez ! Pensez à vous déconnecter si vous souhaitez quitter la page !")
-			redirectTo('app.html');
+			var result = confirm("Vous êtes toujours connecté ! Voulez vous déconnecter ?")
+			if (result) {
+				logout();
+			}
+			else {
+				redirectTo('app.html');
+			}
 		}
 	}
 </script>
 
 <script>
-	import { onMount } from "svelte";
+	import { beforeUpdate } from "svelte";
+    import { logout } from "./app.svelte";
 
-	onMount (() => {
+	beforeUpdate (() => {
 		isAuthenticated();
 	})
 </script>
