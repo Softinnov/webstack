@@ -83,6 +83,7 @@ func HandleLogout(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		err = fmt.Errorf(ERR_INVTOKEN)
 		http.Error(w, err.Error(), http.StatusForbidden)
+		return
 	}
 	invalidateToken(tokenStr)
 	http.SetCookie(w, &http.Cookie{

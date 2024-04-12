@@ -46,7 +46,7 @@ func Signin(email string, mdp string, confirmmdp string) (User, error) {
 		return User{}, fmt.Errorf("%v", ERR_SHORTMDP)
 	}
 
-	user.Mdp, err = hashPassword(mdp)
+	user.Mdp, err = HashPassword(mdp)
 	if err != nil {
 		return User{}, fmt.Errorf("%v : %v", ERR_HASHMDP, err)
 	}
@@ -81,7 +81,7 @@ func checkPasswordHash(password, hash string) bool {
 	return err == nil
 }
 
-func hashPassword(password string) (string, error) {
+func HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	return string(bytes), err
 }

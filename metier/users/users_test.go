@@ -32,8 +32,8 @@ func (f *fakeDb) GetUser(u User) (User, error) {
 func setupFakeDb() fakeDb {
 	db := fakeDb{}
 
-	mdp1, _ := hashPassword("25mai1995")
-	mdp2, _ := hashPassword("sortla8.6")
+	mdp1, _ := HashPassword("25mai1995")
+	mdp2, _ := HashPassword("sortla8.6")
 
 	user1 := User{Email: "mail20@mail.com", Mdp: mdp1}
 	user2 := User{Email: "clement@caramail.com", Mdp: mdp2}
