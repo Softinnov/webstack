@@ -39,7 +39,7 @@ func (f *fakeDb) GetUser(u models.User) (models.User, error) {
 	return models.User{}, nil
 }
 
-func (f *fakeDb) AddTodoDb(td models.Todo) error {
+func (f *fakeDb) AddTodoDb(td models.Todo, u models.User) error {
 	f.todos = append(f.todos, td)
 	return nil
 }
@@ -62,7 +62,7 @@ func (f *fakeDb) ModifyTodoDb(td models.Todo) error {
 	}
 	return nil
 }
-func (f *fakeDb) GetTodosDb() (t []models.Todo, e error) {
+func (f *fakeDb) GetTodosDb(u models.User) (t []models.Todo, e error) {
 	t = f.todos
 	return t, nil
 }
@@ -73,18 +73,17 @@ func setupFakeDb() fakeDb {
 	todo1 := models.Todo{Id: 1, Text: "Faire les courses"}
 	todo2 := models.Todo{Id: 2, Text: "Sortir le chien"}
 
-	db.AddTodoDb(todo1)
-	db.AddTodoDb(todo2)
+	db.AddTodoDb(todo1,user)
+	db.AddTodoDb(todo2,user)
 
 	return db
 }
-
 func TestGetTodos(t *testing.T) {
 	db := setupFakeDb()
 	Init(&db)
 
 	want := db.todos
-	got, err := GetTodos()
+	got, err := GetTodos(user.Email)
 
 	if err != nil {
 		t.Errorf("Erreur lors de la récupération des données : %v", err)
@@ -117,7 +116,7 @@ func TestAddTodo(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := AddTodo(tt.entryTxt, tt.entryPrio)
+			got, err := AddTodo(tt.entryTxt, tt.entryPrio, user.Email)
 			gotJson, err2 := json.Marshal(got)
 			if err2 != nil {
 				panic(err2)

@@ -9,20 +9,22 @@ import (
 	"webstack/models"
 )
 
-var store Database
+var storeTodo DatabaseTodo
 var todo models.Todo
 var user models.User
 var err error
 
-const errSpecialChar = "caractères spéciaux non autorisés : {}[]|"
-const errNoText = "veuillez renseigner du texte"
-const errNoId = "todo introuvable, réessayez ultérieurement"
-
-func Init(db Database) error {
+const ERR_SPECIAL_CHAR = "caractères spéciaux non autorisés : {}[]|"
+const ERR_NO_TEXT = "veuillez renseigner du texte"
+const ERR_NO_ID = "todo introuvable, réessayez ultérieurement"
+const ERR_GETDATA = "erreur lors de la récupération des données"
+const ERR_CONV = "erreur de conversion"
+const ERR_DBNIL = "error db nil"
+func Init(db DatabaseTodo) error {
 	if db == nil {
-		return fmt.Errorf("db est nil")
+		return fmt.Errorf(ERR_DBNIL)
 	}
-	store = db
+	storeTodo = db
 	return nil
 }
 
@@ -43,56 +45,34 @@ func sortByPriorityDesc(todos []models.Todo) []models.Todo {
 	return todos
 }
 
-func AddUser(email string, mdp string, confirmmdp string) (models.User, error) {
+func GetTodos(email string) ([]models.Todo, error) {
 	user.Email = email
-	if mdp != confirmmdp {
-		return models.User{}, fmt.Errorf("mots de passe différents, réessayez")
-	}
-	user.Mdp = mdp
-	err = store.AddUserDb(user)
+	list, err := storeTodo.GetTodosDb(user)
 	if err != nil {
-		return models.User{}, err
-	}
-	return user, nil
-}
-
-func Login(email string, mdp string) (models.User, error) {
-	user.Email = email
-	user.Mdp = mdp
-	_, err := store.GetUser(user)
-	if err != nil {
-		return models.User{}, fmt.Errorf("erreur de login : %v", err)
-	}
-	return user, nil
-}
-
-func GetTodos() ([]models.Todo, error) {
-	list, err := store.GetTodosDb()
-	if err != nil {
-		return nil, fmt.Errorf("erreur lors de la récupération des données : %v", err)
+		return nil, fmt.Errorf("%v : %v", ERR_GETDATA, err)
 	}
 	listDesc := sortByPriorityDesc(list)
 	return listDesc, nil
 }
 
-func AddTodo(text string, priorityStr string) (models.Todo, error) {
+func AddTodo(text string, priorityStr string, email string) (models.Todo, error) {
 	if containsSpecialCharacters(text) {
-		err = fmt.Errorf(errSpecialChar)
+		err = fmt.Errorf(ERR_SPECIAL_CHAR)
 		return models.Todo{}, err
 	}
 	if containsOnlySpace(text) {
-		err = fmt.Errorf(errNoText)
+		err = fmt.Errorf(ERR_NO_TEXT)
 		return models.Todo{}, err
 	}
 	priority, err := strconv.Atoi(priorityStr)
 	if err != nil {
-		err = fmt.Errorf("erreur de conversion %v", err)
+		err = fmt.Errorf(" %v", err)
 		return models.Todo{}, err
 	}
-
+	user.Email = email
 	todo.Text = text
 	todo.Priority = priority
-	err = store.AddTodoDb(todo)
+	err = storeTodo.AddTodoDb(todo, user)
 	if err != nil {
 		return models.Todo{}, err
 	}
@@ -101,17 +81,17 @@ func AddTodo(text string, priorityStr string) (models.Todo, error) {
 
 func DeleteTodo(idStr string, text string) (models.Todo, error) {
 	if containsOnlySpace(idStr) {
-		err = fmt.Errorf(errNoId)
+		err = fmt.Errorf(ERR_NO_ID)
 		return models.Todo{}, err
 	}
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		err = fmt.Errorf("erreur de conversion %v", err)
+		err = fmt.Errorf("%v : %v", ERR_CONV, err)
 		return models.Todo{}, err
 	}
 	todo.Id = id
 	todo.Text = text
-	err = store.DeleteTodoDb(todo)
+	err = storeTodo.DeleteTodoDb(todo)
 	if err != nil {
 		return models.Todo{}, err
 	}
@@ -120,31 +100,31 @@ func DeleteTodo(idStr string, text string) (models.Todo, error) {
 
 func ModifyTodo(idStr string, text string, priorityStr string) (models.Todo, error) {
 	if containsOnlySpace(idStr) {
-		err = fmt.Errorf(errNoId)
+		err = fmt.Errorf(ERR_NO_ID)
 		return models.Todo{}, err
 	} else if containsOnlySpace(text) {
-		err = fmt.Errorf(errNoText)
+		err = fmt.Errorf(ERR_NO_TEXT)
 		return models.Todo{}, err
 	}
 	if containsSpecialCharacters(text) {
-		err = fmt.Errorf(errSpecialChar)
+		err = fmt.Errorf(ERR_SPECIAL_CHAR)
 		return models.Todo{}, err
 	}
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		err = fmt.Errorf("erreur de conversion %v", err)
+		err = fmt.Errorf("%v : %v", ERR_CONV, err)
 		return models.Todo{}, err
 	}
 	priority, err := strconv.Atoi(priorityStr)
 	if err != nil {
-		err = fmt.Errorf("erreur de conversion %v", err)
+		err = fmt.Errorf("%v : %v", ERR_CONV, err)
 		return models.Todo{}, err
 	}
 
 	todo.Id = id
 	todo.Text = text
 	todo.Priority = priority
-	err = store.ModifyTodoDb(todo)
+	err = storeTodo.ModifyTodoDb(todo)
 	if err != nil {
 		return models.Todo{}, err
 	}

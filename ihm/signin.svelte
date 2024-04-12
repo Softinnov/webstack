@@ -2,23 +2,22 @@
 
 <script context="module">
     import { customQueryEscape } from './app.svelte';
-    // import { redirectToTodo } from './index.svelte'
+    import { redirectTo,isAuthenticated } from './index.svelte';
+    import { answerResponse } from './app.svelte';
+    import { beforeUpdate } from "svelte";
 
     let email = '';
     let password = '';
     let confirmpassword = '';
   
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         let newuser = {
             email,
             password,
             confirmpassword
         }
-        console.log("Email:", email);
-        console.log("Password:", password);
-        console.log("Password2:", confirmpassword);
         try {
-            sendUser(newuser,"signin");
+            await sendUser(newuser,"signin");
         } catch (error) {
 			console.error(`Erreur lors de la connection au serveur : ${error.message}`);
 		}
@@ -38,52 +37,88 @@
 			const reponse = await fetch(url,{method: "POST"});
 			if (!reponse.ok) {
 				const errorData = await reponse.text();
-				alert(errorData);
+				answerResponse(errorData,reponse.status);
 				throw new Error(`Erreur lors de la requête : ${reponse.status} ${reponse.statusText}`);
 			}
-			await reponse.json();
+			await reponse.text();
+            if (reponse.ok){      
+                redirectTo('app.html');
+            }
 		} catch (error) {
-			console.error(`Une erreur s'est produite : ${error.message}`);
+			console.error(error.message);
 		}
 	}
 </script>
-
-<style>
-
-    h1{
-		font-size: 70px;
-	}
-
-	label{
-		font-size: large;
-	}
-    .centered {
-		width: 30em;
-		margin: auto;
-		display: inline-flexbox;
-	}
-</style>
+    
+<script>
+    beforeUpdate (() => {
+        isAuthenticated();
+    })
+</script>
 
 <div class="centered">
 
-    <h1>My TodoList</h1>
+    <h2>My TodoList</h2>
+
+    <h3>Inscription :</h3>
     
     <form on:submit|preventDefault={handleSubmit}>
         <label>
         Email:
-            <input type="email" bind:value={email} required>
+            <input style="margin-left: 140.64px;" type="email" bind:value={email} required>
         </label>
         <br>
         <label>
         Mot de passe:
-            <input type="password" bind:value={password} required>
+            <input style="margin-left: 94.42px;" type="password" bind:value={password} required>
         </label>
         <br>
         <label>
         Confirmer le mot de passe:
-            <input type="password" bind:value={confirmpassword} required>
+            <input style="margin-left: 10px;" type="password" bind:value={confirmpassword} required>
         </label>
         <br>
         <button type="submit">S'inscrire</button>
     </form>
+    <p>Déjà inscrit ?</p>
+    <button on:click={() => redirectTo("login.html")}>Se connecter</button>
 </div>
+
+<style>
+    h2{
+		font-size: 50px;
+	}
+
+	label{
+		font-size: medium;
+	}
+    .centered {
+		width: 30em;
+		margin: auto;
+		display: grid;
+	}
+	p{
+		font-size: small;
+	}
+    input{
+        margin: 1%;
+    }
+
+	button {
+        margin: 2%;
+		height: 35px;
+		width: 350px;
+		border: none;
+		border-radius: 5%;
+		background-color: white;
+		margin-left: 3%;
+		transition: transform 0.2s ease;
+	}
+	button:hover{
+		background-color: rgba(146, 146, 146, 0.181);
+		cursor: pointer;
+	}
+    button:active {
+		transform: scale(0.95);
+	}
+</style>

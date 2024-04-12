@@ -13,9 +13,44 @@
 		.replace(/%20/g,'+');
     	return finalQueryStr;
 	}
+
+	export function answerResponse(text,statusCode) {
+		try {
+			if (statusCode == 403) {
+				alert(`${text}reconnectez vous`);
+				redirectTo("index.html");
+			} else if (statusCode == 500) {
+				alert(`${text}réessayez`);
+			} else if (statusCode == 401) {
+				alert(`${text}échec d'authentification`);
+			}else {
+				alert(`${text}`);
+				console.log("statut d'erreur inattendu :", statusCode);
+			}
+		} catch (error) {
+			console.error("erreur d'analyse de la réponse du serveur :", error);
+		}
+	}
+	
+	export async function logout(){
+		try {
+			const reponse = await fetch("/logout",{method: "GET"});
+			if (!reponse.ok) {
+				const errorData = await reponse.text();
+				alert(errorData);
+				throw new Error(`Erreur lors de la requête : ${reponse.status} ${reponse.statusText}`);
+			}
+			await reponse.text();
+		} catch (error) {
+			console.error(error.message);
+		}
+		redirectTo('index.html');
+	}
 </script>
 
 <script>
+	import { redirectTo } from './index.svelte';
+	
 	let todos = [];
 	let nouvelleTache='';
 	let selectedPriority = 2;
@@ -27,11 +62,11 @@
 	function getPriorityColor(priority) {
 		switch (priority) {
 			case 3:
-				return "rgba(255, 0, 0)"; // Rouge pour les tâches urgentes
+				return "rgba(255, 0, 0)";
 			case 2:
-				return "rgba(255, 255, 0)"; // Jaune pour les tâches prioritaires
+				return "rgba(255, 255, 0)";
 			case 1:
-				return "rgba(0, 128, 0)"; // Vert pour les tâches non prioritaires
+				return "rgba(0, 128, 0)";
 			default:
 				return "rgba(0, 0, 0)";
 		}
@@ -82,7 +117,7 @@
 			const reponse = await fetch(url,{method: "GET"});
 			if (!reponse.ok) {
 				const errorData = await reponse.text();
-				alert(errorData);
+				answerResponse(errorData,reponse.status);
 				throw new Error(`Erreur lors de la requête : ${reponse.status} ${reponse.statusText}`);
 			}
 			const result = await reponse.json();
@@ -93,7 +128,7 @@
 				todos = [];
 			}
 		} catch (error) {
-			console.error(`Une erreur s'est produite : ${error.message}`);
+			console.error(error.message);
 		}
 	}
 
@@ -108,13 +143,13 @@
 			const reponse = await fetch(url,{method: "POST"});
 			if (!reponse.ok) {
 				const errorData = await reponse.text();
-				alert(errorData);
+				answerResponse(errorData,reponse.status);
 				throw new Error(`Erreur lors de la requête : ${reponse.status} ${reponse.statusText}`);
 			}
 			await reponse.json();
 			getTodoList();
 		} catch (error) {
-			console.error(`Une erreur s'est produite : ${error.message}`);
+			console.error(error.message);
 		}
 	}
 
@@ -132,11 +167,10 @@
 	$: remaining = todos.length;	
 
 	getTodoList();
-
 </script>
 
 <div class="centered">
-	
+
 	<h1>My TodoList</h1>
 
 	<div>
@@ -152,8 +186,6 @@
 			<button class="prioritaire {selectedPriority === 2 ? 'selectedprio' : ''}" on:click={() => selectPriority(2)}></button>
 			<button class="nonprioritaire {selectedPriority === 1 ? 'selectednonurg' : ''}" on:click={() => selectPriority(1)}></button>
 		</div>
-		  
-		
 		<button class="ajout" disabled={nouvelleTache==""} on:click={add}>
 			✔️
 		</button>
@@ -184,19 +216,50 @@
 		{/each}
 	</ul>
 
+</div>
+
+<div class="bottom">
+
 	<p>{remaining} tâches restantes !</p>
+	<button class="disconnect" on:click={logout}>Se déconnecter</button>
 
 </div>
 
 <style>
 	h1{
+		margin-left: 5%;
+		margin-right: auto;
 		font-size: 70px;
 	}
 	p{
 		font-size: large;
-		left: 45%;
-		bottom: 5%;
+		margin: 1%;
+		bottom: 7%;
+	}
+	.bottom{
+		margin: auto;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+	.disconnect{
+		width: 200px;
+		height: 20px;
+		margin: 1%;
+		font-size: small;
+		bottom: 1%;
 		position: fixed;
+		border: none;
+		border-radius: 5%;
+		background-color: white;
+		transition: transform 0.1s ease;
+	}
+	.disconnect:hover{
+		background-color: rgba(146, 146, 146, 0.181);
+		cursor: pointer;
+	}
+	.disconnect:active {
+		transform: scale(0.95);
 	}
 	.button {
 		height: 35px;
@@ -205,10 +268,14 @@
 		border-radius: 5%;
 		background-color: white;
 		margin-left: 3%;
+		transition: transform 0.2s ease;
 	}
 	.button:hover{
-		background-color: rgba(146, 146, 146, 0.381);
+		background-color: rgba(146, 146, 146, 0.181);
 		cursor: pointer;
+	}
+	button:active {
+		transform: scale(0.95);
 	}
 	.centered {
 		width: 30em;
@@ -235,7 +302,7 @@
 		position: relative;
 	}
 	.ajout:hover{
-		background-color: rgba(146, 146, 146, 0.381);
+		background-color: rgba(146, 146, 146, 0.181);
 		cursor: pointer;
 	}
 	.ajout:disabled{
@@ -244,7 +311,8 @@
 		cursor: default;
 	}
 	ul {
-		max-height: 15em;
+		min-height: 10em;
+		max-height: 14em;
 		overflow: hidden;
 		overflow-y: visible;
 	}
@@ -262,8 +330,9 @@
 
 	.priority-btn{
 		position: relative;
-		width: 10px;
-		height: 10px;
+		width: 15px;
+		height: 12.5px;
+		border: 2px solid rgba(0, 0, 0, 0.75);
 		border-radius: 50%;
 		margin: 3%;
 	}
@@ -279,8 +348,9 @@
 
 	.priority button{
 		position: relative;
-		width: 10px;
-		height: 10px;
+		width: 15px;
+		height: 12.5px;
+		border: 2px solid rgba(0, 0, 0, 0.75);
 		border-radius: 50%;
 		margin-right: 1%;
 		margin-left: 1%;
@@ -292,35 +362,35 @@
 	}
 
 	.urgent {
-    	background-color: rgba(255, 0, 0, 0.475);
+    	background-color: rgba(255, 0, 0, 0.25);
 	}
 
 	.prioritaire {
-		background-color: rgba(255, 255, 0, 0.475);
+		background-color: rgba(255, 255, 0, 0.25);
 	}
 
 	.nonprioritaire {
-		background-color: rgba(0, 128, 0, 0.475);
+		background-color: rgba(0, 128, 0, 0.25);
 	}
 
 	.selectedurg {
 		border: 2px solid;
 		border-color: black;
 		background-color: red;
-		transform: scale(1.15);
+		transform: scale(1.2);
 	}
 
 	.selectedprio {
 		border: 2px solid;
 		border-color: black;
 		background-color: yellow;
-		transform: scale(1.15);
+		transform: scale(1.2);
 	}
 
 	.selectednonurg {
 		border: 2px solid;
 		border-color: black;
 		background-color: green;
-		transform: scale(1.15);
+		transform: scale(1.2);
 	}
 </style>
