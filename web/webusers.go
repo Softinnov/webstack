@@ -8,8 +8,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
-	"webstack/metier"
-	"webstack/models"
+	"webstack/metier/users"
 
 	"github.com/golang-jwt/jwt"
 )
@@ -38,6 +37,61 @@ type TokenInfo struct {
 type Auth struct {
 	Name       string
 	IsRequired bool
+}
+
+func HandleSignin(w http.ResponseWriter, r *http.Request) {
+	email := r.FormValue("email")
+	password := r.FormValue("password")
+	confirmpassword := r.FormValue("confirmpassword")
+
+	user, err := users.Signin(email, password, confirmpassword)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	token := jsonwebToken(user)
+	http.SetCookie(w,
+		&http.Cookie{
+			Name:     COOKIE_NAME,
+			Value:    token,
+			Expires:  token_exp,
+			SameSite: http.SameSiteStrictMode,
+		})
+}
+
+func HandleLogin(w http.ResponseWriter, r *http.Request) {
+	email := r.FormValue("email")
+	password := r.FormValue("password")
+
+	user, err := users.Login(email, password)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	token := jsonwebToken(user)
+	http.SetCookie(w,
+		&http.Cookie{
+			Name:     COOKIE_NAME,
+			Value:    token,
+			Expires:  token_exp,
+			SameSite: http.SameSiteStrictMode,
+		})
+}
+
+func HandleLogout(w http.ResponseWriter, r *http.Request) {
+	tokenStr, err := getTokenString(r, COOKIE_NAME)
+	if err != nil {
+		err = fmt.Errorf(ERR_INVTOKEN)
+		http.Error(w, err.Error(), http.StatusForbidden)
+	}
+	invalidateToken(tokenStr)
+	http.SetCookie(w, &http.Cookie{
+		Name:    COOKIE_NAME,
+		Value:   "",
+		MaxAge:  -1,
+		Expires: time.Now().Add(-time.Hour),
+		Path:    "/",
+	})
 }
 
 func WrapAuth(handler http.Handler, info TokenInfo) http.HandlerFunc {
@@ -134,7 +188,7 @@ func validateToken(tokenStr string) bool {
 	return !invalidated
 }
 
-func jsonwebToken(u models.User) string {
+func jsonwebToken(u users.User) string {
 	token_exp = time.Now().Add(time.Hour * 1)
 	t := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
 		StandardClaims: jwt.StandardClaims{
@@ -155,59 +209,4 @@ func getUserEmail(tokenStr string) string {
 		return []byte(SECRET_KEY), nil
 	})
 	return claims.UserEmail
-}
-
-func HandleSignin(w http.ResponseWriter, r *http.Request) {
-	email := r.FormValue("email")
-	password := r.FormValue("password")
-	confirmpassword := r.FormValue("confirmpassword")
-
-	user, err := metier.AddUser(email, password, confirmpassword)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	token := jsonwebToken(user)
-	http.SetCookie(w,
-		&http.Cookie{
-			Name:     COOKIE_NAME,
-			Value:    token,
-			Expires:  token_exp,
-			SameSite: http.SameSiteStrictMode,
-		})
-}
-
-func HandleLogin(w http.ResponseWriter, r *http.Request) {
-	email := r.FormValue("email")
-	password := r.FormValue("password")
-
-	user, err := metier.Login(email, password)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	token := jsonwebToken(user)
-	http.SetCookie(w,
-		&http.Cookie{
-			Name:     COOKIE_NAME,
-			Value:    token,
-			Expires:  token_exp,
-			SameSite: http.SameSiteStrictMode,
-		})
-}
-
-func HandleLogout(w http.ResponseWriter, r *http.Request) {
-	tokenStr, err := getTokenString(r, COOKIE_NAME)
-	if err != nil {
-		err = fmt.Errorf(ERR_INVTOKEN)
-		http.Error(w, err.Error(), http.StatusForbidden)
-	}
-	invalidateToken(tokenStr)
-	http.SetCookie(w, &http.Cookie{
-		Name:    COOKIE_NAME,
-		Value:   "",
-		MaxAge:  -1,
-		Expires: time.Now().Add(-time.Hour),
-		Path:    "/",
-	})
 }

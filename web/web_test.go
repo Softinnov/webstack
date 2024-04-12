@@ -9,8 +9,8 @@ import (
 	"net/url"
 	"strings"
 	"testing"
-	"webstack/metier"
-	"webstack/models"
+	"webstack/metier/todos"
+	"webstack/metier/users"
 )
 
 func TestEncodejson(t *testing.T) {
@@ -41,22 +41,22 @@ func TestEncodejson(t *testing.T) {
 }
 
 type fakeDb struct {
-	todos []models.Todo
+	todos []todos.Todo
 }
 
-func (f *fakeDb) AddUserDb(u models.User) error {
+func (f *fakeDb) AddUserDb(u users.User) error {
 	return nil
 }
 
-func (f *fakeDb) GetUser(u models.User) (models.User, error) {
-	return models.User{}, nil
+func (f *fakeDb) GetUser(u users.User) (users.User, error) {
+	return users.User{}, nil
 }
 
-func (f *fakeDb) AddTodoDb(td models.Todo, u models.User) error {
+func (f *fakeDb) AddTodoDb(td todos.Todo, u users.User) error {
 	f.todos = append(f.todos, td)
 	return nil
 }
-func (f *fakeDb) DeleteTodoDb(td models.Todo) error {
+func (f *fakeDb) DeleteTodoDb(td todos.Todo) error {
 	for i, t := range f.todos {
 		if t.Id == td.Id {
 			f.todos = append(f.todos[:i], f.todos[i+1:]...)
@@ -66,7 +66,7 @@ func (f *fakeDb) DeleteTodoDb(td models.Todo) error {
 	return nil
 
 }
-func (f *fakeDb) ModifyTodoDb(td models.Todo) error {
+func (f *fakeDb) ModifyTodoDb(td todos.Todo) error {
 	for _, t := range f.todos {
 		if t.Id == td.Id {
 			t.Text = td.Text
@@ -75,18 +75,18 @@ func (f *fakeDb) ModifyTodoDb(td models.Todo) error {
 	}
 	return nil
 }
-func (f *fakeDb) GetTodosDb(u models.User) (t []models.Todo, e error) {
+func (f *fakeDb) GetTodosDb(u users.User) (t []todos.Todo, e error) {
 	t = f.todos
 	return t, nil
 }
 
-var user models.User
+var user users.User
 
 func setupFakeDb() fakeDb {
 	db := fakeDb{}
 
-	todo1 := models.Todo{Id: 1, Text: "Faire les courses"}
-	todo2 := models.Todo{Id: 2, Text: "Sortir le chien"}
+	todo1 := todos.Todo{Id: 1, Text: "Faire les courses"}
+	todo2 := todos.Todo{Id: 2, Text: "Sortir le chien"}
 
 	db.AddTodoDb(todo1, user)
 	db.AddTodoDb(todo2, user)
@@ -96,10 +96,19 @@ func setupFakeDb() fakeDb {
 
 func TestHandleGetTodos(t *testing.T) {
 	db := setupFakeDb()
-	metier.Init(&db)
+	todos.Init(&db)
+
+	user = users.User{
+		Email: "clem@caramail.fr",
+	}
+	token := jsonwebToken(user)
 
 	want := db.todos
 	req := httptest.NewRequest(http.MethodGet, "/todos", nil)
+	req.AddCookie(&http.Cookie{
+		Name:  COOKIE_NAME,
+		Value: token,
+	})
 	w := httptest.NewRecorder()
 	HandleGetTodos(w, req)
 	res := w.Result()
@@ -120,7 +129,12 @@ func TestHandleGetTodos(t *testing.T) {
 
 func TestHandleAddTodo(t *testing.T) {
 	db := fakeDb{}
-	metier.Init(&db)
+	todos.Init(&db)
+
+	user = users.User{
+		Email: "clem@caramail.fr",
+	}
+	token := jsonwebToken(user)
 
 	var tests = []struct {
 		name, entryTxt, entryPrio, want string
@@ -137,6 +151,10 @@ func TestHandleAddTodo(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			urltxt := fmt.Sprintf("/add?text=%v&priority=%v", url.QueryEscape(tt.entryTxt), tt.entryPrio)
 			req := httptest.NewRequest(http.MethodPost, urltxt, nil)
+			req.AddCookie(&http.Cookie{
+				Name:  COOKIE_NAME,
+				Value: token,
+			})
 			w := httptest.NewRecorder()
 			HandleAddTodo(w, req)
 			res := w.Result()
@@ -155,7 +173,7 @@ func TestHandleAddTodo(t *testing.T) {
 
 func TestHandleDeleteTodo(t *testing.T) {
 	db := fakeDb{}
-	metier.Init(&db)
+	todos.Init(&db)
 
 	var tests = []struct {
 		name, entryTxt, entryId, want string
@@ -189,7 +207,7 @@ func TestHandleDeleteTodo(t *testing.T) {
 
 func TestHandleModifyTodo(t *testing.T) {
 	db := fakeDb{}
-	metier.Init(&db)
+	todos.Init(&db)
 
 	var tests = []struct {
 		name, entryTxt, entryId, entryPrio, want string
