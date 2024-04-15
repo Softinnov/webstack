@@ -5,24 +5,7 @@ import (
 	"strings"
 	"testing"
 	"webstack/metier/users"
-	// . "github.com/smartystreets/goconvey/convey"
 )
-
-// func TestInit(t *testing.T) {
-// 	Convey("Test Init(db)", t, func() {
-// 		step1, _ := data.OpenDb(config.GetConfig())
-// 		got := Init(step1)
-// 		Convey("The value should be nil", func() {
-// 			So(got, ShouldBeNil)
-// 		})
-// 	})
-// 	Convey("Test Init(nil)", t, func() {
-// 		got := Init(nil)
-// 		Convey("The value souldn't be nil", func() {
-// 			So(got, ShouldNotBeNil)
-// 		})
-// 	})
-// }
 
 type fakeDb struct {
 	todos []Todo

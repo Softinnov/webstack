@@ -73,7 +73,7 @@ func Add(text string, priorityStr string, email string) (Todo, error) {
 	}
 	priority, err := strconv.Atoi(priorityStr)
 	if err != nil {
-		err = fmt.Errorf(" %v", err)
+		err = fmt.Errorf("%v : %v", ERR_CONV, err)
 		return Todo{}, err
 	}
 	user.Email = email

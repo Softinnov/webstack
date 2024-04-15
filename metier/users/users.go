@@ -2,6 +2,7 @@ package users
 
 import (
 	"fmt"
+	"strings"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -17,6 +18,7 @@ var err error
 
 const ERR_LOGIN = "échec du login"
 const ERR_NOMAIL = "l'email ne peut pas être vide"
+const ERR_INVMAIL = "email invalide"
 const ERR_NOMDP = "le mot de passe ne peut pas être vide"
 const ERR_BADMDP = "mot de passe incorrect"
 const ERR_DIFMDP = "mots de passe différents"
@@ -38,6 +40,9 @@ func Signin(email string, mdp string, confirmmdp string) (User, error) {
 	}
 	if mdp == "" {
 		return User{}, fmt.Errorf("%v", ERR_NOMDP)
+	}
+	if !strings.Contains(email, "@") {
+		return User{}, fmt.Errorf("%v", ERR_INVMAIL)
 	}
 	user.Email = email
 	if mdp != confirmmdp {

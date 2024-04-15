@@ -72,7 +72,7 @@ func TestLogin(t *testing.T) {
 	}
 }
 
-func TestAddUser(t *testing.T) {
+func TestSignin(t *testing.T) {
 	db := setupFakeDb()
 	Init(&db)
 
@@ -82,6 +82,7 @@ func TestAddUser(t *testing.T) {
 		{"Cas normal", "mail2018@mail.com", "29mai1995", "29mai1995", "mail2018@mail.com"},
 		{"Mots de passes différents", "mail2019@mail.com", "29mai1995", "2mai1995", ERR_DIFMDP},
 		{"Email vide", "", "12azerty", "12azerty", ERR_NOMAIL},
+		{"Email invalide", "mail2018mailcom", "29mai1995", "29mai1995", ERR_INVMAIL},
 		{"Mot de passe trop court", "mail@mail.com", "azey", "azey", ERR_SHORTMDP},
 		{"Email déjà utilisé", "mail20@mail.com", "2mai1995", "2mai1995", "email déjà utilisé"},
 		{"Mot de passe vide", "clem@caramail.com", "", "", ERR_NOMDP},

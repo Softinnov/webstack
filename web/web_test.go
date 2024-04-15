@@ -108,6 +108,41 @@ func setupFakeDb() fakeDb {
 	return db
 }
 
+func TestHandleSignin(t *testing.T) {
+	db := setupFakeDb()
+	todos.Init(&db)
+	users.Init(&db)
+
+	var tests = []struct {
+		name, entryEmail, entryPassword, confirmPassword, want string
+	}{
+		{"Cas normal", "clem@mail.fr", "123456", "123456", ""},
+		{"Email vide", "", "123456", "123456", "l'email ne peut pas être vide"},
+		{"Mots de passe différents", "clem@caramail.fr", "azerty", "azery", "mots de passe différents"},
+		{"Mot de passe trop court", "clem@mail.com", "123", "123", "mot de passe trop court (6 caractères minimum)"},
+		{"Email invalide", "mamail.com", "25mai1995", "25mai1995", "email invalide"},
+		{"Mot de passe vide", "clement@caramail.com", "", "", "le mot de passe ne peut pas être vide"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			urltxt := fmt.Sprintf("/signin?email=%v&password=%v&confirmpassword=%v", url.QueryEscape(tt.entryEmail), tt.entryPassword, tt.confirmPassword)
+			req := httptest.NewRequest(http.MethodPost, urltxt, nil)
+			w := httptest.NewRecorder()
+			HandleSignin(w, req)
+			res := w.Result()
+			defer res.Body.Close()
+			body, err := io.ReadAll(res.Body)
+			if err != nil {
+				t.Errorf("expected error to be nil got %v", err)
+			}
+			got := string(body)
+			if !strings.Contains(got, tt.want) {
+				t.Errorf("expected response to contain '%s', but got '%s'", tt.want, got)
+			}
+		})
+	}
+}
 func TestHandleLogin(t *testing.T) {
 	db := setupFakeDb()
 	todos.Init(&db)
@@ -163,15 +198,16 @@ func TestHandleLogout(t *testing.T) {
 		Expires: time.Now().Add(-time.Hour),
 		Path:    "/",
 	}
-	// Nouvelle strategie de test checker si on trouve un cookie du même nom dans la list, si oui et qu'il a pour value "" -> test réussi
 	found := false
 	for _, cookie := range got {
 		if cookie.Name == want.Name {
-			found = true
-			break
+			if cookie.Value == want.Value {
+				found = true
+				break
+			}
 		}
 	}
-	if found {
+	if !found {
 		t.Errorf("expected response to contain '%s', but got '%s'", want, got)
 	}
 }

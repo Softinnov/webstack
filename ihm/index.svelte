@@ -1,29 +1,47 @@
 <svelte:options customElement="index-todo" />
 
 <script context="module">
+	let isLogout = false;
     export function redirectTo(url) {
       window.location.href = url;
     }
-	export function isAuthenticated() {
+	export async function isAuthenticated() {
 		const isAuth = document.cookie.includes("cookie");
 
-		if (isAuth) {
-			var result = confirm("Vous êtes toujours connecté ! Voulez vous déconnecter ?")
-			if (result) {
-				logout();
+		if (isAuth && !isLogout) {
+			const cookieValue = getCookieValue("cookie");
+			if (cookieValue != "") {
+				var result = confirm("Vous êtes toujours connecté ! Voulez vous vous déconnecter ?")
+				if (result) {
+					await logout();
+					isLogout = true
+				}
+				else {
+					redirectTo('app.html');
+				}
 			}
-			else {
-				redirectTo('app.html');
-			}
+			console.log(isLogout)
+			return isLogout;
 		}
 	}
+
+	function getCookieValue(cookieName) {
+    const cookies = document.cookie.split("; ");
+    for (const cookie of cookies) {
+        const [name, value] = cookie.split("=");
+        if (name === cookieName) {
+            return value;
+        }
+    }
+    return null;
+}
 </script>
 
 <script>
-	import { beforeUpdate } from "svelte";
+	import { onMount } from "svelte";
     import { logout } from "./app.svelte";
 
-	beforeUpdate (() => {
+	onMount (() => {
 		isAuthenticated();
 	})
 </script>
