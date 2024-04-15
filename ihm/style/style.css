@@ -1,0 +1,56 @@
+h1{
+    margin-left: 5%;
+    margin-right: auto;
+    font-size: 70px;
+}
+h2{
+    font-size: 50px;
+}
+form{
+    margin: 2%;
+}
+label{
+    font-size: medium;
+}
+p{
+    font-size: small;
+}
+button {
+    margin: 2%;
+    height: 35px;
+    width: 300px;
+    border: none;
+    border-radius: 0.5em;
+    background-color: white;
+    margin-left: 10%;
+    transition: transform 0.2s ease;
+}
+button:hover{
+    background-color: rgba(146, 146, 146, 0.181);
+    cursor: pointer;
+}
+button:active {
+    transform: scale(0.95);
+}
+.centered {
+    width: 30em;
+    margin: auto;
+    display:grid;
+}
+ul {
+    margin-top: 0%;
+    min-height: 10em;
+    max-height: 14em;
+    overflow: hidden;
+    overflow-y: visible;
+}
+li {
+    display: flex;
+    margin: 3%;
+}
+input {
+    flex: 0.75;
+    padding: 0.5em;
+    margin: 1%;
+    border: none;
+}

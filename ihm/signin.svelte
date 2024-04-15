@@ -85,40 +85,5 @@
 </div>
 
 <style>
-    h2{
-		font-size: 50px;
-	}
-
-	label{
-		font-size: medium;
-	}
-    .centered {
-		width: 30em;
-		margin: auto;
-		display: grid;
-	}
-	p{
-		font-size: small;
-	}
-    input{
-        margin: 1%;
-    }
-
-	button {
-        margin: 2%;
-		height: 35px;
-		width: 350px;
-		border: none;
-		border-radius: 5%;
-		background-color: white;
-		margin-left: 3%;
-		transition: transform 0.2s ease;
-	}
-	button:hover{
-		background-color: rgba(146, 146, 146, 0.181);
-		cursor: pointer;
-	}
-    button:active {
-		transform: scale(0.95);
-	}
+    @import './style/style.css';
 </style>
