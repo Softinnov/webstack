@@ -1,49 +1,27 @@
-package metier
+package todos
 
 import (
 	"encoding/json"
 	"strings"
 	"testing"
-	"webstack/config"
-	"webstack/data"
-	"webstack/models"
-
-	. "github.com/smartystreets/goconvey/convey"
+	"webstack/metier/users"
 )
 
-func TestInit(t *testing.T) {
-	Convey("Test Init(db)", t, func() {
-		step1, _ := data.OpenDb(config.GetConfig())
-		got := Init(step1)
-		Convey("The value should be nil", func() {
-			So(got, ShouldBeNil)
-		})
-	})
-	Convey("Test Init(nil)", t, func() {
-		got := Init(nil)
-		Convey("The value souldn't be nil", func() {
-			So(got, ShouldNotBeNil)
-		})
-	})
-}
-
 type fakeDb struct {
-	todos []models.Todo
+	todos []Todo
 }
 
-func (f *fakeDb) AddUserDb(u models.User) error {
+func (f *fakeDb) AddUserDb(u users.User) error {
 	return nil
 }
-
-func (f *fakeDb) GetUser(u models.User) (models.User, error) {
-	return models.User{}, nil
+func (f *fakeDb) GetUser(u users.User) (users.User, error) {
+	return users.User{}, nil
 }
-
-func (f *fakeDb) AddTodoDb(td models.Todo, u models.User) error {
+func (f *fakeDb) AddTodoDb(td Todo, u users.User) error {
 	f.todos = append(f.todos, td)
 	return nil
 }
-func (f *fakeDb) DeleteTodoDb(td models.Todo) error {
+func (f *fakeDb) DeleteTodoDb(td Todo) error {
 	for i, t := range f.todos {
 		if t.Id == td.Id {
 			f.todos = append(f.todos[:i], f.todos[i+1:]...)
@@ -53,7 +31,7 @@ func (f *fakeDb) DeleteTodoDb(td models.Todo) error {
 	return nil
 
 }
-func (f *fakeDb) ModifyTodoDb(td models.Todo) error {
+func (f *fakeDb) ModifyTodoDb(td Todo) error {
 	for _, t := range f.todos {
 		if t.Id == td.Id {
 			t.Text = td.Text
@@ -62,7 +40,7 @@ func (f *fakeDb) ModifyTodoDb(td models.Todo) error {
 	}
 	return nil
 }
-func (f *fakeDb) GetTodosDb(u models.User) (t []models.Todo, e error) {
+func (f *fakeDb) GetTodosDb(u users.User) (t []Todo, e error) {
 	t = f.todos
 	return t, nil
 }
@@ -70,20 +48,21 @@ func (f *fakeDb) GetTodosDb(u models.User) (t []models.Todo, e error) {
 func setupFakeDb() fakeDb {
 	db := fakeDb{}
 
-	todo1 := models.Todo{Id: 1, Text: "Faire les courses"}
-	todo2 := models.Todo{Id: 2, Text: "Sortir le chien"}
+	todo1 := Todo{Id: 1, Text: "Faire les courses"}
+	todo2 := Todo{Id: 2, Text: "Sortir le chien"}
 
-	db.AddTodoDb(todo1,user)
-	db.AddTodoDb(todo2,user)
+	db.AddTodoDb(todo1, user)
+	db.AddTodoDb(todo2, user)
 
 	return db
 }
+
 func TestGetTodos(t *testing.T) {
 	db := setupFakeDb()
 	Init(&db)
 
 	want := db.todos
-	got, err := GetTodos(user.Email)
+	got, err := Get(user.Email)
 
 	if err != nil {
 		t.Errorf("Erreur lors de la récupération des données : %v", err)
@@ -116,7 +95,7 @@ func TestAddTodo(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := AddTodo(tt.entryTxt, tt.entryPrio, user.Email)
+			got, err := Add(tt.entryTxt, tt.entryPrio, user.Email)
 			gotJson, err2 := json.Marshal(got)
 			if err2 != nil {
 				panic(err2)
@@ -144,7 +123,7 @@ func TestDeleteTodo(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := DeleteTodo(tt.entryId, tt.entryTxt)
+			got, err := Delete(tt.entryId, tt.entryTxt)
 			gotJson, err2 := json.Marshal(got)
 			if err2 != nil {
 				panic(err2)
@@ -175,7 +154,7 @@ func TestModifyTodo(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ModifyTodo(tt.entryId, tt.entryTxt, tt.entryPrio)
+			got, err := Modify(tt.entryId, tt.entryTxt, tt.entryPrio)
 			gotJson, err2 := json.Marshal(got)
 			if err2 != nil {
 				panic(err2)

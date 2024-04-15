@@ -9,8 +9,9 @@ import (
 	"net/url"
 	"strings"
 	"testing"
-	"webstack/metier"
-	"webstack/models"
+	"time"
+	"webstack/metier/todos"
+	"webstack/metier/users"
 )
 
 func TestEncodejson(t *testing.T) {
@@ -41,22 +42,33 @@ func TestEncodejson(t *testing.T) {
 }
 
 type fakeDb struct {
-	todos []models.Todo
+	todos []todos.Todo
+	users []users.User
 }
 
-func (f *fakeDb) AddUserDb(u models.User) error {
+func (f *fakeDb) AddUserDb(u users.User) error {
+	for _, user := range f.users {
+		if user.Email == u.Email {
+			return fmt.Errorf("email déjà utilisé")
+		}
+	}
+	f.users = append(f.users, u)
 	return nil
 }
-
-func (f *fakeDb) GetUser(u models.User) (models.User, error) {
-	return models.User{}, nil
+func (f *fakeDb) GetUser(u users.User) (users.User, error) {
+	for _, user := range f.users {
+		if user.Email == u.Email {
+			return user, nil
+		}
+	}
+	return users.User{}, fmt.Errorf("error")
 }
 
-func (f *fakeDb) AddTodoDb(td models.Todo, u models.User) error {
+func (f *fakeDb) AddTodoDb(td todos.Todo, u users.User) error {
 	f.todos = append(f.todos, td)
 	return nil
 }
-func (f *fakeDb) DeleteTodoDb(td models.Todo) error {
+func (f *fakeDb) DeleteTodoDb(td todos.Todo) error {
 	for i, t := range f.todos {
 		if t.Id == td.Id {
 			f.todos = append(f.todos[:i], f.todos[i+1:]...)
@@ -66,7 +78,7 @@ func (f *fakeDb) DeleteTodoDb(td models.Todo) error {
 	return nil
 
 }
-func (f *fakeDb) ModifyTodoDb(td models.Todo) error {
+func (f *fakeDb) ModifyTodoDb(td todos.Todo) error {
 	for _, t := range f.todos {
 		if t.Id == td.Id {
 			t.Text = td.Text
@@ -75,31 +87,144 @@ func (f *fakeDb) ModifyTodoDb(td models.Todo) error {
 	}
 	return nil
 }
-func (f *fakeDb) GetTodosDb(u models.User) (t []models.Todo, e error) {
+func (f *fakeDb) GetTodosDb(u users.User) (t []todos.Todo, e error) {
 	t = f.todos
 	return t, nil
 }
 
-var user models.User
+var user users.User
 
 func setupFakeDb() fakeDb {
 	db := fakeDb{}
 
-	todo1 := models.Todo{Id: 1, Text: "Faire les courses"}
-	todo2 := models.Todo{Id: 2, Text: "Sortir le chien"}
+	mdp, _ := users.HashPassword("123456")
+	todo1 := todos.Todo{Id: 1, Text: "Faire les courses"}
+	todo2 := todos.Todo{Id: 2, Text: "Sortir le chien"}
+	user = users.User{Email: "clem@caramail.fr", Mdp: mdp}
 
 	db.AddTodoDb(todo1, user)
 	db.AddTodoDb(todo2, user)
-
+	db.AddUserDb(user)
 	return db
+}
+
+func TestHandleSignin(t *testing.T) {
+	db := setupFakeDb()
+	todos.Init(&db)
+	users.Init(&db)
+
+	var tests = []struct {
+		name, entryEmail, entryPassword, confirmPassword, want string
+	}{
+		{"Cas normal", "clem@mail.fr", "123456", "123456", ""},
+		{"Email vide", "", "123456", "123456", "l'email ne peut pas être vide"},
+		{"Mots de passe différents", "clem@caramail.fr", "azerty", "azery", "mots de passe différents"},
+		{"Mot de passe trop court", "clem@mail.com", "123", "123", "mot de passe trop court (6 caractères minimum)"},
+		{"Email invalide", "mamail.com", "25mai1995", "25mai1995", "email invalide"},
+		{"Mot de passe vide", "clement@caramail.com", "", "", "le mot de passe ne peut pas être vide"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			urltxt := fmt.Sprintf("/signin?email=%v&password=%v&confirmpassword=%v", url.QueryEscape(tt.entryEmail), tt.entryPassword, tt.confirmPassword)
+			req := httptest.NewRequest(http.MethodPost, urltxt, nil)
+			w := httptest.NewRecorder()
+			HandleSignin(w, req)
+			res := w.Result()
+			defer res.Body.Close()
+			body, err := io.ReadAll(res.Body)
+			if err != nil {
+				t.Errorf("expected error to be nil got %v", err)
+			}
+			got := string(body)
+			if !strings.Contains(got, tt.want) {
+				t.Errorf("expected response to contain '%s', but got '%s'", tt.want, got)
+			}
+		})
+	}
+}
+func TestHandleLogin(t *testing.T) {
+	db := setupFakeDb()
+	todos.Init(&db)
+	users.Init(&db)
+
+	var tests = []struct {
+		name, entryEmail, entryPassword, want string
+	}{
+		{"Cas normal", "clem@caramail.fr", "123456", ""},
+		{"Email vide", "", "123456", "l'email ne peut pas être vide"},
+		{"Mot de passe incorrect", "clem@caramail.fr", "azerty", "mot de passe incorrect"},
+		{"Email invalide", "ma@mail.com", "25mai1995", "échec du login"},
+		{"Mot de passe vide", "clement@caramail.com", "", "le mot de passe ne peut pas être vide"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			urltxt := fmt.Sprintf("/login?email=%v&password=%v", url.QueryEscape(tt.entryEmail), tt.entryPassword)
+			req := httptest.NewRequest(http.MethodPost, urltxt, nil)
+			w := httptest.NewRecorder()
+			HandleLogin(w, req)
+			res := w.Result()
+			defer res.Body.Close()
+			body, err := io.ReadAll(res.Body)
+			if err != nil {
+				t.Errorf("expected error to be nil got %v", err)
+			}
+			got := string(body)
+			if !strings.Contains(got, tt.want) {
+				t.Errorf("expected response to contain '%s', but got '%s'", tt.want, got)
+			}
+		})
+	}
+}
+
+func TestHandleLogout(t *testing.T) {
+	db := setupFakeDb()
+	users.Init(&db)
+
+	req := httptest.NewRequest(http.MethodGet, "/logout", nil)
+	req.AddCookie(&http.Cookie{
+		Name:  COOKIE_NAME,
+		Value: "token",
+	})
+	w := httptest.NewRecorder()
+	HandleLogout(w, req)
+	res := w.Result()
+	got := res.Cookies()
+	want := &http.Cookie{
+		Name:    COOKIE_NAME,
+		Value:   "",
+		MaxAge:  -1,
+		Expires: time.Now().Add(-time.Hour),
+		Path:    "/",
+	}
+	found := false
+	for _, cookie := range got {
+		if cookie.Name == want.Name {
+			if cookie.Value == want.Value {
+				found = true
+				break
+			}
+		}
+	}
+	if !found {
+		t.Errorf("expected response to contain '%s', but got '%s'", want, got)
+	}
 }
 
 func TestHandleGetTodos(t *testing.T) {
 	db := setupFakeDb()
-	metier.Init(&db)
+	todos.Init(&db)
+	users.Init(&db)
+
+	token := jsonwebToken(user)
 
 	want := db.todos
 	req := httptest.NewRequest(http.MethodGet, "/todos", nil)
+	req.AddCookie(&http.Cookie{
+		Name:  COOKIE_NAME,
+		Value: token,
+	})
 	w := httptest.NewRecorder()
 	HandleGetTodos(w, req)
 	res := w.Result()
@@ -120,7 +245,10 @@ func TestHandleGetTodos(t *testing.T) {
 
 func TestHandleAddTodo(t *testing.T) {
 	db := fakeDb{}
-	metier.Init(&db)
+	todos.Init(&db)
+	users.Init(&db)
+
+	token := jsonwebToken(user)
 
 	var tests = []struct {
 		name, entryTxt, entryPrio, want string
@@ -137,6 +265,10 @@ func TestHandleAddTodo(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			urltxt := fmt.Sprintf("/add?text=%v&priority=%v", url.QueryEscape(tt.entryTxt), tt.entryPrio)
 			req := httptest.NewRequest(http.MethodPost, urltxt, nil)
+			req.AddCookie(&http.Cookie{
+				Name:  COOKIE_NAME,
+				Value: token,
+			})
 			w := httptest.NewRecorder()
 			HandleAddTodo(w, req)
 			res := w.Result()
@@ -155,7 +287,7 @@ func TestHandleAddTodo(t *testing.T) {
 
 func TestHandleDeleteTodo(t *testing.T) {
 	db := fakeDb{}
-	metier.Init(&db)
+	todos.Init(&db)
 
 	var tests = []struct {
 		name, entryTxt, entryId, want string
@@ -189,7 +321,7 @@ func TestHandleDeleteTodo(t *testing.T) {
 
 func TestHandleModifyTodo(t *testing.T) {
 	db := fakeDb{}
-	metier.Init(&db)
+	todos.Init(&db)
 
 	var tests = []struct {
 		name, entryTxt, entryId, entryPrio, want string

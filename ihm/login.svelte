@@ -26,7 +26,6 @@
 		isAuthenticated();
 	})
 </script>
-
   
 <div class="centered">
     <h2>My TodoList</h2>
@@ -51,46 +50,5 @@
 </div>
 
 <style>
-    form{
-        margin: 2%;
-    }
-    h2{
-		font-size: 50px;
-	}
-    input{
-        margin: 1%;
-    }
-	label{
-		font-size: medium;
-	}
-	p{
-		font-size: small;
-	}
-
-	button {
-        margin: 2%;
-		height: 35px;
-		width: 350px;
-		border: none;
-		border-radius: 5%;
-		background-color: white;
-		margin-left: 3%;
-		transition: transform 0.2s ease;
-	}
-	button:hover{
-		background-color: rgba(146, 146, 146, 0.181);
-		cursor: pointer;
-	}
-    button:active {
-		transform: scale(0.95);
-	}
-    .module{
-        align-items: center;
-        align-content: center;
-    }
-	.centered {
-		width: 30em;
-		margin: auto;
-		display: grid;
-	}
+    @import './style/style.css';
 </style>

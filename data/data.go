@@ -5,13 +5,17 @@ import (
 	"fmt"
 
 	"webstack/config"
-	"webstack/models"
+	"webstack/metier/todos"
+	"webstack/metier/users"
 )
 
 type MysqlServer struct {
 }
 
 var db *sql.DB
+
+const ERR_MAILUSED = "email déjà utilisé"
+const ERR_NOUSER = "utilisateur introuvable"
 
 func OpenDb(cfg config.Config) (m MysqlServer, err error) {
 
@@ -27,7 +31,7 @@ func CloseDb() error {
 	return db.Close()
 }
 
-func (m MysqlServer) AddUserDb(u models.User) error {
+func (m MysqlServer) AddUserDb(u users.User) error {
 	var count int
 	err := db.QueryRow("SELECT COUNT(*) FROM users WHERE email = ?", u.Email).Scan(&count)
 	if err != nil {
@@ -35,7 +39,7 @@ func (m MysqlServer) AddUserDb(u models.User) error {
 	}
 
 	if count > 0 {
-		return fmt.Errorf("email déjà utilisé")
+		return fmt.Errorf(ERR_MAILUSED)
 	}
 	_, err = db.Exec("INSERT INTO users (email, password) VALUES (?,?)", u.Email, u.Mdp)
 	if err != nil {
@@ -44,22 +48,22 @@ func (m MysqlServer) AddUserDb(u models.User) error {
 	return nil
 }
 
-func (m MysqlServer) GetUser(u models.User) (models.User, error) {
+func (m MysqlServer) GetUser(u users.User) (users.User, error) {
 	var storedPassword string
 
 	err := db.QueryRow("SELECT password FROM users WHERE email = ?", u.Email).Scan(&storedPassword)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return models.User{}, fmt.Errorf("utilisateur introuvable")
+			return users.User{}, fmt.Errorf(ERR_NOUSER)
 		}
-		return models.User{}, fmt.Errorf("erreur de connexion à la base de donnée : %v", err)
+		return users.User{}, fmt.Errorf("erreur de connexion à la base de donnée : %v", err)
 	}
 	u.Mdp = storedPassword
 	return u, nil
 }
 
-func (m MysqlServer) GetTodosDb(u models.User) ([]models.Todo, error) {
-	var list []models.Todo
+func (m MysqlServer) GetTodosDb(u users.User) ([]todos.Todo, error) {
+	var list []todos.Todo
 
 	rows, err := db.Query("SELECT todoid, text, priority FROM todos JOIN users ON todos.userid = users.userid WHERE users.email = (?)", u.Email)
 	if err != nil {
@@ -67,7 +71,7 @@ func (m MysqlServer) GetTodosDb(u models.User) ([]models.Todo, error) {
 	}
 	defer rows.Close()
 	for rows.Next() {
-		todo := models.Todo{}
+		todo := todos.Todo{}
 		if err := rows.Scan(&todo.Id, &todo.Text, &todo.Priority); err != nil {
 			return nil, fmt.Errorf("GetTodos error : %v", err)
 		}
@@ -79,7 +83,7 @@ func (m MysqlServer) GetTodosDb(u models.User) ([]models.Todo, error) {
 	return list, nil
 }
 
-func (m MysqlServer) AddTodoDb(td models.Todo, u models.User) error {
+func (m MysqlServer) AddTodoDb(td todos.Todo, u users.User) error {
 	_, err := db.Exec("INSERT INTO todos (text, priority, userid) VALUES (?,?,(SELECT userid FROM users WHERE email = (?)))", td.Text, td.Priority, u.Email)
 	if err != nil {
 		return fmt.Errorf("addTodo error : %v", err)
@@ -87,7 +91,7 @@ func (m MysqlServer) AddTodoDb(td models.Todo, u models.User) error {
 	return nil
 }
 
-func (m MysqlServer) DeleteTodoDb(td models.Todo) error {
+func (m MysqlServer) DeleteTodoDb(td todos.Todo) error {
 	_, err := db.Exec("DELETE FROM todos WHERE todoid = (?)", td.Id)
 	if err != nil {
 		return fmt.Errorf("deleteTodo error : %v", err)
@@ -95,7 +99,7 @@ func (m MysqlServer) DeleteTodoDb(td models.Todo) error {
 	return nil
 }
 
-func (m MysqlServer) ModifyTodoDb(td models.Todo) error {
+func (m MysqlServer) ModifyTodoDb(td todos.Todo) error {
 	_, err := db.Exec("UPDATE todos SET text = (?), priority = (?) WHERE todoid = (?)", td.Text, td.Priority, td.Id)
 	if err != nil {
 		return fmt.Errorf("modifyTodo error : %v", err)

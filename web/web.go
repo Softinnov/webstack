@@ -4,8 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-
-	"webstack/metier"
+	"webstack/metier/todos"
 )
 
 const ERR_AJOUT = "erreur d'ajout de votre tâche"
@@ -33,7 +32,7 @@ func HandleAddTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	todo, err := metier.AddTodo(text, priority, getUserEmail(tokenStr))
+	todo, err := todos.Add(text, priority, getUserEmail(tokenStr))
 	if err != nil {
 		err = fmt.Errorf("%v : %v", ERR_AJOUT, err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -51,7 +50,7 @@ func HandleDeleteTodo(w http.ResponseWriter, r *http.Request) {
 	id := r.FormValue("id")
 	text := r.FormValue("text")
 
-	todo, err := metier.DeleteTodo(id, text)
+	todo, err := todos.Delete(id, text)
 	if err != nil {
 		err = fmt.Errorf("%v : %v", ERR_SUPR, err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -69,7 +68,7 @@ func HandleModifyTodo(w http.ResponseWriter, r *http.Request) {
 	text := r.FormValue("text")
 	priority := r.FormValue("priority")
 
-	todo, err := metier.ModifyTodo(id, text, priority)
+	todo, err := todos.Modify(id, text, priority)
 	if err != nil {
 		err = fmt.Errorf("%v : %v", ERR_MODIF, err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -89,7 +88,7 @@ func HandleGetTodos(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	list, err := metier.GetTodos(getUserEmail(tokenStr))
+	list, err := todos.Get(getUserEmail(tokenStr))
 	if err != nil {
 		http.Error(w, ERR_GETDATA, http.StatusInternalServerError)
 		return

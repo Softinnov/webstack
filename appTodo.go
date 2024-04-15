@@ -6,7 +6,8 @@ import (
 
 	"webstack/config"
 	"webstack/data"
-	"webstack/metier"
+	"webstack/metier/todos"
+	"webstack/metier/users"
 	"webstack/web"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -42,11 +43,11 @@ func main() {
 		log.Fatal(err)
 	}
 	defer data.CloseDb()
-	err = metier.Init(msql)
+	err = todos.Init(msql)
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = metier.InitUser(msql)
+	err = users.Init(msql)
 	if err != nil {
 		log.Fatal(err)
 	}

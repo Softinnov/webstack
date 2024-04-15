@@ -195,7 +195,6 @@
 		{#each todos as item}
 			<li>
 				<input
-					id="todo"
 					type="text"
 					bind:value={item.text}
 					on:keydown={e => handleKeydown(e, item)}
@@ -206,10 +205,10 @@
 					style="background-color: {getPriorityColor(item.priority)}"
 				>
 				</button>
-				<button class="button" on:click={modify(item)}>
+				<button class="app-btn" on:click={modify(item)}>
 					✏️
 				</button>
-				<button class="button" on:click={xclear(item)}>
+				<button class="app-btn" on:click={xclear(item)}>
 					🗑️
 				</button>
 			</li>
@@ -226,71 +225,14 @@
 </div>
 
 <style>
-	h1{
-		margin-left: 5%;
-		margin-right: auto;
-		font-size: 70px;
-	}
-	p{
-		font-size: large;
-		margin: 1%;
-		bottom: 7%;
-	}
-	.bottom{
-		margin: auto;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-	}
-	.disconnect{
-		width: 200px;
-		height: 20px;
-		margin: 1%;
-		font-size: small;
-		bottom: 1%;
-		position: fixed;
-		border: none;
-		border-radius: 5%;
-		background-color: white;
-		transition: transform 0.1s ease;
-	}
-	.disconnect:hover{
-		background-color: rgba(146, 146, 146, 0.181);
-		cursor: pointer;
-	}
-	.disconnect:active {
-		transform: scale(0.95);
-	}
-	.button {
-		height: 35px;
-		width: 35px;
-		border: none;
-		border-radius: 5%;
-		background-color: white;
-		margin-left: 3%;
-		transition: transform 0.2s ease;
-	}
-	.button:hover{
-		background-color: rgba(146, 146, 146, 0.181);
-		cursor: pointer;
-	}
-	button:active {
-		transform: scale(0.95);
-	}
-	.centered {
-		width: 30em;
-		margin: auto;
-		display:grid;
-	}
+	@import './style/style.css';
 	.newTask {
 		flex: 0.75;
 		left: 12%;
-		margin-bottom: 15%;
+		margin-bottom: 5%;
 		margin-right: 1%;
 		position: relative;
-	}
-	.todos {
-		margin-top: 10%;
+		font-size: large;
 	}
 	.ajout {
 		height: 35px;
@@ -310,42 +252,25 @@
 		color: rgba(128, 128, 128, 0.836);
 		cursor: default;
 	}
-	ul {
-		min-height: 10em;
-		max-height: 14em;
-		overflow: hidden;
-		overflow-y: visible;
-	}
-	li {
-		display: flex;
-		margin: 3%;
-	}
-	input[type="text"] {
-		flex: 0.75;
-		padding: 0.5em;
-		margin: -0.2em 0;
-		border: none;
+	.todos input {
 		font-size: large;
 	}
-
 	.priority-btn{
 		position: relative;
 		width: 15px;
 		height: 12.5px;
 		border: 2px solid rgba(0, 0, 0, 0.75);
 		border-radius: 50%;
-		margin: 3%;
+		margin: 5% 3%;
 	}
 	.priority-btn:hover{
 		cursor: pointer;
 	}
-
 	.priority {
 		display: inline;
 		margin-left: 13%;
 		justify-content: center;
 	}
-
 	.priority button{
 		position: relative;
 		width: 15px;
@@ -356,11 +281,9 @@
 		margin-left: 1%;
 		bottom: 10%;
 	}
-
 	.priority button:hover{
 		cursor: pointer;
 	}
-
 	.urgent {
     	background-color: rgba(255, 0, 0, 0.25);
 	}
@@ -368,29 +291,59 @@
 	.prioritaire {
 		background-color: rgba(255, 255, 0, 0.25);
 	}
-
 	.nonprioritaire {
 		background-color: rgba(0, 128, 0, 0.25);
 	}
-
 	.selectedurg {
 		border: 2px solid;
 		border-color: black;
 		background-color: red;
 		transform: scale(1.2);
 	}
-
 	.selectedprio {
 		border: 2px solid;
 		border-color: black;
 		background-color: yellow;
 		transform: scale(1.2);
 	}
-
 	.selectednonurg {
 		border: 2px solid;
 		border-color: black;
 		background-color: green;
 		transform: scale(1.2);
+	}
+	.bottom{
+    margin: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+	}
+	.bottom p{
+		font-size: large;
+		margin: 1%;
+		bottom: 7%;
+	}
+	.disconnect{
+		width: 200px;
+		height: 20px;
+		margin: 1%;
+		font-size: small;
+		bottom: 1%;
+		position: fixed;
+		border: none;
+		transition: transform 0.1s ease;
+	}
+	.disconnect:hover{
+		background-color: rgba(146, 146, 146, 0.181);
+		cursor: pointer;
+	}
+	.disconnect:active {
+		transform: scale(0.95);
+	}
+	.app-btn {
+		height: 35px;
+		width: 35px;
+		margin-left: 3%;
+		transition: transform 0.2s ease;
 	}
 </style>
