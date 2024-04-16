@@ -41,10 +41,10 @@
 				throw new Error(`Erreur lors de la requête : ${reponse.status} ${reponse.statusText}`);
 			}
 			await reponse.text();
+			redirectTo('index.html');
 		} catch (error) {
 			console.error(error.message);
-		}
-		redirectTo('index.html');
+		}	
 	}
 </script>
 
@@ -84,7 +84,7 @@
 
 	function add() {
 		let todo = {
-			text: nouvelleTache,
+			task: nouvelleTache,
 			priority: selectedPriority
 		}
 		try{
@@ -123,8 +123,7 @@
 			const result = await reponse.json();
 			if(result != null){
 				todos = result;
-			}
-			if(result == null){
+			} else if(result == null){
 				todos = [];
 			}
 		} catch (error) {
@@ -133,11 +132,13 @@
 	}
 
 	async function sendTodo(todo, route) {
-		todo.text = customQueryEscape(todo.text)
-		if(route=="add") {
-			var url = `/${route}?text=${todo.text}&priority=${todo.priority}`;
+		todo.task = customQueryEscape(todo.task)
+		if(route == "add") {
+			var url = `/${route}?task=${todo.task}&priority=${todo.priority}`;
+		} else if (route == "delete") {
+			url = `/${route}?id=${todo.id}`;
 		} else {
-			url = `/${route}?id=${todo.id}&text=${todo.text}&priority=${todo.priority}`;
+			url = `/${route}?id=${todo.id}&task=${todo.task}&priority=${todo.priority}`;
 		}
 		try {
 			const reponse = await fetch(url,{method: "POST"});
@@ -196,7 +197,7 @@
 			<li>
 				<input
 					type="text"
-					bind:value={item.text}
+					bind:value={item.task}
 					on:keydown={e => handleKeydown(e, item)}
 				/>
 				<button

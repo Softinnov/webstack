@@ -31,9 +31,9 @@ func CloseDb() error {
 	return db.Close()
 }
 
-func (m MysqlServer) AddUserDb(u users.User) error {
+func (m MysqlServer) AddUserDb(user users.User) error {
 	var count int
-	err := db.QueryRow("SELECT COUNT(*) FROM users WHERE email = ?", u.Email).Scan(&count)
+	err := db.QueryRow("SELECT COUNT(*) FROM users WHERE email = ?", user.Email).Scan(&count)
 	if err != nil {
 		return fmt.Errorf("AddUser error : %v", err)
 	}
@@ -41,7 +41,7 @@ func (m MysqlServer) AddUserDb(u users.User) error {
 	if count > 0 {
 		return fmt.Errorf(ERR_MAILUSED)
 	}
-	_, err = db.Exec("INSERT INTO users (email, password) VALUES (?,?)", u.Email, u.Mdp)
+	_, err = db.Exec("INSERT INTO users (email, password) VALUES (?,?)", user.Email, user.Mdp)
 	if err != nil {
 		return fmt.Errorf("AddUser error : %v", err)
 	}
@@ -72,8 +72,13 @@ func (m MysqlServer) GetTodosDb(u users.User) ([]todos.Todo, error) {
 	defer rows.Close()
 	for rows.Next() {
 		todo := todos.Todo{}
-		if err := rows.Scan(&todo.Id, &todo.Text, &todo.Priority); err != nil {
+		var text string
+		if err := rows.Scan(&todo.Id, &text, &todo.Priority); err != nil {
 			return nil, fmt.Errorf("GetTodos error : %v", err)
+		}
+		todo.Task, err = todos.NewTask(text)
+		if err != nil {
+			return nil, err
 		}
 		list = append(list, todo)
 	}
@@ -84,7 +89,7 @@ func (m MysqlServer) GetTodosDb(u users.User) ([]todos.Todo, error) {
 }
 
 func (m MysqlServer) AddTodoDb(td todos.Todo, u users.User) error {
-	_, err := db.Exec("INSERT INTO todos (text, priority, userid) VALUES (?,?,(SELECT userid FROM users WHERE email = (?)))", td.Text, td.Priority, u.Email)
+	_, err := db.Exec("INSERT INTO todos (text, priority, userid) VALUES (?,?,(SELECT userid FROM users WHERE email = (?)))", todos.GetTask(td.Task), td.Priority, u.Email)
 	if err != nil {
 		return fmt.Errorf("addTodo error : %v", err)
 	}
@@ -100,7 +105,7 @@ func (m MysqlServer) DeleteTodoDb(td todos.Todo) error {
 }
 
 func (m MysqlServer) ModifyTodoDb(td todos.Todo) error {
-	_, err := db.Exec("UPDATE todos SET text = (?), priority = (?) WHERE todoid = (?)", td.Text, td.Priority, td.Id)
+	_, err := db.Exec("UPDATE todos SET text = (?), priority = (?) WHERE todoid = (?)", todos.GetTask(td.Task), td.Priority, td.Id)
 	if err != nil {
 		return fmt.Errorf("modifyTodo error : %v", err)
 	}

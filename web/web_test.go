@@ -81,7 +81,7 @@ func (f *fakeDb) DeleteTodoDb(td todos.Todo) error {
 func (f *fakeDb) ModifyTodoDb(td todos.Todo) error {
 	for _, t := range f.todos {
 		if t.Id == td.Id {
-			t.Text = td.Text
+			t.Task = td.Task
 			return nil
 		}
 	}
@@ -97,9 +97,12 @@ var user users.User
 func setupFakeDb() fakeDb {
 	db := fakeDb{}
 
+	task1, _ := todos.NewTask("Faire les courses")
+	task2, _ := todos.NewTask("Sortir le chien")
+
 	mdp, _ := users.HashPassword("123456")
-	todo1 := todos.Todo{Id: 1, Text: "Faire les courses"}
-	todo2 := todos.Todo{Id: 2, Text: "Sortir le chien"}
+	todo1 := todos.Todo{Id: 1, Task: task1}
+	todo2 := todos.Todo{Id: 2, Task: task2}
 	user = users.User{Email: "clem@caramail.fr", Mdp: mdp}
 
 	db.AddTodoDb(todo1, user)
