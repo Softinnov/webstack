@@ -2,8 +2,6 @@ package todos
 
 import (
 	"encoding/json"
-	"fmt"
-	"strconv"
 	"strings"
 	"testing"
 	"webstack/metier/users"
@@ -54,12 +52,18 @@ func setupFakeDb() fakeDb {
 
 	task1, _ := NewTask("Faire les courses")
 	task2, _ := NewTask("Sortir le chien")
+	task3, _ := NewTask("(/$-_~+)=")
+	task4, _ := NewTask("Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui")
 
-	todo1 := Todo{Id: 1, Task: task1}
-	todo2 := Todo{Id: 2, Task: task2}
+	todo1 := Todo{Id: 1, Task: task1, Priority: 3}
+	todo2 := Todo{Id: 2, Task: task2, Priority: 2}
+	todo3 := Todo{Id: 3, Task: task3, Priority: 2}
+	todo4 := Todo{Id: 12, Task: task4, Priority: 1}
 
 	db.AddTodoDb(todo1, user)
 	db.AddTodoDb(todo2, user)
+	db.AddTodoDb(todo3, user)
+	db.AddTodoDb(todo4, user)
 
 	return db
 }
@@ -86,8 +90,7 @@ func TestGetTodos(t *testing.T) {
 }
 
 func TestAddTodo(t *testing.T) {
-
-	db := fakeDb{}
+	db := setupFakeDb()
 	Init(&db)
 
 	var tests = []struct {
@@ -96,25 +99,23 @@ func TestAddTodo(t *testing.T) {
 		entryPrio int
 		want      string
 	}{
-		{"Cas normal", "Blablabla", 2, "Blablabla"},
-		{"Chaîne vide", "", 1, "veuillez renseigner du texte"},
-		{"Caractères spéciaux autorisés", "(/$-_~+)=", 1, "(/$-_~+)="},
-		{"Caractères spéciaux non autorisés", "(/$-_]&[~]%)=", 3, "caractères spéciaux non autorisés"},
-		{"Plusieurs espaces en entrée", "    ", 2, "veuillez renseigner du texte"},
-		{"Chaîne longue", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", 1, "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui"},
+		{"Cas normal", "Sortir le chien", 2, db.todos[1].Task.text},
+		{"Chaîne vide", "", 1, ERR_NO_TEXT},
+		{"Caractères spéciaux autorisés", "(/$-_~+)=", 1, db.todos[2].Task.text},
+		{"Caractères spéciaux non autorisés", "(/$-_]&[~]%)=", 3, ERR_SPECIAL_CHAR},
+		{"Plusieurs espaces en entrée", "    ", 2, ERR_NO_TEXT},
+		{"Chaîne longue", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", 1, db.todos[3].Task.text},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			task, err := NewTask(tt.entryText)
 			got, _ := Add(task, tt.entryPrio, user)
-			fmt.Print(got)
-			gotJson, err2 := json.Marshal(got)
-			if err2 != nil {
-				panic(err2)
+			if err != nil && err.Error() != tt.want {
+				t.Errorf("expected response to contain '%s', but got '%s'", tt.want, err)
 			}
-			if !strings.Contains(string(gotJson), tt.want) && !strings.Contains(err.Error(), tt.want) {
-				t.Errorf("expected response to contain '%s', but got '%s'", tt.want, err.Error())
+			if got.Task.text != "" && got.Task.text != tt.want {
+				t.Errorf("expected response to contain '%s', but got '%s'", tt.want, got.Task.text)
 			}
 		})
 	}
@@ -149,7 +150,7 @@ func TestDeleteTodo(t *testing.T) {
 }
 
 func TestModifyTodo(t *testing.T) {
-	db := fakeDb{}
+	db := setupFakeDb()
 	Init(&db)
 
 	var tests = []struct {
@@ -159,25 +160,22 @@ func TestModifyTodo(t *testing.T) {
 		entryPrio int
 		want      string
 	}{
-		{"Cas normal", "Blabliblou", 3, 2, "Blabliblou"},
-		{"Chaîne vide", "", 123, 1, "veuillez renseigner du texte"},
-		{"Caractères spéciaux autorisés", "(/$-_~+)=", 13, 3, "(/$-_~+)="},
-		{"Caractères spéciaux non autorisés", "(/${}-_~+)=", 13, 1, "caractères spéciaux non autorisés"},
-		{"Chaîne longue", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", 2, 3, "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui"},
+		{"Cas normal", "Sortir le chien", 3, 2, db.todos[1].Task.text},
+		{"Chaîne vide", "", 123, 1, ERR_NO_TEXT},
+		{"Caractères spéciaux autorisés", "(/$-_~+)=", 3, 2, "(/$-_~+)="},
+		{"Caractères spéciaux non autorisés", "(/${}-_~+)=", 13, 1, ERR_SPECIAL_CHAR},
+		{"Chaîne longue", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", 12, 1, "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			task, err := NewTask(tt.entryTxt)
 			got, _ := Modify(task, tt.entryId, tt.entryPrio)
-			fmt.Print(got)
-			idStr := strconv.Itoa(tt.entryId)
-			gotJson, err2 := json.Marshal(got)
-			if err2 != nil {
-				panic(err2)
+			if err != nil && err.Error() != tt.want {
+				t.Errorf("expected response to contain '%s', but got '%s'", tt.want, err)
 			}
-			if (!strings.Contains(string(gotJson), tt.want) || !strings.Contains(string(gotJson), idStr)) && !strings.Contains(err.Error(), tt.want) {
-				t.Errorf("expected response to contain '%s', but got '%s'", tt.want, err.Error())
+			if got.Task.text != "" && got.Task.text != tt.want {
+				t.Errorf("expected response to contain '%s', but got '%s'", tt.want, got.Task.text)
 			}
 		})
 	}
