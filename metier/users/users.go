@@ -8,8 +8,8 @@ import (
 )
 
 type User struct {
-	Email string
-	Mdp   string
+	email string
+	mdp   string
 }
 
 var store DatabaseUser
@@ -32,6 +32,24 @@ func Init(db DatabaseUser) error {
 	return nil
 }
 
+func GetMdp(u User) string {
+	return u.mdp
+}
+
+func GetEmail(u User) string {
+	return u.email
+}
+
+func SetMdp(mdp string) (u User) {
+	u.mdp = mdp
+	return u
+}
+
+func SetEmail(mail string) (u User) {
+	u.email = mail
+	return u
+}
+
 func NewUser(email string, mdp string) (u User, err error) {
 	if email == "" {
 		return u, fmt.Errorf("%v", ERR_NOMAIL)
@@ -44,8 +62,8 @@ func NewUser(email string, mdp string) (u User, err error) {
 	if !strings.Contains(email, "@") {
 		return u, fmt.Errorf("%v", ERR_INVMAIL)
 	}
-	u.Email = email
-	u.Mdp = mdp
+	u.email = email
+	u.mdp = mdp
 	return u, nil
 }
 
@@ -57,7 +75,7 @@ func Signin(email string, mdp string, confirmmdp string) (u User, err error) {
 	if err != nil {
 		return u, err
 	}
-	u.Mdp, err = HashPassword(mdp)
+	u.mdp, err = HashPassword(mdp)
 	if err != nil {
 		return u, fmt.Errorf("%v : %v", ERR_HASHMDP, err)
 	}
@@ -75,9 +93,9 @@ func Login(email string, mdp string) (u User, err error) {
 	}
 	user, err := store.GetUser(u)
 	if err != nil {
-		return u, fmt.Errorf("%v : %v", ERR_LOGIN, err)
+		return u, fmt.Errorf("%v : %v", ERR_LOGIN, err.Error())
 	}
-	if !checkPasswordHash(u.Mdp, user.Mdp) {
+	if !checkPasswordHash(u.mdp, user.mdp) {
 		return u, fmt.Errorf(ERR_BADMDP)
 	}
 	return u, nil

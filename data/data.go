@@ -33,7 +33,7 @@ func CloseDb() error {
 
 func (m MysqlServer) AddUserDb(user users.User) error {
 	var count int
-	err := db.QueryRow("SELECT COUNT(*) FROM users WHERE email = ?", user.Email).Scan(&count)
+	err := db.QueryRow("SELECT COUNT(*) FROM users WHERE email = ?", users.GetEmail(user)).Scan(&count)
 	if err != nil {
 		return fmt.Errorf("AddUser error : %v", err)
 	}
@@ -41,7 +41,7 @@ func (m MysqlServer) AddUserDb(user users.User) error {
 	if count > 0 {
 		return fmt.Errorf(ERR_MAILUSED)
 	}
-	_, err = db.Exec("INSERT INTO users (email, password) VALUES (?,?)", user.Email, user.Mdp)
+	_, err = db.Exec("INSERT INTO users (email, password) VALUES (?,?)", users.GetEmail(user), users.GetMdp(user))
 	if err != nil {
 		return fmt.Errorf("AddUser error : %v", err)
 	}
@@ -51,21 +51,21 @@ func (m MysqlServer) AddUserDb(user users.User) error {
 func (m MysqlServer) GetUser(u users.User) (users.User, error) {
 	var storedPassword string
 
-	err := db.QueryRow("SELECT password FROM users WHERE email = ?", u.Email).Scan(&storedPassword)
+	err := db.QueryRow("SELECT password FROM users WHERE email = ?", users.GetEmail(u)).Scan(&storedPassword)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return users.User{}, fmt.Errorf(ERR_NOUSER)
 		}
 		return users.User{}, fmt.Errorf("erreur de connexion à la base de donnée : %v", err)
 	}
-	u.Mdp = storedPassword
+	u = users.SetMdp(storedPassword)
 	return u, nil
 }
 
 func (m MysqlServer) GetTodosDb(u users.User) ([]todos.Todo, error) {
 	var list []todos.Todo
 
-	rows, err := db.Query("SELECT todoid, text, priority FROM todos JOIN users ON todos.userid = users.userid WHERE users.email = (?)", u.Email)
+	rows, err := db.Query("SELECT todoid, text, priority FROM todos JOIN users ON todos.userid = users.userid WHERE users.email = (?)", users.GetEmail(u))
 	if err != nil {
 		return nil, fmt.Errorf("GetTodos error : %v", err)
 	}
@@ -89,7 +89,7 @@ func (m MysqlServer) GetTodosDb(u users.User) ([]todos.Todo, error) {
 }
 
 func (m MysqlServer) AddTodoDb(td todos.Todo, u users.User) error {
-	_, err := db.Exec("INSERT INTO todos (text, priority, userid) VALUES (?,?,(SELECT userid FROM users WHERE email = (?)))", todos.GetTask(td.Task), td.Priority, u.Email)
+	_, err := db.Exec("INSERT INTO todos (text, priority, userid) VALUES (?,?,(SELECT userid FROM users WHERE email = (?)))", todos.GetTask(td.Task), td.Priority, users.GetEmail(u))
 	if err != nil {
 		return fmt.Errorf("addTodo error : %v", err)
 	}

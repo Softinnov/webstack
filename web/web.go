@@ -22,11 +22,18 @@ type TodoView struct {
 	Priority int    `json:"priority"`
 }
 
-func NewTodoView(id int, task string, priority int) (td TodoView) {
-	td.Id = id
-	td.Task = task
-	td.Priority = priority
-	return td
+func NewTodoView(td todos.Todo) (tdv TodoView) {
+	tdv.Id = td.Id
+	tdv.Task = todos.GetTask(td.Task)
+	tdv.Priority = td.Priority
+	return tdv
+}
+
+func Todos2TodosView(list []todos.Todo) (displayedList []TodoView) {
+	for _, todo := range list {
+		displayedList = append(displayedList, NewTodoView(todo))
+	}
+	return displayedList
 }
 
 func encodejson(w http.ResponseWriter, a any) (any, error) {
@@ -55,7 +62,7 @@ func HandleAddTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user.Email = getUserEmail(tokenStr)
+	user = users.SetEmail(getUserEmail(tokenStr))
 	task, err := todos.NewTask(text)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -68,7 +75,8 @@ func HandleAddTodo(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	_, err = encodejson(w, todo)
+	todoview := NewTodoView(todo)
+	_, err = encodejson(w, todoview)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -92,7 +100,8 @@ func HandleDeleteTodo(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	_, err = encodejson(w, todo)
+	todoview := NewTodoView(todo)
+	_, err = encodejson(w, todoview)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -128,7 +137,8 @@ func HandleModifyTodo(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	_, err = encodejson(w, todo)
+	todoview := NewTodoView(todo)
+	_, err = encodejson(w, todoview)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -143,12 +153,9 @@ func HandleGetTodos(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user.Email = getUserEmail(tokenStr)
+	user = users.SetEmail(getUserEmail(tokenStr))
 	list, err := todos.Get(user)
-	var displayedList []TodoView
-	for _, todo := range list {
-		displayedList = append(displayedList, NewTodoView(todo.Id, todos.GetTask(todo.Task), todo.Priority))
-	}
+	displayedList := Todos2TodosView(list)
 	if err != nil {
 		http.Error(w, ERR_GETDATA, http.StatusInternalServerError)
 		return
