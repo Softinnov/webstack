@@ -48,7 +48,7 @@ type fakeDb struct {
 
 func (f *fakeDb) AddUserDb(u users.User) error {
 	for _, user := range f.users {
-		if user.Email == u.Email {
+		if users.GetEmail(user) == users.GetEmail(u) {
 			return fmt.Errorf("email déjà utilisé")
 		}
 	}
@@ -57,7 +57,8 @@ func (f *fakeDb) AddUserDb(u users.User) error {
 }
 func (f *fakeDb) GetUser(u users.User) (users.User, error) {
 	for _, user := range f.users {
-		if user.Email == u.Email {
+		fmt.Print(user)
+		if users.GetEmail(user) == users.GetEmail(u) {
 			return user, nil
 		}
 	}
@@ -81,7 +82,7 @@ func (f *fakeDb) DeleteTodoDb(td todos.Todo) error {
 func (f *fakeDb) ModifyTodoDb(td todos.Todo) error {
 	for _, t := range f.todos {
 		if t.Id == td.Id {
-			t.Text = td.Text
+			t.Task = td.Task
 			return nil
 		}
 	}
@@ -97,13 +98,22 @@ var user users.User
 func setupFakeDb() fakeDb {
 	db := fakeDb{}
 
+	task1, _ := todos.NewTask("Faire les courses")
+	task2, _ := todos.NewTask("Sortir le chien")
+	task3, _ := todos.NewTask("(/$-_~+)=")
+	task4, _ := todos.NewTask("Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui")
+
 	mdp, _ := users.HashPassword("123456")
-	todo1 := todos.Todo{Id: 1, Text: "Faire les courses"}
-	todo2 := todos.Todo{Id: 2, Text: "Sortir le chien"}
-	user = users.User{Email: "clem@caramail.fr", Mdp: mdp}
+	todo1 := todos.Todo{Id: 1, Task: task1, Priority: 3}
+	todo2 := todos.Todo{Id: 2, Task: task2, Priority: 2}
+	todo3 := todos.Todo{Id: 3, Task: task3, Priority: 2}
+	todo4 := todos.Todo{Id: 12, Task: task4, Priority: 1}
+	user, _ = users.NewUser("clem@caramail.fr", mdp)
 
 	db.AddTodoDb(todo1, user)
 	db.AddTodoDb(todo2, user)
+	db.AddTodoDb(todo3, user)
+	db.AddTodoDb(todo4, user)
 	db.AddUserDb(user)
 	return db
 }
@@ -219,7 +229,7 @@ func TestHandleGetTodos(t *testing.T) {
 
 	token := jsonwebToken(user)
 
-	want := db.todos
+	want := Todos2TodosView(db.todos)
 	req := httptest.NewRequest(http.MethodGet, "/todos", nil)
 	req.AddCookie(&http.Cookie{
 		Name:  COOKIE_NAME,
@@ -244,26 +254,29 @@ func TestHandleGetTodos(t *testing.T) {
 }
 
 func TestHandleAddTodo(t *testing.T) {
-	db := fakeDb{}
+	db := setupFakeDb()
 	todos.Init(&db)
 	users.Init(&db)
 
 	token := jsonwebToken(user)
 
 	var tests = []struct {
-		name, entryTxt, entryPrio, want string
+		name      string
+		entryTxt  string
+		entryPrio int
+		want      string
 	}{
-		{"Cas normal", "Blablabla", "2", "Blablabla"},
-		{"Chaîne vide", "", "1", "veuillez renseigner du texte"},
-		{"Caractères spéciaux autorisés", "(/$-_~+)=", "1", "(/$-_~+)="},
-		{"Caractères spéciaux non autorisés", "(/$-_]&[~]%)=", "3", "caractères spéciaux non autorisés"},
-		{"Plusieurs espaces en entrée", "    ", "2", "veuillez renseigner du texte"},
-		{"Chaîne longue", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", "1", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui"},
+		{"Cas normal", "Sortir le chien", 2, todos.GetTask(db.todos[1].Task)},
+		{"Chaîne vide", "", 1, "veuillez renseigner du texte"},
+		{"Caractères spéciaux autorisés", "(/$-_~+)=", 2, todos.GetTask(db.todos[2].Task)},
+		{"Caractères spéciaux non autorisés", "(/$-_]&[~]%)=", 3, "caractères spéciaux non autorisés"},
+		{"Plusieurs espaces en entrée", "    ", 2, "veuillez renseigner du texte"},
+		{"Chaîne longue", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", 1, todos.GetTask(db.todos[3].Task)},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			urltxt := fmt.Sprintf("/add?text=%v&priority=%v", url.QueryEscape(tt.entryTxt), tt.entryPrio)
+			urltxt := fmt.Sprintf("/add?task=%v&priority=%v", url.QueryEscape(tt.entryTxt), tt.entryPrio)
 			req := httptest.NewRequest(http.MethodPost, urltxt, nil)
 			req.AddCookie(&http.Cookie{
 				Name:  COOKIE_NAME,
@@ -338,7 +351,7 @@ func TestHandleModifyTodo(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			url := fmt.Sprintf("/modify?id=%v&text=%v&priority=%v", tt.entryId, url.QueryEscape(tt.entryTxt), tt.entryPrio)
+			url := fmt.Sprintf("/modify?id=%v&task=%v&priority=%v", tt.entryId, url.QueryEscape(tt.entryTxt), tt.entryPrio)
 			req := httptest.NewRequest(http.MethodPost, url, nil)
 			w := httptest.NewRecorder()
 			HandleModifyTodo(w, req)

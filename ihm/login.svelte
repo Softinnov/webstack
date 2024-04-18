@@ -3,7 +3,6 @@
 <script context="module">
     import { redirectTo, isAuthenticated } from './index.svelte';
     import { sendUser } from './signin.svelte';
-    import { beforeUpdate } from "svelte";
 
     let email = '';
     let password = '';
@@ -22,6 +21,8 @@
 </script>
 
 <script>
+    import { beforeUpdate } from "svelte";
+
 	beforeUpdate (() => {
 		isAuthenticated();
 	})

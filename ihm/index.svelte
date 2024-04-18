@@ -1,7 +1,7 @@
 <svelte:options customElement="index-todo" />
 
 <script context="module">
-	let isLogout = false;
+	var isLogout = false;
     export function redirectTo(url) {
       window.location.href = url;
     }
@@ -13,14 +13,13 @@
 			if (cookieValue != "") {
 				var result = confirm("Vous êtes toujours connecté ! Voulez vous vous déconnecter ?")
 				if (result) {
-					await logout();
 					isLogout = true;
+					await logout();
 				}
 				else {
 					redirectTo('app.html');
 				}
 			}
-			return isLogout;
 		}
 	}
 
@@ -37,10 +36,10 @@
 </script>
 
 <script>
-	import { onMount } from "svelte";
+	import { afterUpdate } from "svelte";
     import { logout } from "./app.svelte";
 
-	onMount (() => {
+	afterUpdate (() => {
 		isAuthenticated();
 	})
 </script>

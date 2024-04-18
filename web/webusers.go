@@ -195,7 +195,7 @@ func jsonwebToken(u users.User) string {
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: token_exp.Unix(),
 		},
-		UserEmail: u.Email,
+		UserEmail: users.GetEmail(u),
 	})
 	token, err := t.SignedString([]byte(SECRET_KEY))
 	if err != nil {
