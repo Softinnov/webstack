@@ -23,6 +23,8 @@
 				alert(`${text}réessayez`);
 			} else if (statusCode == 401) {
 				alert(`${text}échec d'authentification`);
+			} else if (statusCode == 400) {
+				alert(`${text}`);
 			}else {
 				alert(`${text}`);
 				console.log("statut d'erreur inattendu :", statusCode);

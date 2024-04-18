@@ -307,8 +307,8 @@ func TestHandleDeleteTodo(t *testing.T) {
 	}{
 		{"Cas normal", "Blablabla", "3", "Blablabla"},
 		{"Chaîne vide", "", "123", "réessayez ultérieurement"},
-		{"Id non numérique", "BlablaASupprimer", "azerty", "erreur de conversion"},
-		{"Id vide", "BlablaASupprimer2", "", "erreur de conversion"},
+		{"Id non numérique", "BlablaASupprimer", "azerty", ERR_CONV},
+		{"Id vide", "BlablaASupprimer2", "", ERR_CONV},
 		{"Chaîne longue", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", "10", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui"},
 	}
 
@@ -333,20 +333,25 @@ func TestHandleDeleteTodo(t *testing.T) {
 }
 
 func TestHandleModifyTodo(t *testing.T) {
-	db := fakeDb{}
+	db := setupFakeDb()
 	todos.Init(&db)
 
 	var tests = []struct {
-		name, entryTxt, entryId, entryPrio, want string
+		name      string
+		entryTxt  string
+		entryId   any
+		entryPrio int
+		want      string
 	}{
-		{"Cas normal", "Blabliblou", "3", "2", "Blabliblou"},
-		{"Chaîne vide", "", "123", "1", "veuillez renseigner du texte"},
-		{"Caractères spéciaux autorisés", "(/$-_~+)=", "13", "2", "(/$-_~+)="},
-		{"Caractères spéciaux non autorisés", "(/${}-_~+)=", "13", "3", "caractères spéciaux non autorisés"},
-		{"Id non numérique", "BlablaAModifier", "azerty", "1", "erreur de conversion"},
-		{"Id vide", "BlablaAModifier2", "", "2", "erreur de conversion"},
-		{"Plusieurs espaces en entrée", "    ", "56", "2", "veuillez renseigner du texte"},
-		{"Chaîne longue", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", "2", "3", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui"},
+		{"Cas normal", "Sortir le chien", 2, 2, todos.GetTask(db.todos[1].Task)},
+		{"Caractères spéciaux autorisés", "(/$-_~+)=", 3, 2, todos.GetTask(db.todos[2].Task)},
+		{"Chaîne vide", "", 123, 1, "veuillez renseigner du texte"},
+		{"Caractères spéciaux autorisés", "(/$-_~+)=", 13, 2, todos.GetTask(db.todos[2].Task)},
+		{"Caractères spéciaux non autorisés", "(/${}-_~+)=", "13", 3, "caractères spéciaux non autorisés"},
+		{"Id non numérique", "BlablaAModifier", "azerty", 1, ERR_CONV},
+		{"Id vide", "BlablaAModifier2", "", 2, ERR_CONV},
+		{"Plusieurs espaces en entrée", "    ", 56, 2, "veuillez renseigner du texte"},
+		{"Chaîne longue", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", 12, 1, todos.GetTask(db.todos[3].Task)},
 	}
 
 	for _, tt := range tests {
@@ -362,8 +367,8 @@ func TestHandleModifyTodo(t *testing.T) {
 				t.Errorf("expected error to be nil got %v", err)
 			}
 			got := string(body)
-			if !strings.Contains(got, tt.want) && !strings.Contains(got, tt.entryId) {
-				t.Errorf("expected response to contain '%s' or '%s', but got '%s'", tt.want, tt.entryId, got)
+			if !strings.Contains(got, tt.want) {
+				t.Errorf("expected response to contain '%s', but got '%s'", tt.want, got)
 			}
 		})
 	}

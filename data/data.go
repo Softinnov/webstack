@@ -31,9 +31,9 @@ func CloseDb() error {
 	return db.Close()
 }
 
-func (m MysqlServer) AddUserDb(user users.User) error {
+func (m MysqlServer) AddUserDb(u users.User) error {
 	var count int
-	err := db.QueryRow("SELECT COUNT(*) FROM users WHERE email = ?", users.GetEmail(user)).Scan(&count)
+	err := db.QueryRow("SELECT COUNT(*) FROM users WHERE email = ?", users.GetEmail(u)).Scan(&count)
 	if err != nil {
 		return fmt.Errorf("AddUser error : %v", err)
 	}
@@ -41,7 +41,7 @@ func (m MysqlServer) AddUserDb(user users.User) error {
 	if count > 0 {
 		return fmt.Errorf(ERR_MAILUSED)
 	}
-	_, err = db.Exec("INSERT INTO users (email, password) VALUES (?,?)", users.GetEmail(user), users.GetMdp(user))
+	_, err = db.Exec("INSERT INTO users (email, password) VALUES (?,?)", users.GetEmail(u), users.GetMdp(u))
 	if err != nil {
 		return fmt.Errorf("AddUser error : %v", err)
 	}
