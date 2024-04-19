@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"webstack/cli/cmd"
+	"webstack/cli/user"
 	"webstack/config"
 	"webstack/data"
 	"webstack/metier/todos"
@@ -13,8 +14,6 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 )
-
-var admin, _ = users.NewUser("clem@calia.com", "123456")
 
 func main() {
 	cfg := config.GetConfig()
@@ -39,11 +38,21 @@ func main() {
 	case "help":
 		cmd.Help()
 	case "get":
-		cmd.Get(admin)
+		user.Auth(cmd.Get)
 	case "add":
-		cmd.Add("", 1, admin)
+		user.Auth(cmd.Add)
+	case "delete":
+		user.Auth(cmd.Delete)
+	case "modify":
+		user.Auth(cmd.Modify)
+	case "signin":
+		user.Signin()
+	case "login":
+		user.Login()
+	case "logout":
+		user.ClearUserConfig()
 	default:
-		fmt.Println("Invalid command. Please use 'help' command to see available commands.")
+		fmt.Println("Commande invalide. Utilisez la commande 'help' pour afficher les commandes disponibles.")
 		os.Exit(1)
 	}
 }
