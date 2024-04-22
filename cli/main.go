@@ -15,6 +15,8 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+const ERRNOTACMD = "Commande invalide. Utilisez la commande 'help' pour afficher les commandes disponibles."
+
 func main() {
 	cfg := config.GetConfig()
 	msql, err := data.OpenDb(cfg)
@@ -38,21 +40,21 @@ func main() {
 	case "help":
 		cmd.Help()
 	case "get":
-		user.Auth(cmd.Get)
+		user.Auth(cmd.Get, user.CFGFILEPATH)
 	case "add":
-		user.Auth(cmd.Add)
+		user.Auth(cmd.Add, user.CFGFILEPATH)
 	case "delete":
-		user.Auth(cmd.Delete)
+		user.Auth(cmd.Delete, user.CFGFILEPATH)
 	case "modify":
-		user.Auth(cmd.Modify)
+		user.Auth(cmd.Modify, user.CFGFILEPATH)
 	case "signin":
-		user.Signin()
+		user.Signin(user.CFGFILEPATH)
 	case "login":
-		user.Login()
+		user.Login(user.CFGFILEPATH)
 	case "logout":
-		user.ClearUserConfig()
+		user.ClearUserConfig(user.CFGFILEPATH)
 	default:
-		fmt.Println("Commande invalide. Utilisez la commande 'help' pour afficher les commandes disponibles.")
+		fmt.Println(ERRNOTACMD)
 		os.Exit(1)
 	}
 }

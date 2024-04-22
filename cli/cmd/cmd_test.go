@@ -113,10 +113,11 @@ func TestGet(t *testing.T) {
 
 	fmt.Print(old)
 	want := todos.GetTask(db.todos[0].Task)
+	want2 := todos.GetTask(db.todos[1].Task)
 	actual := <-outCh
 
-	if !strings.Contains(actual, want) {
-		t.Errorf("expected : %s, but got : %s", want, actual)
+	if !strings.Contains(actual, want) || !strings.Contains(actual, want2) {
+		t.Errorf("expected : %s and %s, but got : %s", want, want2, actual)
 	}
 }
 
@@ -125,29 +126,47 @@ func TestAdd(t *testing.T) {
 	todos.Init(&db)
 	users.Init(&db)
 
-	os.Args = []string{"go run main.go", "add", "Todo ajouté", "2"}
-	old := os.Stdout
-	r, w, _ := os.Pipe()
-	os.Stdout = w
+	var tests = []struct {
+		name      string
+		entryText string
+		entryPrio string
+		want      string
+	}{
+		{"Cas normal", "Sortir le chien", "2", todos.GetTask(db.todos[1].Task)},
+		{"Chaîne vide", "", "1", todos.ERR_NO_TEXT},
+		{"Caractères spéciaux autorisés", "(/$-_~+)=", "1", todos.GetTask(db.todos[2].Task)},
+		{"Caractères spéciaux non autorisés", "(/$-_]&[~]%)=", "3", todos.ERR_SPECIAL_CHAR},
+		{"Plusieurs espaces en entrée", "    ", "2", todos.ERR_NO_TEXT},
+		{"Chaîne longue", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", "1", todos.GetTask(db.todos[3].Task)},
+	}
 
-	defer func() {
-		os.Stdout = old
-		w.Close()
-	}()
-	Add(db.users[0])
-	outCh := make(chan string)
-	go func() {
-		var buf bytes.Buffer
-		io.Copy(&buf, r)
-		outCh <- buf.String()
-	}()
-	w.Close()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			os.Args = []string{"go run main.go", "add", tt.entryText, tt.entryPrio}
+			old := os.Stdout
+			r, w, _ := os.Pipe()
+			os.Stdout = w
 
-	want := "Todo ajouté"
-	actual := <-outCh
+			defer func() {
+				os.Stdout = old
+				w.Close()
+			}()
+			Add(db.users[0])
+			outCh := make(chan string)
+			go func() {
+				var buf bytes.Buffer
+				io.Copy(&buf, r)
+				outCh <- buf.String()
+			}()
+			w.Close()
 
-	if !strings.Contains(actual, want) {
-		t.Errorf("expected : %s, but got : %s", want, actual)
+			actual := <-outCh
+
+			if !strings.Contains(actual, tt.want) {
+				t.Errorf("expected : %s, but got : %s", tt.want, actual)
+			}
+
+		})
 	}
 }
 

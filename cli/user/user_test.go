@@ -7,6 +7,8 @@ import (
 	"webstack/metier/users"
 )
 
+const TESTCFG = "../.cfg/config.json"
+
 type fakeDb struct {
 	todos []todos.Todo
 	users []users.User
@@ -103,11 +105,11 @@ func TestLogin(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			u := NewUserCfg(tt.entryEmail, tt.entryPassword)
-			err := SaveConfig(u)
+			err := SaveConfig(u, TESTCFG)
 			if err != nil {
 				t.Errorf("Expected error to be nil but got : %v", err)
 			}
-			got, gotErr := Login()
+			got, gotErr := Login(TESTCFG)
 			if gotErr != nil {
 				fmt.Println(gotErr.Error())
 				if gotErr.Error() != tt.want {
@@ -123,5 +125,37 @@ func TestLogin(t *testing.T) {
 }
 
 func TestSignin(t *testing.T) {
-	
+	db := setupFakeDb()
+	todos.Init(&db)
+	users.Init(&db)
+
+	var tests = []struct {
+		name, entryEmail, entryPassword string
+	}{
+		{"Cas normal", "mail2018@mail.com", "29mai1995"},
+		{"Mots de passes différents", "mail2019@mail.com", "29mai1995"},
+		{"Email vide", "", "12azerty"},
+		{"Email invalide", "mail2018mailcom", "29mai1995"},
+		{"Mot de passe trop court", "mail@mail.com", "azey"},
+		{"Email déjà utilisé", "mail20@mail.com", "2mai1995"},
+		{"Mot de passe vide", "clem@caramail.com", ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			u := NewUserCfg(tt.entryEmail, tt.entryPassword)
+			err := SaveConfig(u, TESTCFG)
+			if err != nil {
+				t.Errorf("Expected error to be nil but got : %v", err)
+			}
+			configData, err := LoadConfig(TESTCFG)
+			if err != nil {
+				t.Errorf("expected error to be nil but got : %v", err)
+			}
+			fmt.Println(u, configData)
+			if u != configData {
+				t.Errorf("expected : %v, but got : %v", u, configData)
+			}
+		})
+	}
 }
