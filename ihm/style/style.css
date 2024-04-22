@@ -10,6 +10,7 @@ form{
     margin: 2%;
 }
 label{
+    margin: 1%;
     font-size: medium;
 }
 p{
@@ -49,8 +50,14 @@ li {
     margin: 3%;
 }
 input {
-    flex: 0.75;
     padding: 0.5em;
     margin: 1%;
-    border: none;
+    border: solid 2px;
+    border-radius: 0.5em;
+    border-color: rgba(252, 252, 252, 0);
+}
+input:hover {
+    cursor: text;
+    border: solid 2px;
+    border-color: rgba(0, 0, 0, 0.29);
 }

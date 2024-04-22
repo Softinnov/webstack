@@ -77,8 +77,12 @@ func Get(u users.User) ([]Todo, error) {
 }
 
 func Add(text Task, priority int, user users.User) (td Todo, err error) {
-	td.Task = text
+	if priority < 1 || priority > 3 {
+		err = fmt.Errorf("priorité de tâche invalide")
+		return td, err
+	}
 	td.Priority = priority
+	td.Task = text
 	err = store.AddTodoDb(td, user)
 	if err != nil {
 		return td, err
