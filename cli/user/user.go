@@ -14,7 +14,7 @@ type UserCfg struct {
 	Mdp   string `json:"mdp"`
 }
 
-const configFilePath = ".cfg/config.json"
+const configFilePath = "../.cfg/config.json"
 const ERR_CFG = "erreur de chargement de la config:"
 const ERR_SAVE_CFG = "erreur lors de l'enregistrement des informations:"
 const ERR_WRITE = "error writing updated config:"
@@ -31,6 +31,12 @@ func Auth(f func(u users.User)) func(u users.User) {
 	}
 	if configData.Email != "" && configData.Mdp != "" {
 		fmt.Println("Utilisateur connecté :", configData.Email)
+		u, err := users.NewUser(configData.Email, configData.Mdp)
+		if err != nil {
+			fmt.Println(err)
+			return nil
+		}
+		f(u)
 	} else {
 		fmt.Print("Aucun utilisateur connecté: Voulez-vous vous connecter (c) ou vous inscrire (i)? ")
 		scanner := bufio.NewScanner(os.Stdin)
@@ -38,7 +44,7 @@ func Auth(f func(u users.User)) func(u users.User) {
 			choice := strings.ToLower(scanner.Text())
 			switch choice {
 			case "c":
-				u := Login()
+				u, _ := Login()
 				f(u)
 			case "i":
 				u := Signin()
@@ -48,7 +54,6 @@ func Auth(f func(u users.User)) func(u users.User) {
 			}
 		}
 	}
-
 	return f
 }
 
@@ -113,7 +118,13 @@ func ClearUserConfig() error {
 	return nil
 }
 
-func Login() (u users.User) {
+func NewUserCfg(email string, mdp string) (u UserCfg) {
+	u.Email = email
+	u.Mdp = mdp
+	return u
+}
+
+func Login() (u users.User, err error) {
 	configData, err := LoadConfig()
 	if err != nil {
 		fmt.Println(ERR_CFG, err)
@@ -128,15 +139,15 @@ func Login() (u users.User) {
 	if err != nil {
 		fmt.Println(err, "\nSi ce n'est pas déjà fait pensez à vous inscrire avec la commande signin !")
 		ClearUserConfig()
-		return
+		return u, err
 	}
 	err = SaveConfig(configData)
 	if err != nil {
 		fmt.Println(ERR_SAVE_CFG, err)
-		return
+		return u, err
 	}
 	fmt.Println("Informations sauvegardées.")
-	return u
+	return u, nil
 }
 
 func Signin() (u users.User) {
