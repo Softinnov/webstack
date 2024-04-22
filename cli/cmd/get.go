@@ -42,9 +42,13 @@ func Get(u users.User) {
 		return
 	}
 	displayed := Todos2TodosCli(list)
-	fmt.Printf("%-10s %-20s %-10s\n", columns[0], columns[1], columns[2])
-	fmt.Println(strings.Repeat("-", 60))
+	fmt.Println("+", strings.Repeat("-", 10), "+", strings.Repeat("-", 40), "+", strings.Repeat("-", 10), "+")
+	fmt.Printf("|       %-60s |\n", "My Todolist")
+	fmt.Println("+", strings.Repeat("-", 10), "+", strings.Repeat("-", 40), "+", strings.Repeat("-", 10), "+")
+	fmt.Printf("| %-10s | %-40s | %-10s |\n", columns[0], columns[1], columns[2])
+	fmt.Println("+", strings.Repeat("-", 10), "+", strings.Repeat("-", 40), "+", strings.Repeat("-", 10), "+")
 	for _, todo := range displayed {
-		fmt.Printf("%-10d %-20s %-10s\n", todo.id, todo.task, todo.priority)
+		fmt.Printf("| %-10d | %-40s | %-10s |\n", todo.id, todo.task, todo.priority)
 	}
+	fmt.Println("+", strings.Repeat("-", 10), "+", strings.Repeat("-", 40), "+", strings.Repeat("-", 10), "+")
 }
