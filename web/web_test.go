@@ -16,14 +16,14 @@ import (
 
 func TestEncodejson(t *testing.T) {
 	var tests = []struct {
-		Id   int
+		ID   int
 		Text string
 	}{
-		{Id: 10, Text: "Blabla"},
-		{Id: 123, Text: "(/$-_~+)="},
-		{Id: 516, Text: ""},
-		{Id: 0, Text: "(/$-_]&[~]%)="},
-		{Id: 56, Text: "text"},
+		{ID: 10, Text: "Blabla"},
+		{ID: 123, Text: "(/$-_~+)="},
+		{ID: 516, Text: ""},
+		{ID: 0, Text: "(/$-_]&[~]%)="},
+		{ID: 56, Text: "text"},
 	}
 
 	for i, tt := range tests {
@@ -52,16 +52,18 @@ func (f *fakeDb) AddUserDb(u users.User) error {
 			return fmt.Errorf("email déjà utilisé")
 		}
 	}
+
 	f.users = append(f.users, u)
+
 	return nil
 }
 func (f *fakeDb) GetUser(u users.User) (users.User, error) {
 	for _, user := range f.users {
-		fmt.Print(user)
 		if users.GetEmail(user) == users.GetEmail(u) {
 			return user, nil
 		}
 	}
+
 	return users.User{}, fmt.Errorf("error")
 }
 
@@ -71,21 +73,22 @@ func (f *fakeDb) AddTodoDb(td todos.Todo, u users.User) error {
 }
 func (f *fakeDb) DeleteTodoDb(td todos.Todo) error {
 	for i, t := range f.todos {
-		if t.Id == td.Id {
+		if t.ID == td.ID {
 			f.todos = append(f.todos[:i], f.todos[i+1:]...)
 			return nil
 		}
 	}
-	return nil
 
+	return nil
 }
 func (f *fakeDb) ModifyTodoDb(td todos.Todo) error {
 	for _, t := range f.todos {
-		if t.Id == td.Id {
+		if t.ID == td.ID {
 			t.Task = td.Task
 			return nil
 		}
 	}
+
 	return nil
 }
 func (f *fakeDb) GetTodosDb(u users.User) (t []todos.Todo, e error) {
@@ -104,10 +107,10 @@ func setupFakeDb() fakeDb {
 	task4, _ := todos.NewTask("Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui")
 
 	mdp, _ := users.HashPassword("123456")
-	todo1 := todos.Todo{Id: 1, Task: task1, Priority: 3}
-	todo2 := todos.Todo{Id: 2, Task: task2, Priority: 2}
-	todo3 := todos.Todo{Id: 3, Task: task3, Priority: 2}
-	todo4 := todos.Todo{Id: 12, Task: task4, Priority: 1}
+	todo1 := todos.Todo{ID: 1, Task: task1, Priority: 3}
+	todo2 := todos.Todo{ID: 2, Task: task2, Priority: 2}
+	todo3 := todos.Todo{ID: 3, Task: task3, Priority: 2}
+	todo4 := todos.Todo{ID: 12, Task: task4, Priority: 1}
 	user, _ = users.NewUser("clem@caramail.fr", mdp)
 
 	db.AddTodoDb(todo1, user)
@@ -120,8 +123,13 @@ func setupFakeDb() fakeDb {
 
 func TestHandleSignin(t *testing.T) {
 	db := setupFakeDb()
-	todos.Init(&db)
-	users.Init(&db)
+
+	err := todos.Init(&db)
+	err2 := users.Init(&db)
+
+	if err != nil || err2 != nil {
+		t.Fatalf("Expected error to be nil but got : %v / %v", err, err2)
+	}
 
 	var tests = []struct {
 		name, entryEmail, entryPassword, confirmPassword, want string
@@ -137,7 +145,7 @@ func TestHandleSignin(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			urltxt := fmt.Sprintf("/signin?email=%v&password=%v&confirmpassword=%v", url.QueryEscape(tt.entryEmail), tt.entryPassword, tt.confirmPassword)
-			req := httptest.NewRequest(http.MethodPost, urltxt, nil)
+			req := httptest.NewRequest(http.MethodPost, urltxt, http.NoBody)
 			w := httptest.NewRecorder()
 			HandleSignin(w, req)
 			res := w.Result()
@@ -155,8 +163,13 @@ func TestHandleSignin(t *testing.T) {
 }
 func TestHandleLogin(t *testing.T) {
 	db := setupFakeDb()
-	todos.Init(&db)
-	users.Init(&db)
+
+	err := todos.Init(&db)
+	err2 := users.Init(&db)
+
+	if err != nil || err2 != nil {
+		t.Fatalf("Expected error to be nil but got : %v / %v", err, err2)
+	}
 
 	var tests = []struct {
 		name, entryEmail, entryPassword, want string
@@ -171,7 +184,7 @@ func TestHandleLogin(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			urltxt := fmt.Sprintf("/login?email=%v&password=%v", url.QueryEscape(tt.entryEmail), tt.entryPassword)
-			req := httptest.NewRequest(http.MethodPost, urltxt, nil)
+			req := httptest.NewRequest(http.MethodPost, urltxt, http.NoBody)
 			w := httptest.NewRecorder()
 			HandleLogin(w, req)
 			res := w.Result()
@@ -190,25 +203,35 @@ func TestHandleLogin(t *testing.T) {
 
 func TestHandleLogout(t *testing.T) {
 	db := setupFakeDb()
-	users.Init(&db)
 
-	req := httptest.NewRequest(http.MethodGet, "/logout", nil)
+	err := users.Init(&db)
+
+	if err != nil {
+		t.Fatalf("Expected error to be nil but got : %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/logout", http.NoBody)
 	req.AddCookie(&http.Cookie{
-		Name:  COOKIE_NAME,
+		Name:  CookieName,
 		Value: "token",
 	})
+
 	w := httptest.NewRecorder()
 	HandleLogout(w, req)
 	res := w.Result()
 	got := res.Cookies()
+
+	defer res.Body.Close()
+
 	want := &http.Cookie{
-		Name:    COOKIE_NAME,
+		Name:    CookieName,
 		Value:   "",
 		MaxAge:  -1,
 		Expires: time.Now().Add(-time.Hour),
 		Path:    "/",
 	}
 	found := false
+
 	for _, cookie := range got {
 		if cookie.Name == want.Name {
 			if cookie.Value == want.Value {
@@ -217,6 +240,7 @@ func TestHandleLogout(t *testing.T) {
 			}
 		}
 	}
+
 	if !found {
 		t.Errorf("expected response to contain '%s', but got '%s'", want, got)
 	}
@@ -224,62 +248,74 @@ func TestHandleLogout(t *testing.T) {
 
 func TestHandleGetTodos(t *testing.T) {
 	db := setupFakeDb()
-	todos.Init(&db)
-	users.Init(&db)
+
+	err := todos.Init(&db)
+	err2 := users.Init(&db)
+
+	if err != nil || err2 != nil {
+		t.Fatalf("Expected error to be nil but got : %v / %v", err, err2)
+	}
 
 	token := jsonwebToken(user)
 
 	want := Todos2TodosView(db.todos)
-	req := httptest.NewRequest(http.MethodGet, "/todos", nil)
+	req := httptest.NewRequest(http.MethodGet, "/todos", http.NoBody)
 	req.AddCookie(&http.Cookie{
-		Name:  COOKIE_NAME,
+		Name:  CookieName,
 		Value: token,
 	})
+
 	w := httptest.NewRecorder()
 	HandleGetTodos(w, req)
 	res := w.Result()
+
 	defer res.Body.Close()
+
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
-	wantJson, err2 := json.Marshal(want)
+
+	wantJSON, err2 := json.Marshal(want)
 	if err2 != nil {
 		panic(err2)
 	}
+
 	got := string(body)
-	if !strings.Contains(got, string(wantJson)) {
-		t.Errorf("expected response to contain '%s', but got '%s'", string(wantJson), got)
+	if !strings.Contains(got, string(wantJSON)) {
+		t.Errorf("expected response to contain '%s', but got '%s'", string(wantJSON), got)
 	}
 }
 
 func TestHandleAddTodo(t *testing.T) {
 	db := setupFakeDb()
-	todos.Init(&db)
-	users.Init(&db)
+
+	err := todos.Init(&db)
+	err2 := users.Init(&db)
+
+	if err != nil || err2 != nil {
+		t.Fatalf("Expected error to be nil but got : %v / %v", err, err2)
+	}
 
 	token := jsonwebToken(user)
 
 	var tests = []struct {
-		name      string
-		entryTxt  string
-		entryPrio int
-		want      string
+		name, entryTxt, entryPrio, want string
 	}{
-		{"Cas normal", "Sortir le chien", 2, todos.GetTask(db.todos[1].Task)},
-		{"Chaîne vide", "", 1, "veuillez renseigner du texte"},
-		{"Caractères spéciaux autorisés", "(/$-_~+)=", 2, todos.GetTask(db.todos[2].Task)},
-		{"Caractères spéciaux non autorisés", "(/$-_]&[~]%)=", 3, "caractères spéciaux non autorisés"},
-		{"Plusieurs espaces en entrée", "    ", 2, "veuillez renseigner du texte"},
-		{"Chaîne longue", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", 1, todos.GetTask(db.todos[3].Task)},
+		{"Cas normal", "Sortir le chien", "2", todos.GetTask(db.todos[1].Task)},
+		{"Chaîne vide", "", "1", "veuillez renseigner du texte"},
+		{"Caractères spéciaux autorisés", "(/$-_~+)=", "2", todos.GetTask(db.todos[2].Task)},
+		{"Caractères spéciaux non autorisés", "(/$-_]&[~]%)=", "3", "caractères spéciaux non autorisés"},
+		{"Plusieurs espaces en entrée", "    ", "2", "veuillez renseigner du texte"},
+		{"Chaîne longue", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", "1", todos.GetTask(db.todos[3].Task)},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			urltxt := fmt.Sprintf("/add?task=%v&priority=%v", url.QueryEscape(tt.entryTxt), tt.entryPrio)
-			req := httptest.NewRequest(http.MethodPost, urltxt, nil)
+			req := httptest.NewRequest(http.MethodPost, urltxt, http.NoBody)
 			req.AddCookie(&http.Cookie{
-				Name:  COOKIE_NAME,
+				Name:  CookieName,
 				Value: token,
 			})
 			w := httptest.NewRecorder()
@@ -300,33 +336,48 @@ func TestHandleAddTodo(t *testing.T) {
 
 func TestHandleDeleteTodo(t *testing.T) {
 	db := fakeDb{}
-	todos.Init(&db)
+
+	err := todos.Init(&db)
+	err2 := users.Init(&db)
+
+	if err != nil || err2 != nil {
+		t.Fatalf("Expected error to be nil but got : %v / %v", err, err2)
+	}
+
+	token := jsonwebToken(user)
 
 	var tests = []struct {
-		name, entryTxt, entryId, want string
+		name, entryTxt, entryID, want string
 	}{
 		{"Cas normal", "Blablabla", "3", "Blablabla"},
 		{"Chaîne vide", "", "123", "réessayez ultérieurement"},
-		{"Id non numérique", "BlablaASupprimer", "azerty", ERR_CONV},
-		{"Id vide", "BlablaASupprimer2", "", ERR_CONV},
+		{"Id non numérique", "BlablaASupprimer", "azerty", ErrConv},
+		{"Id vide", "BlablaASupprimer2", "", ErrConv},
 		{"Chaîne longue", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", "10", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			url := fmt.Sprintf("/delete?id=%v&text=%v", tt.entryId, url.QueryEscape(tt.entryTxt))
-			req := httptest.NewRequest(http.MethodPost, url, nil)
+			urltxt := fmt.Sprintf("/delete?id=%v&text=%v", tt.entryID, url.QueryEscape(tt.entryTxt))
+			fmt.Print(urltxt)
+			req := httptest.NewRequest(http.MethodPost, urltxt, http.NoBody)
+			req.AddCookie(&http.Cookie{
+				Name:  CookieName,
+				Value: token,
+			})
 			w := httptest.NewRecorder()
 			HandleDeleteTodo(w, req)
 			res := w.Result()
 			defer res.Body.Close()
 			body, err := io.ReadAll(res.Body)
+			fmt.Print(body)
 			if err != nil {
 				t.Errorf("expected error to be nil got %v", err)
 			}
 			got := string(body)
-			if !strings.Contains(got, tt.want) && !strings.Contains(got, tt.entryId) {
-				t.Errorf("expected response to contain '%s' or '%s', but got '%s'", tt.want, tt.entryId, got)
+			fmt.Print(got)
+			if !strings.Contains(got, tt.want) && !strings.Contains(got, tt.entryID) {
+				t.Errorf("expected response to contain '%s' or '%s', but got '%s'", tt.want, tt.entryID, got)
 			}
 		})
 	}
@@ -334,30 +385,38 @@ func TestHandleDeleteTodo(t *testing.T) {
 
 func TestHandleModifyTodo(t *testing.T) {
 	db := setupFakeDb()
-	todos.Init(&db)
+
+	err := todos.Init(&db)
+	err2 := users.Init(&db)
+
+	if err != nil || err2 != nil {
+		t.Fatalf("Expected error to be nil but got : %v / %v", err, err2)
+	}
+
+	token := jsonwebToken(user)
 
 	var tests = []struct {
-		name      string
-		entryTxt  string
-		entryId   any
-		entryPrio int
-		want      string
+		name, entryTxt, entryID, entryPrio, want string
 	}{
-		{"Cas normal", "Sortir le chien", 2, 2, todos.GetTask(db.todos[1].Task)},
-		{"Caractères spéciaux autorisés", "(/$-_~+)=", 3, 2, todos.GetTask(db.todos[2].Task)},
-		{"Chaîne vide", "", 123, 1, "veuillez renseigner du texte"},
-		{"Caractères spéciaux autorisés", "(/$-_~+)=", 13, 2, todos.GetTask(db.todos[2].Task)},
-		{"Caractères spéciaux non autorisés", "(/${}-_~+)=", "13", 3, "caractères spéciaux non autorisés"},
-		{"Id non numérique", "BlablaAModifier", "azerty", 1, ERR_CONV},
-		{"Id vide", "BlablaAModifier2", "", 2, ERR_CONV},
-		{"Plusieurs espaces en entrée", "    ", 56, 2, "veuillez renseigner du texte"},
-		{"Chaîne longue", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", 12, 1, todos.GetTask(db.todos[3].Task)},
+		{"Cas normal", "Sortir le chien", "2", "2", todos.GetTask(db.todos[1].Task)},
+		{"Caractères spéciaux autorisés", "(/$-_~+)=", "3", "2", todos.GetTask(db.todos[2].Task)},
+		{"Chaîne vide", "", "123", "1", "veuillez renseigner du texte"},
+		{"Caractères spéciaux autorisés", "(/$-_~+)=", "13", "2", todos.GetTask(db.todos[2].Task)},
+		{"Caractères spéciaux non autorisés", "(/${}-_~+)=", "13", "3", "caractères spéciaux non autorisés"},
+		{"Id non numérique", "BlablaAModifier", "azerty", "1", ErrConv},
+		{"Id vide", "BlablaAModifier2", "", "2", ErrConv},
+		{"Plusieurs espaces en entrée", "    ", "56", "2", "veuillez renseigner du texte"},
+		{"Chaîne longue", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", "12", "1", todos.GetTask(db.todos[3].Task)},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			url := fmt.Sprintf("/modify?id=%v&task=%v&priority=%v", tt.entryId, url.QueryEscape(tt.entryTxt), tt.entryPrio)
-			req := httptest.NewRequest(http.MethodPost, url, nil)
+			urltxt := fmt.Sprintf("/modify?id=%v&task=%v&priority=%v", tt.entryID, url.QueryEscape(tt.entryTxt), tt.entryPrio)
+			req := httptest.NewRequest(http.MethodPost, urltxt, http.NoBody)
+			req.AddCookie(&http.Cookie{
+				Name:  CookieName,
+				Value: token,
+			})
 			w := httptest.NewRecorder()
 			HandleModifyTodo(w, req)
 			res := w.Result()

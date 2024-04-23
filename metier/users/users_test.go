@@ -51,10 +51,10 @@ func TestLogin(t *testing.T) {
 		name, entryEmail, entryPassword, want string
 	}{
 		{"Cas normal", "mail20@mail.com", "25mai1995", "mail20@mail.com"},
-		{"Email vide", "", "12azerty", ERR_NOMAIL},
-		{"Mot de passe incorrect", "mail20@mail.com", "azerty", ERR_BADMDP},
-		{"Email invalide", "ma@mail.com", "25mai1995", ERR_LOGIN},
-		{"Mot de passe vide", "clement@caramail.com", "", ERR_NOMDP},
+		{"Email vide", "", "12azerty", ErrNoMail},
+		{"Mot de passe incorrect", "mail20@mail.com", "azerty", ErrBadMdp},
+		{"Email invalide", "ma@mail.com", "25mai1995", ErrLogin},
+		{"Mot de passe vide", "clement@caramail.com", "", ErrNoMdp},
 	}
 
 	for _, tt := range tests {
@@ -75,12 +75,12 @@ func TestSignin(t *testing.T) {
 		name, entryEmail, entryPassword, entryConfirm, want string
 	}{
 		{"Cas normal", "mail2018@mail.com", "29mai1995", "29mai1995", "mail2018@mail.com"},
-		{"Mots de passes différents", "mail2019@mail.com", "29mai1995", "2mai1995", ERR_DIFMDP},
-		{"Email vide", "", "12azerty", "12azerty", ERR_NOMAIL},
-		{"Email invalide", "mail2018mailcom", "29mai1995", "29mai1995", ERR_INVMAIL},
-		{"Mot de passe trop court", "mail@mail.com", "azey", "azey", ERR_SHORTMDP},
+		{"Mots de passes différents", "mail2019@mail.com", "29mai1995", "2mai1995", ErrDifMdp},
+		{"Email vide", "", "12azerty", "12azerty", ErrNoMail},
+		{"Email invalide", "mail2018mailcom", "29mai1995", "29mai1995", ErrInvMail},
+		{"Mot de passe trop court", "mail@mail.com", "azey", "azey", ErrShortMdp},
 		{"Email déjà utilisé", "mail20@mail.com", "2mai1995", "2mai1995", "email déjà utilisé"},
-		{"Mot de passe vide", "clem@caramail.com", "", "", ERR_NOMDP},
+		{"Mot de passe vide", "clem@caramail.com", "", "", ErrNoMdp},
 	}
 
 	for _, tt := range tests {

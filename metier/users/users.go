@@ -14,21 +14,24 @@ type User struct {
 
 var store DatabaseUser
 
-const ERR_LOGIN = "échec du login"
-const ERR_NOMAIL = "l'email ne peut pas être vide"
-const ERR_INVMAIL = "email invalide"
-const ERR_NOMDP = "le mot de passe ne peut pas être vide"
-const ERR_BADMDP = "mot de passe incorrect"
-const ERR_DIFMDP = "mots de passe différents"
-const ERR_SHORTMDP = "mot de passe trop court (6 caractères minimum)"
-const ERR_HASHMDP = "erreur d'encodage du mot de passe"
-const ERR_DBNIL = "error db nil"
+const ErrLogin = "échec du login"
+const ErrNoMail = "l'email ne peut pas être vide"
+const ErrInvMail = "email invalide"
+const ErrNoMdp = "le mot de passe ne peut pas être vide"
+const ErrBadMdp = "mot de passe incorrect"
+const ErrDifMdp = "mots de passe différents"
+const ErrShortMdp = "mot de passe trop court (6 caractères minimum)"
+const ErrHashMdp = "erreur d'encodage du mot de passe"
+const ErrDBNil = "erreur db nil"
+const MinPasswordLen = 6
 
 func Init(db DatabaseUser) error {
 	if db == nil {
-		return fmt.Errorf(ERR_DBNIL)
+		return fmt.Errorf(ErrDBNil)
 	}
+
 	store = db
+
 	return nil
 }
 
@@ -50,54 +53,65 @@ func SetEmail(mail string) (u User) {
 	return u
 }
 
-func NewUser(email string, mdp string) (u User, err error) {
+func NewUser(email, mdp string) (u User, err error) {
 	if email == "" {
-		return u, fmt.Errorf("%v", ERR_NOMAIL)
+		return u, fmt.Errorf("%v", ErrNoMail)
 	}
+
 	if mdp == "" {
-		return u, fmt.Errorf("%v", ERR_NOMDP)
-	} else if len(mdp) < 6 {
-		return u, fmt.Errorf("%v", ERR_SHORTMDP)
+		return u, fmt.Errorf("%v", ErrNoMdp)
+	} else if len(mdp) < MinPasswordLen {
+		return u, fmt.Errorf("%v", ErrShortMdp)
 	}
+
 	if !strings.Contains(email, "@") {
-		return u, fmt.Errorf("%v", ERR_INVMAIL)
+		return u, fmt.Errorf("%v", ErrInvMail)
 	}
+
 	u.email = email
 	u.mdp = mdp
+
 	return u, nil
 }
 
-func Signin(email string, mdp string, confirmmdp string) (u User, err error) {
+func Signin(email, mdp, confirmmdp string) (u User, err error) {
 	if mdp != confirmmdp {
-		return u, fmt.Errorf("%v", ERR_DIFMDP)
+		return u, fmt.Errorf("%v", ErrDifMdp)
 	}
+
 	u, err = NewUser(email, mdp)
 	if err != nil {
 		return u, err
 	}
+
 	u.mdp, err = HashPassword(mdp)
 	if err != nil {
-		return u, fmt.Errorf("%v : %v", ERR_HASHMDP, err)
+		return u, fmt.Errorf("%v : %v", ErrHashMdp, err)
 	}
+
 	err = store.AddUserDb(u)
 	if err != nil {
 		return u, err
 	}
+
 	return u, nil
 }
 
-func Login(email string, mdp string) (u User, err error) {
+func Login(email, mdp string) (u User, err error) {
 	u, err = NewUser(email, mdp)
 	if err != nil {
 		return u, err
 	}
+
 	user, err := store.GetUser(u)
 	if err != nil {
-		return u, fmt.Errorf("%v : %v", ERR_LOGIN, err.Error())
+		return u, fmt.Errorf("%v : %v", ErrLogin, err.Error())
 	}
+
 	if !checkPasswordHash(u.mdp, user.mdp) {
-		return u, fmt.Errorf(ERR_BADMDP)
+		return u, fmt.Errorf(ErrBadMdp)
 	}
+
 	return u, nil
 }
 

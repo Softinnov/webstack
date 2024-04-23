@@ -1,8 +1,11 @@
 package config
 
 import (
+	"fmt"
 	"os"
 )
+
+const ErrInvConfig = "configuration invalide"
 
 type Config struct {
 	StaticDir string
@@ -22,7 +25,7 @@ var servConfig = Config{
 	Dbpsw:     "adminPassword",
 }
 
-func GetConfig() Config {
+func GetConfig() (Config, error) {
 	// détermine si base de donnée locale ou dans container
 	dbs := os.Getenv("DBS")
 	if dbs == "tcp" {
@@ -34,5 +37,10 @@ func GetConfig() Config {
 	if dir != "" {
 		servConfig.StaticDir = dir
 	}
-	return servConfig
+
+	if servConfig.Port == "" || servConfig.Db == "" {
+		return Config{}, fmt.Errorf(ErrInvConfig)
+	}
+
+	return servConfig, nil
 }

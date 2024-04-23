@@ -16,19 +16,21 @@
 
 	export function answerResponse(text,statusCode) {
 		try {
-			if (statusCode == 403) {
-				alert(`${text}reconnectez vous`);
-				redirectTo("index.html");
-			} else if (statusCode == 500) {
-				alert(`${text}réessayez`);
-			} else if (statusCode == 401) {
-				alert(`${text}échec d'authentification`);
-			} else if (statusCode == 400) {
-				alert(`${text}`);
-			}else {
-				alert(`${text}`);
-				console.log("statut d'erreur inattendu :", statusCode);
-			}
+			const statusMessages = {
+            403: `${text}reconnectez vous`,
+            500: `${text}réessayez`,
+            401: `${text}échec d'authentification`,
+            400: `${text}`,
+        	};
+			if (statusMessages[statusCode]) {
+            	alert(statusMessages[statusCode]);
+            	if (statusCode === 403) {
+                	redirectTo("index.html");
+            	}
+        	} else {
+            	alert(`${text}`);
+            	console.log("statut d'erreur inattendu :", statusCode);
+        	}
 		} catch (error) {
 			console.error("erreur d'analyse de la réponse du serveur :", error);
 		}

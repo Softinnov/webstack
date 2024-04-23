@@ -15,46 +15,65 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-const ERRNOTACMD = "Commande invalide. Utilisez la commande 'help' pour afficher les commandes disponibles."
+const ErrNotACmd = "Commande invalide. Utilisez la commande 'help' pour afficher les commandes disponibles."
 
 func main() {
-	cfg := config.GetConfig()
-	msql, err := data.OpenDb(cfg)
+	cfg, err := config.GetConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer data.CloseDb()
+
+	msql, err := data.OpenDB(&cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	err = todos.Init(msql)
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	err = users.Init(msql)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	flag.Parse()
+
 	switch flag.Arg(0) {
 	case "":
-		cmd.Help()
+		cmd.Help("help")
 	case "help":
-		cmd.Help()
+		cmd.Help("help")
 	case "get":
-		user.Auth(cmd.Get, user.CFGFILEPATH)
+		user.Auth(cmd.Get, user.CfgFilePath)
 	case "add":
-		user.Auth(cmd.Add, user.CFGFILEPATH)
+		user.Auth(cmd.Add, user.CfgFilePath)
 	case "delete":
-		user.Auth(cmd.Delete, user.CFGFILEPATH)
+		user.Auth(cmd.Delete, user.CfgFilePath)
 	case "modify":
-		user.Auth(cmd.Modify, user.CFGFILEPATH)
+		user.Auth(cmd.Modify, user.CfgFilePath)
 	case "signin":
-		user.Signin(user.CFGFILEPATH)
+		_, err = user.Signin(user.CfgFilePath)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
 	case "login":
-		user.Login(user.CFGFILEPATH)
+		_, err = user.Login(user.CfgFilePath)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
 	case "logout":
-		user.ClearUserConfig(user.CFGFILEPATH)
+		err = user.ClearUserConfig(user.CfgFilePath)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
 	default:
-		fmt.Println(ERRNOTACMD)
+		fmt.Println(ErrNotACmd)
 		os.Exit(1)
 	}
+	defer data.CloseDB()
 }

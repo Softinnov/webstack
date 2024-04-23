@@ -22,8 +22,8 @@ func (h FuncHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 var userAuth = web.TokenInfo{
-	CookieName: web.COOKIE_NAME,
-	PrivateKey: web.SECRET_KEY,
+	CookieName: web.CookieName,
+	PrivateKey: web.SecretKey,
 	Auth: web.Auth{
 		Name:       "user",
 		IsRequired: true,
@@ -36,17 +36,21 @@ func main() {
 	modhandler := FuncHandler{HandlerFunc: web.HandleModifyTodo}
 	todoshandler := FuncHandler{HandlerFunc: web.HandleGetTodos}
 
-	cfg := config.GetConfig()
-
-	msql, err := data.OpenDb(cfg)
+	cfg, err := config.GetConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer data.CloseDb()
+
+	msql, err := data.OpenDB(&cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	err = todos.Init(msql)
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	err = users.Init(msql)
 	if err != nil {
 		log.Fatal(err)
@@ -62,5 +66,9 @@ func main() {
 	http.HandleFunc("/login", web.HandleLogin)
 	http.HandleFunc("/logout", web.HandleLogout)
 
-	http.ListenAndServe(cfg.Port, nil)
+	err = http.ListenAndServe(cfg.Port, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer data.CloseDB()
 }

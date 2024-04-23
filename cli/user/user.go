@@ -9,60 +9,72 @@ import (
 	"webstack/metier/users"
 )
 
-type UserCfg struct {
+type UCfg struct {
 	Email string `json:"email"`
 	Mdp   string `json:"mdp"`
 }
 
-const CFGFILEPATH = ".cfg/config.json"
-const ERR_CFG = "erreur de chargement de la config:"
-const ERR_SAVE_CFG = "erreur lors de l'enregistrement des informations:"
-const ERR_WRITE = "erreur writing updated config:"
-const ERR_READ = "erreur readfile config:"
-const ERR_UNMARSH = "erreur unmarshal data:"
-const ERR_MARSH = "erreur marshal updated data:"
-const ERR_SIGNIN = "erreur pendant l'enregistrement d'un nouvel utilisateur :"
-const SAVEDINFO = "Informations sauvegardées."
-const NOTSIGNEDIN = "\nSi ce n'est pas déjà fait pensez à vous inscrire avec la commande signin !"
-const NOUSERCFG = "Aucun utilisateur connecté: Voulez-vous vous connecter (c) ou vous inscrire (i)? "
+const CfgFilePath = ".cfg/config.json"
+const ErrCfg = "erreur de chargement de la config"
+const ErrSaveCfg = "erreur lors de l'enregistrement des informations"
+const ErrWrite = "erreur writing updated config"
+const ErrRead = "erreur readfile config"
+const ErrUnmarsh = "erreur unmarshal data"
+const ErrMarsh = "erreur marshal updated data"
+const ErrSignin = "erreur pendant l'enregistrement d'un nouvel utilisateur"
+const SavedInfo = "Informations sauvegardées."
+const NotSignedin = "\nSi ce n'est pas déjà fait pensez à vous inscrire avec la commande signin !"
+const NouserCfg = "Aucun utilisateur connecté: Voulez-vous vous connecter (c) ou vous inscrire (i)? "
+const InvChoice = "Choix invalide. Choisissez 'c' pour vous connecter ou 'i' pour vous inscrire."
+const ErrScan = "erreur de scan"
+const FormativeStr = "%v : %v"
 
 func Auth(f func(u users.User), configFilePath string) func(u users.User) {
 	configData, err := LoadConfig(configFilePath)
 	if err != nil {
-		fmt.Println(ERR_CFG, err)
+		fmt.Println(ErrCfg, err)
 		return nil
 	}
+
 	if configData.Email != "" && configData.Mdp != "" {
-		fmt.Println("Utilisateur connecté :", configData.Email)
 		u, err := users.NewUser(configData.Email, configData.Mdp)
 		if err != nil {
 			fmt.Println(err)
 			return nil
 		}
+
 		f(u)
 	} else {
-		fmt.Print(NOUSERCFG)
+		fmt.Print(NouserCfg)
 		scanner := bufio.NewScanner(os.Stdin)
 		if scanner.Scan() {
 			choice := strings.ToLower(scanner.Text())
 			switch choice {
 			case "c":
-				u, _ := Login(configFilePath)
+				u, err := Login(configFilePath)
+				if err != nil {
+					fmt.Println(err)
+				}
 				f(u)
 			case "i":
-				u, _ := Signin(configFilePath)
+				u, err := Signin(configFilePath)
+				if err != nil {
+					fmt.Println(err)
+				}
 				f(u)
 			default:
-				fmt.Println("Choix invalide. Choisissez 'c' pour vous connecter ou 'i' pour vous inscrire.")
+				fmt.Println(InvChoice)
+				return nil
 			}
 		}
 	}
+
 	return f
 }
 
-func LoadConfig(configFilePath string) (configUser UserCfg, err error) {
+func LoadConfig(configFilePath string) (configUser UCfg, err error) {
 	if _, err = os.Stat(configFilePath); os.IsNotExist(err) {
-		configUser = UserCfg{}
+		configUser = UCfg{}
 	} else {
 		fileContent, err := os.ReadFile(configFilePath)
 		if err != nil {
@@ -77,30 +89,31 @@ func LoadConfig(configFilePath string) (configUser UserCfg, err error) {
 	return configUser, nil
 }
 
-func SaveConfig(configUser UserCfg, configFilePath string) error {
+func SaveConfig(configUser UCfg, configFilePath string) error {
 	fileContent, err := json.MarshalIndent(configUser, "", "  ")
 	if err != nil {
 		return err
 	}
-	err = os.WriteFile(configFilePath, fileContent, 0644)
+
+	err = os.WriteFile(configFilePath, fileContent, 0o644)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
 func ClearUserConfig(configFilePath string) error {
+	var u UCfg
+
 	data, err := os.ReadFile(configFilePath)
 	if err != nil {
-		err = fmt.Errorf(" %v", err)
 		return err
 	}
 
-	var u UserCfg
 	err = json.Unmarshal(data, &u)
 	if err != nil {
-		err = fmt.Errorf("%v %v", ERR_UNMARSH, err)
-		return err
+		return fmt.Errorf(FormativeStr, ErrUnmarsh, err)
 	}
 
 	u.Email = ""
@@ -108,77 +121,108 @@ func ClearUserConfig(configFilePath string) error {
 
 	updatedData, err := json.MarshalIndent(u, "", "  ")
 	if err != nil {
-		err = fmt.Errorf("%v %v", ERR_MARSH, err)
-		return err
+		return fmt.Errorf(FormativeStr, ErrMarsh, err)
 	}
-	err = os.WriteFile(configFilePath, updatedData, 0644)
+
+	err = os.WriteFile(configFilePath, updatedData, 0o644)
 	if err != nil {
-		err = fmt.Errorf("%v %v", ERR_WRITE, err)
-		return err
+		return fmt.Errorf(FormativeStr, ErrWrite, err)
 	}
 
 	fmt.Println("Utilisateur bien déconnecté !")
+
 	return nil
 }
 
-func NewUserCfg(email string, mdp string) (u UserCfg) {
+func NewUserCfg(email, mdp string) (u UCfg) {
 	u.Email = email
 	u.Mdp = mdp
+
 	return u
 }
 
 func Login(configFilePath string) (u users.User, err error) {
 	configData, err := LoadConfig(configFilePath)
 	if err != nil {
-		fmt.Println(ERR_CFG, err)
-		return
+		return u, fmt.Errorf(FormativeStr, ErrCfg, err)
 	}
+
 	fmt.Print("Entrez votre email: ")
-	fmt.Scan(&configData.Email)
+
+	_, err = fmt.Scan(&configData.Email)
+	if err != nil {
+		return u, fmt.Errorf(FormativeStr, ErrScan, err)
+	}
+
 	fmt.Print("Entrez votre mot de passe: ")
-	fmt.Scan(&configData.Mdp)
+
+	_, err = fmt.Scan(&configData.Mdp)
+	if err != nil {
+		return u, fmt.Errorf(FormativeStr, ErrScan, err)
+	}
 
 	u, err = users.Login(configData.Email, configData.Mdp)
 	if err != nil {
-		fmt.Println(err, NOTSIGNEDIN)
-		ClearUserConfig(configFilePath)
+		fmt.Println(err, NotSignedin)
+
+		err2 := ClearUserConfig(configFilePath)
+		if err2 != nil {
+			return u, err2
+		}
+
 		return u, err
 	}
+
 	err = SaveConfig(configData, configFilePath)
 	if err != nil {
-		fmt.Println(ERR_SAVE_CFG, err)
-		return u, err
+		return u, fmt.Errorf(FormativeStr, ErrSaveCfg, err)
 	}
-	fmt.Println(SAVEDINFO)
+
+	fmt.Println(SavedInfo)
+
 	return u, nil
 }
 
 func Signin(configFilePath string) (u users.User, err error) {
+	var confirmmdp string
+
 	configData, err := LoadConfig(configFilePath)
 	if err != nil {
-		err = fmt.Errorf("%v %v", ERR_CFG, err)
-		fmt.Print(err)
-		return u, err
+		return u, fmt.Errorf(FormativeStr, ErrCfg, err)
 	}
-	var confirmmdp string
+
 	fmt.Print("Entrez votre email: ")
-	fmt.Scan(&configData.Email)
+
+	_, err = fmt.Scan(&configData.Email)
+	if err != nil {
+		return u, fmt.Errorf(FormativeStr, ErrScan, err)
+	}
+
 	fmt.Print("Choisissez un mot de passe: ")
-	fmt.Scan(&configData.Mdp)
+
+	_, err = fmt.Scan(&configData.Mdp)
+	if err != nil {
+		return u, fmt.Errorf(FormativeStr, ErrScan, err)
+	}
+
 	fmt.Print("Confirmez votre mot de passe: ")
-	fmt.Scan(&confirmmdp)
+
+	_, err = fmt.Scan(&confirmmdp)
+	if err != nil {
+		return u, fmt.Errorf(FormativeStr, ErrScan, err)
+	}
+
 	u, err = users.Signin(configData.Email, configData.Mdp, confirmmdp)
 	if err != nil {
-		err = fmt.Errorf("%v %v", ERR_SIGNIN, err)
-		fmt.Print(err)
-		return u, err
+		return u, fmt.Errorf(FormativeStr, ErrSignin, err)
 	}
+
 	err = SaveConfig(configData, configFilePath)
 	if err != nil {
-		err = fmt.Errorf("%v %v", ERR_SAVE_CFG, err)
-		fmt.Print(err)
-		return u, err
+		return u, fmt.Errorf(FormativeStr, ErrSaveCfg, err)
 	}
-	fmt.Println(SAVEDINFO)
+
+	fmt.Println(SavedInfo)
+
 	return u, nil
 }

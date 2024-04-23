@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -18,13 +17,13 @@ type Claims struct {
 	UserEmail string `json:"useremail"`
 }
 
-const COOKIE_NAME = "cookie"
-const SECRET_KEY = "codesecret123"
+const CookieName = "cookie"
+const SecretKey = "codesecret123"
+const ErrNoCookie = "connexion expirée"
+const ErrInvToken = "token invalide"
+const MinSubTokenStr = 2
 
-const ERR_NOCOOKIE = "connexion expirée"
-const ERR_INVTOKEN = "token invalide"
-
-var token_exp time.Time // Délai d'expiration du token : 1h
+var tokenExp time.Time // Délai d'expiration du token : 1h
 
 var invalidatedTokens = make(map[string]bool)
 
@@ -49,12 +48,13 @@ func HandleSignin(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	token := jsonwebToken(user)
 	http.SetCookie(w,
 		&http.Cookie{
-			Name:     COOKIE_NAME,
+			Name:     CookieName,
 			Value:    token,
-			Expires:  token_exp,
+			Expires:  tokenExp,
 			SameSite: http.SameSiteStrictMode,
 		})
 }
@@ -68,26 +68,29 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	token := jsonwebToken(user)
 	http.SetCookie(w,
 		&http.Cookie{
-			Name:     COOKIE_NAME,
+			Name:     CookieName,
 			Value:    token,
-			Expires:  token_exp,
+			Expires:  tokenExp,
 			SameSite: http.SameSiteStrictMode,
 		})
 }
 
 func HandleLogout(w http.ResponseWriter, r *http.Request) {
-	tokenStr, err := getTokenString(r, COOKIE_NAME)
+	tokenStr, err := getTokenString(r, CookieName)
 	if err != nil {
-		err = fmt.Errorf(ERR_INVTOKEN)
+		err = fmt.Errorf(ErrInvToken)
 		http.Error(w, err.Error(), http.StatusForbidden)
+
 		return
 	}
+
 	invalidateToken(tokenStr)
 	http.SetCookie(w, &http.Cookie{
-		Name:    COOKIE_NAME,
+		Name:    CookieName,
 		Value:   "",
 		MaxAge:  -1,
 		Expires: time.Now().Add(-time.Hour),
@@ -107,53 +110,60 @@ func WrapAuth(handler http.Handler, info TokenInfo) http.HandlerFunc {
 			if err == http.ErrNoCookie {
 				http.SetCookie(w,
 					&http.Cookie{
-						Name:    COOKIE_NAME,
+						Name:    CookieName,
 						Value:   "",
 						MaxAge:  -1,
 						Expires: time.Now().Add(-1 * time.Hour),
 						Path:    "/",
 					})
-				err = fmt.Errorf(ERR_NOCOOKIE)
+
+				err = fmt.Errorf(ErrNoCookie)
 				http.Error(w, err.Error(), http.StatusForbidden)
 			} else {
 				err = fmt.Errorf("err getToken")
 				http.Error(w, err.Error(), http.StatusForbidden)
 			}
+
 			return
 		}
+
 		if !validateToken(tokenStr) {
-			err = fmt.Errorf(ERR_INVTOKEN)
+			err = fmt.Errorf(ErrInvToken)
 			http.Error(w, err.Error(), http.StatusForbidden)
+
 			return
 		}
 
-		if ok, err := isAuthenticated(tokenStr, info.PrivateKey); !(ok && err == nil) {
-			http.Error(w, err.Error(), http.StatusUnauthorized)
+		if ok, errAuth := isAuthenticated(tokenStr, info.PrivateKey); !ok || errAuth != nil {
+			http.Error(w, errAuth.Error(), http.StatusUnauthorized)
 			return
 		}
 
-		m := make(map[string]interface{})
+		m := make(map[string]any)
 
-		err = parseTokenString(tokenStr, &m)
+		err = parseTokenString(tokenStr, m)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
+
 		handler.ServeHTTP(w, r)
 	}
 }
 
-func parseTokenString(tokenStr string, v *map[string]interface{}) (err error) {
+func parseTokenString(tokenStr string, v map[string]any) (err error) {
 	encodedStrings := strings.Split(tokenStr, ".")
-	if len(encodedStrings) < 2 {
+	if len(encodedStrings) < MinSubTokenStr {
 		err = http.ErrNoCookie
-		return
+		return err
 	}
+
 	b, err := base64.RawURLEncoding.DecodeString(encodedStrings[1])
 	if err != nil {
 		return err
 	}
-	return json.Unmarshal(b, v)
+
+	return json.Unmarshal(b, &v)
 }
 
 func getTokenString(r *http.Request, cookieName string) (string, error) {
@@ -165,8 +175,8 @@ func getTokenString(r *http.Request, cookieName string) (string, error) {
 	return cookie.Value, nil
 }
 
-func isAuthenticated(tokenStr string, privateKey string) (bool, error) {
-	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+func isAuthenticated(tokenStr, privateKey string) (bool, error) {
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, jwt.ErrSignatureInvalid
 		}
@@ -190,24 +200,27 @@ func validateToken(tokenStr string) bool {
 }
 
 func jsonwebToken(u users.User) string {
-	token_exp = time.Now().Add(time.Hour * 1)
+	tokenExp = time.Now().Add(time.Hour * 1)
 	t := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: token_exp.Unix(),
+			ExpiresAt: tokenExp.Unix(),
 		},
 		UserEmail: users.GetEmail(u),
 	})
-	token, err := t.SignedString([]byte(SECRET_KEY))
+
+	token, err := t.SignedString([]byte(SecretKey))
 	if err != nil {
-		log.Fatalln(err)
+		fmt.Print(err)
 	}
+
 	return token
 }
 
 func getUserEmail(tokenStr string) string {
 	claims := &Claims{}
-	jwt.ParseWithClaims(tokenStr, claims, func(t *jwt.Token) (interface{}, error) {
-		return []byte(SECRET_KEY), nil
+	jwt.ParseWithClaims(tokenStr, claims, func(t *jwt.Token) (any, error) {
+		return []byte(SecretKey), nil
 	})
+
 	return claims.UserEmail
 }

@@ -22,16 +22,20 @@ func (f *fakeDb) AddUserDb(u users.User) error {
 			return fmt.Errorf("email déjà utilisé")
 		}
 	}
+
 	f.users = append(f.users, u)
+
 	return nil
 }
 func (f *fakeDb) GetUser(u users.User) (users.User, error) {
 	for _, user := range f.users {
 		fmt.Print(user)
+
 		if users.GetEmail(user) == users.GetEmail(u) {
 			return user, nil
 		}
 	}
+
 	return users.User{}, fmt.Errorf("error")
 }
 
@@ -41,21 +45,22 @@ func (f *fakeDb) AddTodoDb(td todos.Todo, u users.User) error {
 }
 func (f *fakeDb) DeleteTodoDb(td todos.Todo) error {
 	for i, t := range f.todos {
-		if t.Id == td.Id {
+		if t.ID == td.ID {
 			f.todos = append(f.todos[:i], f.todos[i+1:]...)
 			return nil
 		}
 	}
-	return nil
 
+	return nil
 }
 func (f *fakeDb) ModifyTodoDb(td todos.Todo) error {
 	for _, t := range f.todos {
-		if t.Id == td.Id {
+		if t.ID == td.ID {
 			t.Task = td.Task
 			return nil
 		}
 	}
+
 	return nil
 }
 func (f *fakeDb) GetTodosDb(u users.User) (t []todos.Todo, e error) {
@@ -74,10 +79,10 @@ func setupFakeDb() fakeDb {
 	task4, _ := todos.NewTask("Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui")
 
 	mdp, _ := users.HashPassword("123456")
-	todo1 := todos.Todo{Id: 1, Task: task1, Priority: 3}
-	todo2 := todos.Todo{Id: 2, Task: task2, Priority: 2}
-	todo3 := todos.Todo{Id: 3, Task: task3, Priority: 2}
-	todo4 := todos.Todo{Id: 12, Task: task4, Priority: 1}
+	todo1 := todos.Todo{ID: 1, Task: task1, Priority: 3}
+	todo2 := todos.Todo{ID: 2, Task: task2, Priority: 2}
+	todo3 := todos.Todo{ID: 3, Task: task3, Priority: 2}
+	todo4 := todos.Todo{ID: 12, Task: task4, Priority: 1}
 	user, _ = users.NewUser("clem@caramail.fr", mdp)
 
 	db.AddTodoDb(todo1, user)
@@ -85,13 +90,18 @@ func setupFakeDb() fakeDb {
 	db.AddTodoDb(todo3, user)
 	db.AddTodoDb(todo4, user)
 	db.AddUserDb(user)
+
 	return db
 }
 
 func TestGet(t *testing.T) {
 	db := setupFakeDb()
-	todos.Init(&db)
-	users.Init(&db)
+	err := todos.Init(&db)
+	err2 := users.Init(&db)
+
+	if err != nil || err2 != nil {
+		t.Fatalf("Expected error to be nil but got : %v / %v", err, err2)
+	}
 
 	old := os.Stdout
 	r, w, _ := os.Pipe()
@@ -99,19 +109,21 @@ func TestGet(t *testing.T) {
 
 	defer func() {
 		os.Stdout = old
-		w.Close()
 	}()
 	Get(db.users[0])
 
 	outCh := make(chan string)
 	go func() {
 		var buf bytes.Buffer
-		io.Copy(&buf, r)
+
+		_, err := io.Copy(&buf, r)
+		if err != nil {
+			t.Errorf("Expected error to be nil but got : %v", err)
+		}
 		outCh <- buf.String()
 	}()
 	w.Close()
 
-	fmt.Print(old)
 	want := todos.GetTask(db.todos[0].Task)
 	want2 := todos.GetTask(db.todos[1].Task)
 	actual := <-outCh
@@ -123,8 +135,12 @@ func TestGet(t *testing.T) {
 
 func TestAdd(t *testing.T) {
 	db := setupFakeDb()
-	todos.Init(&db)
-	users.Init(&db)
+	err := todos.Init(&db)
+	err2 := users.Init(&db)
+
+	if err != nil || err2 != nil {
+		t.Fatalf("Expected error to be nil but got : %v / %v", err, err2)
+	}
 
 	var tests = []struct {
 		name      string
@@ -133,10 +149,10 @@ func TestAdd(t *testing.T) {
 		want      string
 	}{
 		{"Cas normal", "Sortir le chien", "2", todos.GetTask(db.todos[1].Task)},
-		{"Chaîne vide", "", "1", todos.ERR_NO_TEXT},
+		{"Chaîne vide", "", "1", todos.ErrNoText},
 		{"Caractères spéciaux autorisés", "(/$-_~+)=", "1", todos.GetTask(db.todos[2].Task)},
-		{"Caractères spéciaux non autorisés", "(/$-_]&[~]%)=", "3", todos.ERR_SPECIAL_CHAR},
-		{"Plusieurs espaces en entrée", "    ", "2", todos.ERR_NO_TEXT},
+		{"Caractères spéciaux non autorisés", "(/$-_]&[~]%)=", "3", todos.ErrSpecialChar},
+		{"Plusieurs espaces en entrée", "    ", "2", todos.ErrNoText},
 		{"Chaîne longue", "Une chaine très longue mais sans caractères spéciaux, d'ailleurs ma mère me dit toujours que je suis spécial, ça va c'est assez long ? Bon aller on va dire que oui", "1", todos.GetTask(db.todos[3].Task)},
 	}
 
@@ -155,7 +171,11 @@ func TestAdd(t *testing.T) {
 			outCh := make(chan string)
 			go func() {
 				var buf bytes.Buffer
-				io.Copy(&buf, r)
+
+				_, err := io.Copy(&buf, r)
+				if err != nil {
+					t.Errorf("Expected error to be nil but got : %v", err)
+				}
 				outCh <- buf.String()
 			}()
 			w.Close()
@@ -165,15 +185,18 @@ func TestAdd(t *testing.T) {
 			if !strings.Contains(actual, tt.want) {
 				t.Errorf("expected : %s, but got : %s", tt.want, actual)
 			}
-
 		})
 	}
 }
 
 func TestDelete(t *testing.T) {
 	db := setupFakeDb()
-	todos.Init(&db)
-	users.Init(&db)
+	err := todos.Init(&db)
+	err2 := users.Init(&db)
+
+	if err != nil || err2 != nil {
+		t.Fatalf("Expected error to be nil but got : %v / %v", err, err2)
+	}
 
 	os.Args = []string{"go run main.go", "delete", "2"}
 	old := os.Stdout
@@ -190,7 +213,11 @@ func TestDelete(t *testing.T) {
 	outCh := make(chan string)
 	go func() {
 		var buf bytes.Buffer
-		io.Copy(&buf, r)
+
+		_, err := io.Copy(&buf, r)
+		if err != nil {
+			t.Errorf("Expected error to be nil but got : %v", err)
+		}
 		outCh <- buf.String()
 	}()
 	w.Close()
@@ -205,8 +232,12 @@ func TestDelete(t *testing.T) {
 
 func TestModify(t *testing.T) {
 	db := setupFakeDb()
-	todos.Init(&db)
-	users.Init(&db)
+	err := todos.Init(&db)
+	err2 := users.Init(&db)
+
+	if err != nil || err2 != nil {
+		t.Fatalf("Expected error to be nil but got : %v / %v", err, err2)
+	}
 
 	old := os.Stdout
 	r, w, _ := os.Pipe()
@@ -224,7 +255,11 @@ func TestModify(t *testing.T) {
 	outCh := make(chan string)
 	go func() {
 		var buf bytes.Buffer
-		io.Copy(&buf, r)
+
+		_, err := io.Copy(&buf, r)
+		if err != nil {
+			t.Errorf("Expected error to be nil but got : %v", err)
+		}
 		outCh <- buf.String()
 		fmt.Println(outCh)
 	}()
