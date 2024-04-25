@@ -1,0 +1,3 @@
+To use the binary CLI :
+    
+    In your terminal from webstack/cli, execute the installer with root privileges : sudo ./install.sh

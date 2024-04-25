@@ -7,7 +7,7 @@ import (
 func Help(cmd string) {
 	switch cmd {
 	case "help":
-		fmt.Println("Mytodolist en CLI !")
+		fmt.Println("My TodoList en CLI !")
 		fmt.Println("Usage: mytodolist <command> [arguments]")
 		fmt.Println("\nCommandes disponibles:")
 		fmt.Println("  get          		Affiche vos tâches")

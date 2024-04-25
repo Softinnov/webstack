@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strconv"
 	"webstack/metier/todos"
 	"webstack/metier/users"
 
@@ -12,14 +13,25 @@ const Chill = 1
 const NotChill = 2
 const Emergency = 3
 
+const (
+	red    = "\x1b[31m"
+	yellow = "\x1b[33m"
+	green  = "\x1b[32m"
+	reset  = "\x1b[0m"
+)
+
 type TodoCli struct {
-	id       int
+	id       string
 	task     string
 	priority string
 }
 
+func sprintColor(color, text string) string {
+	return fmt.Sprintf("%s%s%s", color, text, reset)
+}
+
 func NewTodoCli(td todos.Todo) (todocli TodoCli) {
-	todocli.id = td.ID
+	todocli.id = strconv.Itoa(td.ID)
 	todocli.task = todos.GetTask(td.Task)
 
 	switch td.Priority {
@@ -47,9 +59,7 @@ func Get(u users.User) {
 
 	list, err := todos.Get(u)
 	if err != nil {
-		err = fmt.Errorf("error get : %v", err)
 		fmt.Println(err)
-
 		return
 	}
 
@@ -59,7 +69,25 @@ func Get(u users.User) {
 	t.AppendHeader(table.Row{columns[0], columns[1], columns[2]})
 
 	for _, display := range displayed {
-		t.AppendRow(table.Row{display.id, display.task, display.priority})
+		var colorCode string
+
+		switch display.priority {
+		case "oula c'est urgent ça":
+			colorCode = red
+		case "pas particulièrment pressé":
+			colorCode = yellow
+		case "chill t'as le temps man":
+			colorCode = green
+		default:
+			colorCode = reset
+		}
+
+		row := table.Row{
+			sprintColor(colorCode, display.id),
+			sprintColor(colorCode, display.task),
+			sprintColor(colorCode, display.priority),
+		}
+		t.AppendRow(row)
 	}
 
 	fmt.Println(t.Render())

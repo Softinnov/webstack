@@ -14,7 +14,7 @@ type UCfg struct {
 	Mdp   string `json:"mdp"`
 }
 
-const CfgFilePath = ".cfg/config.json"
+const CfgFilePath = "./.cfg/config.json"
 const ErrCfg = "erreur de chargement de la config"
 const ErrSaveCfg = "erreur lors de l'enregistrement des informations"
 const ErrWrite = "erreur writing updated config"
@@ -129,8 +129,6 @@ func ClearUserConfig(configFilePath string) error {
 		return fmt.Errorf(FormativeStr, ErrWrite, err)
 	}
 
-	fmt.Println("Utilisateur bien déconnecté !")
-
 	return nil
 }
 
@@ -163,7 +161,7 @@ func Login(configFilePath string) (u users.User, err error) {
 
 	u, err = users.Login(configData.Email, configData.Mdp)
 	if err != nil {
-		fmt.Println(err, NotSignedin)
+		fmt.Println(NotSignedin)
 
 		err2 := ClearUserConfig(configFilePath)
 		if err2 != nil {

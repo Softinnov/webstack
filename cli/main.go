@@ -71,6 +71,8 @@ func main() {
 			fmt.Println(err)
 			return
 		}
+
+		fmt.Println("Utilisateur déconnecté !")
 	default:
 		fmt.Println(ErrNotACmd)
 		os.Exit(1)

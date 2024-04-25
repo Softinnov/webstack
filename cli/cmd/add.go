@@ -28,13 +28,13 @@ func Add(user users.User) {
 
 	task, err := todos.NewTask(text)
 	if err != nil {
-		fmt.Print(err.Error())
+		fmt.Println(err.Error())
 		return
 	}
 
 	_, err = todos.Add(task, priority, user)
 	if err != nil {
-		fmt.Print(err.Error())
+		fmt.Println(err.Error())
 		return
 	}
 

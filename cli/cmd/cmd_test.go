@@ -116,13 +116,17 @@ func TestGet(t *testing.T) {
 	go func() {
 		var buf bytes.Buffer
 
-		_, err := io.Copy(&buf, r)
+		_, err = io.Copy(&buf, r)
 		if err != nil {
 			t.Errorf("Expected error to be nil but got : %v", err)
 		}
 		outCh <- buf.String()
 	}()
-	w.Close()
+
+	err = w.Close()
+	if err != nil {
+		t.Fatalf("Expected error to be nil but got : %v", err)
+	}
 
 	want := todos.GetTask(db.todos[0].Task)
 	want2 := todos.GetTask(db.todos[1].Task)
@@ -165,20 +169,22 @@ func TestAdd(t *testing.T) {
 
 			defer func() {
 				os.Stdout = old
-				w.Close()
 			}()
 			Add(db.users[0])
 			outCh := make(chan string)
 			go func() {
 				var buf bytes.Buffer
 
-				_, err := io.Copy(&buf, r)
+				_, err = io.Copy(&buf, r)
 				if err != nil {
 					t.Errorf("Expected error to be nil but got : %v", err)
 				}
 				outCh <- buf.String()
 			}()
-			w.Close()
+			err = w.Close()
+			if err != nil {
+				t.Fatalf("Expected error to be nil but got : %v", err)
+			}
 
 			actual := <-outCh
 
@@ -205,7 +211,6 @@ func TestDelete(t *testing.T) {
 
 	defer func() {
 		os.Stdout = old
-		w.Close()
 	}()
 
 	Delete(db.users[0])
@@ -214,13 +219,17 @@ func TestDelete(t *testing.T) {
 	go func() {
 		var buf bytes.Buffer
 
-		_, err := io.Copy(&buf, r)
+		_, err = io.Copy(&buf, r)
 		if err != nil {
 			t.Errorf("Expected error to be nil but got : %v", err)
 		}
 		outCh <- buf.String()
 	}()
-	w.Close()
+
+	err = w.Close()
+	if err != nil {
+		t.Fatalf("Expected error to be nil but got : %v", err)
+	}
 
 	dontWant := "Sortir le chien"
 	actual := <-outCh
@@ -245,7 +254,6 @@ func TestModify(t *testing.T) {
 
 	defer func() {
 		os.Stdout = old
-		w.Close()
 	}()
 
 	os.Args = []string{"go run main.go", "modify", "2", "Todo modifié", "1"}
@@ -256,14 +264,18 @@ func TestModify(t *testing.T) {
 	go func() {
 		var buf bytes.Buffer
 
-		_, err := io.Copy(&buf, r)
+		_, err = io.Copy(&buf, r)
 		if err != nil {
 			t.Errorf("Expected error to be nil but got : %v", err)
 		}
 		outCh <- buf.String()
 		fmt.Println(outCh)
 	}()
-	w.Close()
+
+	err = w.Close()
+	if err != nil {
+		t.Fatalf("Expected error to be nil but got : %v", err)
+	}
 
 	want := "Todo modifié"
 	actual := <-outCh
