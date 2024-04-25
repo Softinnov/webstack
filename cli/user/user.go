@@ -14,7 +14,7 @@ type UCfg struct {
 	Mdp   string `json:"mdp"`
 }
 
-const CfgFilePath = "./.cfg/config.json"
+const CfgFilePath = "/.cfg/mytodolist/config.json"
 const ErrCfg = "erreur de chargement de la config"
 const ErrSaveCfg = "erreur lors de l'enregistrement des informations"
 const ErrWrite = "erreur writing updated config"
